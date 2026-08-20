@@ -1,0 +1,16 @@
+{
+  "name": "fort-enigma",
+  "version": "1.0.0",
+  "description": "Fort Enigma — L'Appel du Gardien : jeu d'aventure et d'enigmes en un seul fichier HTML",
+  "private": true,
+  "scripts": {
+    "verifier": "node outils/verifier.js index.html",
+    "auditer": "python3 outils/reparer.py index.html",
+    "reparer": "python3 outils/reparer.py index.html --reparer",
+    "controle": "python3 outils/reparer.py index.html && node outils/verifier.js index.html",
+    "servir": "python3 -m http.server 8000"
+  },
+  "devDependencies": {
+    "puppeteer": "^23.0.0"
+  }
+}

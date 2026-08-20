@@ -1,0 +1,16 @@
+# sauvegardes creees par outils/reparer.py
+*.bak
+*.avant-*.bak
+
+# dependances de test
+node_modules/
+package-lock.json
+
+# systeme
+.DS_Store
+Thumbs.db
+.replit_history
+
+# captures et fichiers temporaires
+*.tmp
+/tmp/

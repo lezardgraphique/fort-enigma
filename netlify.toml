@@ -1,0 +1,17 @@
+# Le jeu est un fichier statique : rien a compiler.
+[build]
+  publish = "."
+  command = ""
+
+# Le fichier fait ~5,5 Mo : on le laisse en cache court pour que les
+# mises a jour arrivent vite, mais on autorise la revalidation.
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
