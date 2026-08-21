@@ -2851,6 +2851,65 @@ html body[data-integrite="suspecte"] #classementListe::before{
   display:block;margin:.35rem 0;font-size:.7rem;color:#ffb74d;opacity:.9;
   font-style:italic;text-align:center}
 </style>
+<script id="fort-salle-machines-prod">
+/* ============================================================
+   La Salle des Machines (triple clic sur l'horloge) donne acces
+   a des raccourcis : toutes les cles, saut au tresor, doublons.
+   Utile en developpement, mais elle etait accessible a TOUS les
+   joueurs une fois le jeu en ligne.
+   Elle reste ouverte en local et sur demande explicite ; partout
+   ailleurs, le triple clic ne fait plus rien.
+   ============================================================ */
+(function(){
+  'use strict';
+
+  function developpement(){
+    try{
+      var h=location.hostname||'';
+      /* machine du developpeur */
+      if(h==='localhost'||h==='127.0.0.1'||h===''||h==='::1') return true;
+      if(/^192\.168\.|^10\.|\.local$/.test(h)) return true;
+      if(location.protocol==='file:') return true;
+      /* aperçu d'une branche (Netlify, Vercel) : pas la production */
+      if(/^deploy-preview-|^branch-|--/.test(h)) return true;
+      /* ouverture volontaire : ?atelier=ouvert, memorisee pour la session */
+      var p=new URLSearchParams(location.search);
+      if(p.get('atelier')==='ouvert'){ sessionStorage.setItem('fort-atelier','1'); return true; }
+      if(sessionStorage.getItem('fort-atelier')==='1') return true;
+    }catch(e){}
+    return false;
+  }
+
+  var autorise=developpement();
+
+  if(!autorise){
+    /* On intercepte avant le gestionnaire du jeu : le compteur de clics
+       ne s'incremente jamais, donc le panneau ne s'ouvre pas. */
+    document.addEventListener('click', function(e){
+      if(e.target && e.target.closest && e.target.closest('#digitalClock')){
+        e.stopImmediatePropagation();
+      }
+    }, true);
+    /* filet de securite : si le panneau apparait malgre tout, on le referme */
+    setInterval(function(){
+      var d=document.getElementById('debugPanel');
+      if(d && d.style.display && d.style.display!=='none'){ d.style.display='none'; }
+    }, 500);
+  }
+
+  window.__fortAtelier={
+    accessible:autorise,
+    ouvrir:function(){
+      /* ouverture manuelle, meme en production, pour du depannage */
+      var d=document.getElementById('debugPanel');
+      if(!d) return false;
+      sessionStorage.setItem('fort-atelier','1');
+      d.style.display='flex';
+      return true;
+    }
+  };
+})();
+</script>
 </body>
 
 </html>

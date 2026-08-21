@@ -84,6 +84,24 @@ journal des incidents). Ce rapport est copiable : c'est lui qu'il faut joindre
 
 ---
 
+## La Salle des Machines
+
+Panneau de développement : **trois clics rapides sur l'horloge numérique**.
+Il donne accès aux raccourcis (toutes les clés, saut au trésor, doublons,
+choix de l'univers et de la météo).
+
+Il est **masqué en production**. Le triple clic n'ouvre rien sur un domaine
+public. Il reste accessible :
+
+- en local (`file://`, `localhost`, réseau privé) ;
+- sur un aperçu de branche (Netlify, Vercel) ;
+- en ajoutant `?atelier=ouvert` à l'adresse — actif pour la session ;
+- en console : `__fortAtelier.ouvrir()`.
+
+Sans cela, n'importe quel joueur pourrait se donner toutes les clés.
+
+---
+
 ## Intégrité des sauvegardes
 
 Un jeu qui tourne dans le navigateur **ne peut pas être rendu intrichable** :
