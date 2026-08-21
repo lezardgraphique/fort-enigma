@@ -1526,9 +1526,13 @@ html body[data-screen] .frame-scroll{
       justement plus rien a faire defiler : le bandeau Contrat redevient
       un encart compact en bas a gauche, hors de l'aplomb de la carte. */
 @media(min-width:1024px){
+  /* la carte est centree et plafonnee a 680px (.frame) : la marge
+     disponible a gauche vaut (100vw - 680px)/2. On y retranche 24px
+     de respiration pour que le bandeau ne touche jamais la carte,
+     meme entre 1024px et ~1450px ou 30vw seul recouvrait la carte. */
   html body #fortDailyContract{
     left:16px!important;right:auto!important;
-    width:min(360px,30vw)!important;
+    width:min(360px,calc((100vw - 728px)/2))!important;
     bottom:calc(env(safe-area-inset-bottom,0px) + 62px)!important}
   html body[data-scene=menu],
   html body[data-scene=donjon],
