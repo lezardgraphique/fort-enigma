@@ -2,6 +2,7 @@
 [build]
   publish = "."
   command = ""
+  functions = "netlify/functions"
 
 # Le fichier fait ~5,5 Mo : on le laisse en cache court pour que les
 # mises a jour arrivent vite, mais on autorise la revalidation.
