@@ -4,6 +4,12 @@
   command = ""
   functions = "netlify/functions"
 
+[build.environment]
+  AWS_LAMBDA_JS_RUNTIME = "nodejs18.x"
+
+[functions]
+  node_bundler = "esbuild"
+
 # Le fichier fait ~5,5 Mo : on le laisse en cache court pour que les
 # mises a jour arrivent vite, mais on autorise la revalidation.
 [[headers]]
