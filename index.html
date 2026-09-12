@@ -1969,6 +1969,165 @@ html body[data-screen=roulette-event] .frame{
 })();
 </script>
 
+<style id="fort-key3d-style">
+#fortKey3dWrap{position:relative;width:100%;display:flex;justify-content:center;
+  margin:.3rem 0 .5rem;perspective:600px;}
+#fortKey3d{position:relative;width:64px;height:64px;transform-style:preserve-3d;
+  animation:fortKeySpin 2.6s cubic-bezier(.34,1.1,.4,1) 1, fortKeyFloat 3.4s ease-in-out .1s infinite;}
+#fortKey3d svg{position:absolute;inset:0;width:100%;height:100%;
+  filter:drop-shadow(0 6px 10px rgba(0,0,0,.45));}
+#fortKey3d .fk-shine{position:absolute;inset:-20%;
+  background:linear-gradient(115deg,transparent 30%,rgba(255,255,255,.65) 48%,transparent 62%);
+  background-size:260% 260%;background-position:0% 0%;
+  mix-blend-mode:screen;pointer-events:none;
+  animation:fortKeyShine 2.6s ease-out .15s 1;}
+@keyframes fortKeySpin{
+  0%{transform:rotateY(0deg) rotateX(8deg) scale(.4);opacity:0;}
+  12%{opacity:1;}
+  70%{transform:rotateY(740deg) rotateX(8deg) scale(1.08);}
+  100%{transform:rotateY(760deg) rotateX(8deg) scale(1);}
+}
+@keyframes fortKeyFloat{
+  0%,100%{margin-top:0;}
+  50%{margin-top:-6px;}
+}
+@keyframes fortKeyShine{
+  0%{background-position:-40% -40%;}
+  100%{background-position:140% 140%;}
+}
+@media (prefers-reduced-motion:reduce){
+  #fortKey3d{animation:none;}
+  #fortKey3d .fk-shine{display:none;}
+  .fort-burst-spark{display:none;}
+}
+.fort-burst-wrap{position:fixed;top:50%;left:50%;width:0;height:0;z-index:9200;pointer-events:none;}
+.fort-burst-spark{position:absolute;top:0;left:0;width:6px;height:6px;border-radius:50%;
+  background:radial-gradient(circle,#fff8e0 0%,#f4d03f 55%,rgba(244,208,63,0) 80%);
+  animation:fortBurstFly .9s cubic-bezier(.15,.7,.3,1) forwards;}
+@keyframes fortBurstFly{
+  0%{transform:translate(-50%,-50%) scale(.4);opacity:1;}
+  70%{opacity:1;}
+  100%{transform:translate(calc(-50% + var(--bx)),calc(-50% + var(--by))) scale(.15);opacity:0;}
+}
+</style>
+<script id="fort-key3d">
+(function(){
+  'use strict';
+  var KEY_SVG = '<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">'
+    + '<defs><linearGradient id="fkGold" x1="0" y1="0" x2="1" y2="1">'
+    + '<stop offset="0%" stop-color="#fff4d0"/><stop offset="45%" stop-color="#f4d03f"/>'
+    + '<stop offset="100%" stop-color="#b8860b"/></linearGradient></defs>'
+    + '<circle cx="20" cy="20" r="13" fill="none" stroke="url(#fkGold)" stroke-width="7"/>'
+    + '<rect x="27" y="30" width="7" height="28" fill="url(#fkGold)"/>'
+    + '<rect x="27" y="40" width="14" height="6" fill="url(#fkGold)"/>'
+    + '<rect x="27" y="50" width="11" height="6" fill="url(#fkGold)"/>'
+    + '</svg>';
+
+  var dejaJoueSur = null;
+
+  function tenterAfficherCle(){
+    try{
+      if(document.body.dataset.screen!=='resultat') { dejaJoueSur=null; return; }
+      if(typeof state==='undefined' || state.mode!=='solo' || !state.solo || !state.solo.won) return;
+      if(dejaJoueSur==='resultat') return;
+      var frame=document.querySelector('.frame .frame-scroll, .frame');
+      if(!frame) return;
+      var titre=frame.querySelector('.challenge-title, h2, h3');
+      var ancre=titre||frame.firstElementChild;
+      if(!ancre||document.getElementById('fortKey3dWrap')) { dejaJoueSur='resultat'; return; }
+      var wrap=document.createElement('div');
+      wrap.id='fortKey3dWrap';
+      wrap.innerHTML='<div id="fortKey3d">'+KEY_SVG+'<div class="fk-shine"></div></div>';
+      ancre.parentNode.insertBefore(wrap, ancre.nextSibling);
+      dejaJoueSur='resultat';
+    }catch(e){}
+  }
+
+  setInterval(tenterAfficherCle, 400);
+
+  /* Gerbe d'etincelles a la reussite d'une epreuve (leger, transform+opacity uniquement). */
+  if(typeof window.resolveChallenge === 'function'){
+    var _resolveOrig = window.resolveChallenge;
+    window.resolveChallenge = function(succes){
+      if(succes){ try{ declencherGerbe(); }catch(e){} }
+      return _resolveOrig.apply(this, arguments);
+    };
+  }
+
+  function declencherGerbe(){
+    var hote=document.getElementById('app')||document.body;
+    var burst=document.createElement('div');
+    burst.className='fort-burst-wrap';
+    var n = (window.matchMedia && window.matchMedia('(max-width:600px)').matches) ? 10 : 16;
+    for(var i=0;i<n;i++){
+      var s=document.createElement('div');
+      s.className='fort-burst-spark';
+      var angle = (360/n)*i + (Math.random()*20-10);
+      var dist = 40 + Math.random()*50;
+      var rad = angle*Math.PI/180;
+      var dx = Math.round(Math.cos(rad)*dist);
+      var dy = Math.round(Math.sin(rad)*dist);
+      s.style.setProperty('--bx', dx+'px');
+      s.style.setProperty('--by', dy+'px');
+      s.style.animationDelay=(Math.random()*0.08).toFixed(2)+'s';
+      burst.appendChild(s);
+    }
+    document.body.appendChild(burst);
+    setTimeout(function(){ burst.remove(); }, 1100);
+  }
+})();
+</script>
+
+<style id="fort-decor-hint-style">
+#fortDecorHint{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 64px);
+  transform:translateX(-50%) translateY(6px);
+  max-width:min(88vw,340px);
+  background:rgba(15,18,26,.92);border:1px solid rgba(212,175,55,.55);
+  color:#f2e6d0;font-size:.78rem;line-height:1.35;text-align:center;
+  padding:.6rem .9rem;border-radius:14px;z-index:9300;
+  box-shadow:0 8px 24px rgba(0,0,0,.4);
+  opacity:0;pointer-events:none;
+  transition:opacity .5s ease, transform .5s ease;}
+#fortDecorHint.visible{opacity:1;transform:translateX(-50%) translateY(0);pointer-events:auto;}
+#fortDecorHint b{color:#f4d03f;}
+</style>
+<script id="fort-decor-hint">
+(function(){
+  'use strict';
+  var CLE='fort-decor-hint-vu';
+  var affiche=false;
+  function dejaVu(){ try{ return localStorage.getItem(CLE)==='1'; }catch(e){ return true; } }
+  function marquerVu(){ try{ localStorage.setItem(CLE,'1'); }catch(e){} }
+
+  function tenterAfficher(){
+    if(affiche || dejaVu()) return;
+    if(document.body.dataset.scene!=='menu') return;
+    if(document.body.dataset.screen!=='accueil') return;
+    var guardian=document.getElementById('movingGuardian');
+    if(!guardian) return;
+    affiche=true;
+    var el=document.createElement('div');
+    el.id='fortDecorHint';
+    el.innerHTML='\u2728 Le d\u00e9cor cache des secrets\u00a0: touche <b>le Gardien</b> ou <b>le pont de pierre</b> pour voir ce qu\u2019ils ont \u00e0 dire.';
+    document.body.appendChild(el);
+    requestAnimationFrame(function(){
+      requestAnimationFrame(function(){ el.classList.add('visible'); });
+    });
+    function fermer(){
+      el.classList.remove('visible');
+      setTimeout(function(){ el.remove(); }, 600);
+      marquerVu();
+      document.removeEventListener('click', surClicAilleurs, true);
+    }
+    function surClicAilleurs(){ fermer(); }
+    setTimeout(function(){ document.addEventListener('click', surClicAilleurs, true); }, 300);
+    setTimeout(fermer, 6000);
+  }
+
+  setInterval(tenterAfficher, 800);
+})();
+</script>
+
 <script id="fort-cartes-collection">!function(){"use strict";var e=[{id:"fort",nom:"Le Fort de Pierre",icon:"🏰"},{id:"foraine",nom:"La Fête Foraine",icon:"🎪"},{id:"steampunk",nom:"L'Atelier à Vapeur",icon:"⚙️"},{id:"nordique",nom:"La Salle Nordique Gelée",icon:"🪓"},{id:"pirate",nom:"La Crique des Pirates",icon:"🏴‍☠️"},{id:"manoir",nom:"Le Manoir Hanté",icon:"👻"},{id:"nocturne",nom:"La Veillée Nocturne",icon:"🌌"},{id:"jungle",nom:"La Jungle de Jade",icon:"🌿"},{id:"desert",nom:"Le Temple des Sables",icon:"🏺"},{id:"neon",nom:"Le Quartier Néon",icon:"🌆"}],t="fort-cartes-collection",n="fort-pactole-obtenu";function r(){try{var e=JSON.parse(localStorage.getItem(t)||"[]");return Array.isArray(e)?e:[]}catch(e){return[]}}function o(){try{return"1"===localStorage.getItem(n)}catch(e){return!1}}function a(a){var i=function(){var t=r(),n=e.filter(function(e){return-1===t.indexOf(e.id)});return n.length?n[Math.floor(Math.random()*n.length)]:null}();if(!i)return null;var c=r();if(c.push(i.id),function(e){try{localStorage.setItem(t,JSON.stringify(e))}catch(e){}}(c),!1!==a)try{"undefined"!=typeof GuardianSpirit&&GuardianSpirit.toast(i.icon+" Nouvelle carte trouvée : "+i.nom+" !")}catch(e){}return function(){if(r().length>=e.length&&!o()){!function(){try{localStorage.setItem(n,"1")}catch(e){}}();try{setBank(bank()+300)}catch(e){}setTimeout(function(){try{"undefined"!=typeof GuardianSpirit?GuardianSpirit.toast("🏆 Collection complète ! Le Pactole du Gardien t’attend : +300 💰"):alert("🏆 Collection complète ! Le Pactole du Gardien : +300 💰 doublons !")}catch(e){}},500)}}(),i}if(window.__fortCartes={liste:e,collection:r,ajouterCarteAuHasard:a,complete:function(){return r().length>=e.length},pactoleObtenu:o},"function"==typeof window.finishTresor){var i=window.finishTresor;window.finishTresor=function(e){var t=i.apply(this,arguments);return e&&Math.random()<.35&&setTimeout(function(){try{a(!0)}catch(e){}},1200),t}}if("function"==typeof window.openShop){var c=window.openShop;window.openShop=function(){var t=c.apply(this,arguments);try{!function(){var t=document.querySelector("#f2Modal .f2-panel");if(t&&!t.querySelector('[data-buy="carte"]')){var n=r().length,o=e.length,i=n>=o,c=0;try{c=bank()}catch(e){}var u=document.createElement("div");u.className="f2-item",u.innerHTML="<div><strong>🃏 Carte mystère du Fort</strong><p>Une carte au hasard parmi celles qu’il te manque encore. Collection : "+n+"/"+o+'.</p></div><button class="f2-buy" data-buy="carte" '+(i||c<50?"disabled":"")+">"+(i?"Complète":"50 💰")+"</button>";var l=t.querySelector('div[style*="opacity:.6"]');l?t.insertBefore(u,l):t.appendChild(u);var d=u.querySelector('[data-buy="carte"]');d&&d.addEventListener("click",function(){if(!i){var e=0;try{e=bank()}catch(e){}if(!(e<50)){try{setBank(bank()-50)}catch(e){}a(!0);var t=document.getElementById("f2Modal");t&&t.remove();try{renderHud()}catch(e){}}}})}}()}catch(e){}return t}}}();</script>
 <script id="fort-gardien-chat">
 /* ============================================================
