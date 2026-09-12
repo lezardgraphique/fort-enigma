@@ -1880,6 +1880,97 @@ html body[data-screen=roulette-event] .frame{
 @media(min-width:1024px){.gc-panel{margin-bottom:5vh;border-radius:16px;border-bottom:1.5px solid var(--gold-bright,#f4d03f);}
   .gardien-chat-modal{align-items:center;}}
 </style>
+<style id="fort-fairy-decor-style">
+/* Couche "conte de fees" : lueur doree + poussiere scintillante + rayons de lumiere,
+   posee par-dessus les decors existants sans les modifier. */
+#fortFairyLayer{position:fixed;inset:0;z-index:2;pointer-events:none;overflow:hidden;}
+#fortFairyGlow{position:absolute;inset:0;
+  background:radial-gradient(ellipse 120% 90% at 50% 38%,
+    rgba(255,224,150,.16) 0%,
+    rgba(255,196,110,.07) 35%,
+    rgba(20,14,8,0) 62%,
+    rgba(10,8,14,.28) 100%);
+  mix-blend-mode:screen;}
+#fortFairyRays{position:absolute;top:-30%;left:-30%;width:160%;height:160%;
+  background:conic-gradient(from 0deg at 50% 30%,
+    rgba(255,238,190,0) 0deg,
+    rgba(255,238,190,.05) 8deg,
+    rgba(255,238,190,0) 16deg,
+    rgba(255,238,190,0) 40deg,
+    rgba(255,238,190,.04) 48deg,
+    rgba(255,238,190,0) 56deg,
+    rgba(255,238,190,0) 100deg,
+    rgba(255,238,190,.05) 108deg,
+    rgba(255,238,190,0) 116deg,
+    rgba(255,238,190,0) 200deg,
+    rgba(255,238,190,.04) 210deg,
+    rgba(255,238,190,0) 220deg,
+    rgba(255,238,190,0) 300deg,
+    rgba(255,238,190,.05) 310deg,
+    rgba(255,238,190,0) 320deg,
+    rgba(255,238,190,0) 360deg);
+  mix-blend-mode:screen;
+  animation:fortFairyRaysTurn 120s linear infinite;
+  opacity:.7;}
+@keyframes fortFairyRaysTurn{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
+.fort-fairy-mote{position:absolute;border-radius:50%;
+  background:radial-gradient(circle,rgba(255,244,214,.95) 0%,rgba(255,224,150,.55) 45%,rgba(255,224,150,0) 75%);
+  filter:blur(.2px);
+  animation:fortFairyDrift linear infinite, fortFairyTwinkle ease-in-out infinite;}
+@keyframes fortFairyDrift{
+  0%{transform:translate(0,0);}
+  100%{transform:translate(var(--fairy-dx,20px), calc(-1 * var(--fairy-dist,100vh) - 40px));}
+}
+@keyframes fortFairyTwinkle{
+  0%,100%{opacity:.15;}
+  50%{opacity:1;}
+}
+@media (prefers-reduced-motion:reduce){
+  #fortFairyRays{animation:none;}
+  .fort-fairy-mote{animation:none;opacity:.4;}
+}
+</style>
+<script id="fort-fairy-decor">
+(function(){
+  'use strict';
+  function creerCouche(){
+    if(document.getElementById('fortFairyLayer')) return;
+    var layer=document.createElement('div');
+    layer.id='fortFairyLayer';
+    var glow=document.createElement('div'); glow.id='fortFairyGlow';
+    var rays=document.createElement('div'); rays.id='fortFairyRays';
+    layer.appendChild(glow);
+    layer.appendChild(rays);
+    var n = (window.matchMedia && window.matchMedia('(max-width:600px)').matches) ? 14 : 22;
+    for(var i=0;i<n;i++){
+      var m=document.createElement('div');
+      m.className='fort-fairy-mote';
+      var taille=(1+Math.random()*2.4).toFixed(1);
+      m.style.width=taille+'px';
+      m.style.height=taille+'px';
+      m.style.left=Math.round(Math.random()*100)+'%';
+      m.style.top=Math.round(60+Math.random()*40)+'%';
+      m.style.setProperty('--fairy-dx',(Math.round(Math.random()*60-30))+'px');
+      m.style.setProperty('--fairy-dist',(90+Math.random()*20)+'vh');
+      var dureeDerive=(14+Math.random()*16).toFixed(1)+'s';
+      var dureeScint=(1.6+Math.random()*2.2).toFixed(1)+'s';
+      var delaiDerive=(-Math.random()*30).toFixed(1)+'s';
+      var delaiScint=(-Math.random()*3).toFixed(1)+'s';
+      m.style.animationDuration=dureeDerive+', '+dureeScint;
+      m.style.animationDelay=delaiDerive+', '+delaiScint;
+      layer.appendChild(m);
+    }
+    document.body.appendChild(layer);
+  }
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',creerCouche);
+  } else {
+    creerCouche();
+  }
+  setTimeout(creerCouche, 500);
+})();
+</script>
+
 <script id="fort-cartes-collection">!function(){"use strict";var e=[{id:"fort",nom:"Le Fort de Pierre",icon:"🏰"},{id:"foraine",nom:"La Fête Foraine",icon:"🎪"},{id:"steampunk",nom:"L'Atelier à Vapeur",icon:"⚙️"},{id:"nordique",nom:"La Salle Nordique Gelée",icon:"🪓"},{id:"pirate",nom:"La Crique des Pirates",icon:"🏴‍☠️"},{id:"manoir",nom:"Le Manoir Hanté",icon:"👻"},{id:"nocturne",nom:"La Veillée Nocturne",icon:"🌌"},{id:"jungle",nom:"La Jungle de Jade",icon:"🌿"},{id:"desert",nom:"Le Temple des Sables",icon:"🏺"},{id:"neon",nom:"Le Quartier Néon",icon:"🌆"}],t="fort-cartes-collection",n="fort-pactole-obtenu";function r(){try{var e=JSON.parse(localStorage.getItem(t)||"[]");return Array.isArray(e)?e:[]}catch(e){return[]}}function o(){try{return"1"===localStorage.getItem(n)}catch(e){return!1}}function a(a){var i=function(){var t=r(),n=e.filter(function(e){return-1===t.indexOf(e.id)});return n.length?n[Math.floor(Math.random()*n.length)]:null}();if(!i)return null;var c=r();if(c.push(i.id),function(e){try{localStorage.setItem(t,JSON.stringify(e))}catch(e){}}(c),!1!==a)try{"undefined"!=typeof GuardianSpirit&&GuardianSpirit.toast(i.icon+" Nouvelle carte trouvée : "+i.nom+" !")}catch(e){}return function(){if(r().length>=e.length&&!o()){!function(){try{localStorage.setItem(n,"1")}catch(e){}}();try{setBank(bank()+300)}catch(e){}setTimeout(function(){try{"undefined"!=typeof GuardianSpirit?GuardianSpirit.toast("🏆 Collection complète ! Le Pactole du Gardien t’attend : +300 💰"):alert("🏆 Collection complète ! Le Pactole du Gardien : +300 💰 doublons !")}catch(e){}},500)}}(),i}if(window.__fortCartes={liste:e,collection:r,ajouterCarteAuHasard:a,complete:function(){return r().length>=e.length},pactoleObtenu:o},"function"==typeof window.finishTresor){var i=window.finishTresor;window.finishTresor=function(e){var t=i.apply(this,arguments);return e&&Math.random()<.35&&setTimeout(function(){try{a(!0)}catch(e){}},1200),t}}if("function"==typeof window.openShop){var c=window.openShop;window.openShop=function(){var t=c.apply(this,arguments);try{!function(){var t=document.querySelector("#f2Modal .f2-panel");if(t&&!t.querySelector('[data-buy="carte"]')){var n=r().length,o=e.length,i=n>=o,c=0;try{c=bank()}catch(e){}var u=document.createElement("div");u.className="f2-item",u.innerHTML="<div><strong>🃏 Carte mystère du Fort</strong><p>Une carte au hasard parmi celles qu’il te manque encore. Collection : "+n+"/"+o+'.</p></div><button class="f2-buy" data-buy="carte" '+(i||c<50?"disabled":"")+">"+(i?"Complète":"50 💰")+"</button>";var l=t.querySelector('div[style*="opacity:.6"]');l?t.insertBefore(u,l):t.appendChild(u);var d=u.querySelector('[data-buy="carte"]');d&&d.addEventListener("click",function(){if(!i){var e=0;try{e=bank()}catch(e){}if(!(e<50)){try{setBank(bank()-50)}catch(e){}a(!0);var t=document.getElementById("f2Modal");t&&t.remove();try{renderHud()}catch(e){}}}})}}()}catch(e){}return t}}}();</script>
 <script id="fort-gardien-chat">
 /* ============================================================
