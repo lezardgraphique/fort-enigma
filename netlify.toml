@@ -10,7 +10,7 @@
 [functions]
   node_bundler = "esbuild"
 
-# Le fichier fait ~5,5 Mo : on le laisse en cache court pour que les
+# Le fichier fait ~2,5 Mo : on le laisse en cache court pour que les
 # mises a jour arrivent vite, mais on autorise la revalidation.
 [[headers]]
   for = "/index.html"

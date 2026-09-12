@@ -32,8 +32,9 @@ python3 -m http.server 8000
 | `outils/reparer.py` | audite et répare le fichier hors navigateur |
 | `.github/workflows/verification.yml` | lance les deux à chaque envoi |
 
-Le fichier pèse environ 9 Mo : les onze illustrations sont encodées à
-l'intérieur, ce qui permet de jouer sans connexion.
+Le fichier pèse environ 2,5 Mo : les illustrations de chaque univers sont
+encodées à l'intérieur (WebP/AVIF compressés), ce qui permet de jouer sans
+connexion.
 
 ---
 
@@ -180,8 +181,9 @@ sont déjà dans le dépôt.
 
 GitHub Pages est le choix le plus simple ici : la publication ne se déclenche
 que si la vérification a réussi, et il n'y a aucun compte supplémentaire à
-créer. Netlify et Vercel apportent surtout un réseau de diffusion plus rapide
-— utile vu les 5,5 Mo du fichier.
+créer. Netlify apporte en plus les fonctions serverless utilisées par le Gardien IA
+(voir `netlify/functions/`) ; Vercel n'expose pas encore d'équivalent pour
+cette fonction précise.
 
 Aucune de ces plateformes ne « corrige le code » : ce rôle revient aux outils
 du dossier `outils/` et au Gardien technique intégré au jeu.
