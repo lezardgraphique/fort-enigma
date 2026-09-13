@@ -2,6 +2,12 @@
 *.bak
 *.avant-*.bak
 
+# secrets locaux (cle ANTHROPIC_API_KEY pour tester la fonction en local
+# avec `netlify dev`) : ne doivent jamais etre commit.
+.env
+.env.*
+!.env.example
+
 # dependances de test
 node_modules/
 package-lock.json

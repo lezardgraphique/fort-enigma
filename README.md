@@ -188,6 +188,47 @@ cette fonction précise.
 Aucune de ces plateformes ne « corrige le code » : ce rôle revient aux outils
 du dossier `outils/` et au Gardien technique intégré au jeu.
 
+### Automatiser réellement les deux côtés (GitHub → Netlify)
+
+Le tableau ci-dessus dit « automatique à chaque push » pour Netlify — mais
+cela suppose que Netlify et GitHub soient déjà reliés. Voici comment le
+faire une bonne fois pour toutes :
+
+1. **Relier le dépôt à Netlify** (à faire une seule fois) : sur
+   [app.netlify.com](https://app.netlify.com), *Add new site → Import an
+   existing project → Deploy with GitHub*, puis choisir ce dépôt. Netlify
+   lit automatiquement `netlify.toml` : rien à configurer à la main.
+   Une fois relié, **chaque `git push` sur `main` déclenche un déploiement
+   Netlify sans aucune action de ta part** — c'est Netlify qui écoute
+   GitHub, pas l'inverse.
+
+2. **Ajouter la clé du Gardien IA** : Netlify → *Site settings →
+   Environment variables → Add a variable* → nom `ANTHROPIC_API_KEY`,
+   valeur ta clé Anthropic. Sans elle, le Gardien reste sur son répertoire
+   de secours local (voir `netlify/functions/gardien-chat.js`) — le jeu
+   fonctionne quand même, juste sans IA réelle.
+   `.env.example` documente cette variable pour un test en local avec
+   `netlify dev` ; ne jamais committer le fichier `.env` réel (déjà exclu
+   par `.gitignore`).
+
+3. **Empêcher qu'une régression parte en ligne** : sur GitHub, *Settings →
+   Branches → Add branch protection rule* pour `main`, cocher *Require
+   status checks to pass before merging* et sélectionner le check
+   **Vérification du jeu**. Résultat concret : une pull request qui casse
+   le jeu (audit `reparer.py`, fonction du Gardien, ou test `verifier.js`
+   en échec) ne peut plus être fusionnée dans `main` — et comme Netlify
+   déploie depuis `main`, une régression ne peut plus se retrouver en
+   ligne par ce chemin. GitHub Pages, lui, applique déjà cette règle tout
+   seul (voir `publication.yml`, qui ne se déclenche qu'après un succès de
+   `verification.yml`) ; cette étape GitHub étend la même protection au
+   déploiement Netlify.
+
+4. **Le filet anti-fuite de clé** : `verification.yml` scanne désormais
+   le dépôt à chaque push et bloque le pipeline si un texte ressemblant à
+   une clé API Anthropic (`sk-ant-...`) s'y trouve — utile si quelqu'un
+   colle une vraie clé dans le code par erreur au lieu de la mettre en
+   variable d'environnement.
+
 ---
 
 ## Licence
