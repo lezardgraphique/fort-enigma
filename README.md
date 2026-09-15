@@ -205,7 +205,7 @@ faire une bonne fois pour toutes :
 2. **Ajouter la clé du Gardien IA** : Netlify → *Site settings →
    Environment variables → Add a variable* → nom `ANTHROPIC_API_KEY`,
    valeur ta clé Anthropic. Sans elle, le Gardien reste sur son répertoire
-   de secours local (voir `netlify/functions/gardien-chat.js`) — le jeu
+   de secours local (voir `netlify/functions/gardien-chat.mjs`) — le jeu
    fonctionne quand même, juste sans IA réelle.
    `.env.example` documente cette variable pour un test en local avec
    `netlify dev` ; ne jamais committer le fichier `.env` réel (déjà exclu

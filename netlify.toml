@@ -4,8 +4,11 @@
   command = ""
   functions = "netlify/functions"
 
-[build.environment]
-  AWS_LAMBDA_JS_RUNTIME = "nodejs18.x"
+# Remarque : la variable AWS_LAMBDA_JS_RUNTIME (qui force la version de
+# Node pour les fonctions) doit se regler via l'UI/CLI/API Netlify -- elle
+# n'a aucun effet placee ici dans netlify.toml. Sans reglage, le runtime
+# suit la version de Node du build (repli Node 24 par defaut), largement
+# suffisant pour gardien-chat.mjs (qui utilise fetch() nativement).
 
 [functions]
   node_bundler = "esbuild"
