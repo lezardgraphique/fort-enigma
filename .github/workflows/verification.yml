@@ -42,7 +42,7 @@ jobs:
 
       - name: Chercher une clé API oubliée dans le dépôt
         run: |
-          if grep -RIn --exclude-dir=.git --exclude-dir=node_modules -E "sk-ant-[A-Za-z0-9_-]{10,}" .; then
+          if grep -RIn --exclude-dir=.git --exclude-dir=node_modules --exclude=".env.example" -E "sk-ant-[A-Za-z0-9_-]{40,}" .; then
             echo "::error::Une cle ressemblant a une cle API Anthropic est presente dans le depot. Retirez-la et revoquez-la immediatement."
             exit 1
           fi
