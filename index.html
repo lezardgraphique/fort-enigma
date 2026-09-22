@@ -2136,7 +2136,11 @@ scene.addEventListener("pointerleave",()=>{tx=ty=0;if(!raf)raf=requestAnimationF
    l'emporter, par l'ordre de declaration, sur tout le CSS
    precedent.
    ============================================================ */
-.frame{height:80dvh!important;max-height:80dvh!important;}
+/* fort-frame-hauteur-adaptee : la carte s'ajuste desormais a son propre
+   contenu (les ecrans legers -- accueil, transition -- laissent voir
+   le decor) plutot que d'imposer 80dvh partout ; un plafond reste en
+   place pour les ecrans denses et pour eviter tout debordement. */
+.frame{height:auto!important;max-height:80dvh!important;min-height:min(34dvh,300px);}
 .frame-scroll{max-height:100%!important;overflow-y:auto!important;-webkit-overflow-scrolling:touch;}
 </style>
 <script id="fort-decor-hint">!function(){"use strict";var e="fort-decor-hint-vu",t=!1;setInterval(function(){if(!t&&!function(){try{return"1"===localStorage.getItem(e)}catch(e){return!0}}()&&"menu"===document.body.dataset.scene&&"accueil"===document.body.dataset.screen&&document.getElementById("movingGuardian")){t=!0;var n=document.createElement("div");n.id="fortDecorHint",n.innerHTML="✨ Le décor cache des secrets : touche <b>le Gardien</b> ou <b>le pont de pierre</b> pour voir ce qu’ils ont à dire.",document.body.appendChild(n),requestAnimationFrame(function(){requestAnimationFrame(function(){n.classList.add("visible")})}),setTimeout(function(){document.addEventListener("click",c,!0)},300),setTimeout(o,6e3)}function o(){n.classList.remove("visible"),setTimeout(function(){n.remove()},600),function(){try{localStorage.setItem(e,"1")}catch(e){}}(),document.removeEventListener("click",c,!0)}function c(){o()}},800)}();</script>
