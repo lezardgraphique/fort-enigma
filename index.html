@@ -2909,7 +2909,11 @@ footer.credits .soutien-jeu{margin-top:0.7rem;}
 }
 </style>
 <style id="fort-cards-tablette-pc">
-:root{--frame-w-cap:clamp(600px,78vw,960px);}
+:root{
+  --frame-w-cap:clamp(600px,78vw,960px);
+  --content-max:clamp(600px,78vw,960px);
+}
+#app{max-width:var(--content-max)!important;}
 </style>
 </body>
 
