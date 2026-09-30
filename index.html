@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data:; connect-src https://api.open-meteo.com; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'; media-src 'none'; worker-src 'none'; manifest-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data:; connect-src https://api.open-meteo.com; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'; media-src 'none'; worker-src 'self'; manifest-src 'self'">
 <meta name="referrer" content="no-referrer">
 
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -261,6 +261,385 @@ body[data-universe=manoir] #fort3dScene{--f3-accent:rgba(120,90,160,.18)}
 }
 @media (prefers-reduced-motion:reduce){#fort3dScene .f3-fog{animation:none}.frame{transform:none!important}}
 </style>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/svg+xml" href="icones/icone.svg">
+<link rel="apple-touch-icon" href="icones/icone-192.png">
+<style id="fort-moteur-style">
+/* ================================================================
+   MOTEUR FLUIDE — styles.
+   Qualite graphique a trois niveaux, reglee en temps reel par le
+   moteur (comme la « resolution dynamique » des jeux mobiles), et
+   regles tactiles/clavier pour que le jeu se joue partout.
+   ================================================================ */
+/* Tactile : pas de delai au toucher, pas de zoom au double appui,
+   pas de rafraichissement accidentel en tirant l'ecran vers le bas. */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%;touch-action:manipulation}
+body{overscroll-behavior:none;-webkit-tap-highlight-color:transparent}
+button,.btn,[role=button],a{touch-action:manipulation;-webkit-user-select:none;user-select:none}
+img{-webkit-user-drag:none;-webkit-touch-callout:none}
+#digitalClock{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+/* Animations en veille : element invisible, ou onglet en arriere-plan. */
+.fe-veille,.fe-veille::before,.fe-veille::after{animation-play-state:paused!important}
+/* Navigation clavier / manette : un curseur bien visible. */
+html.fe-nav :focus{outline:3px solid #f4d03f!important;outline-offset:3px!important;box-shadow:0 0 0 6px rgba(244,208,63,.25)!important}
+/* Niveau « equilibre » : on retire les effets les plus couteux
+   (flou d'arriere-plan recalcule a chaque image sous la carte). */
+html[data-qualite=moyenne] .frame,html[data-qualite=basse] .frame,
+html[data-qualite=moyenne] .card-parchment,html[data-qualite=basse] .card-parchment,
+html[data-qualite=moyenne] #fortDailyContract,html[data-qualite=basse] #fortDailyContract,
+html[data-qualite=moyenne] #panneauTechnique,html[data-qualite=basse] #panneauTechnique{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+html[data-qualite=moyenne] #fort3dScene .f3-fog{filter:none;animation-duration:32s}
+/* Niveau « economie » : decor fixe, particules et halos au repos. */
+html[data-qualite=basse] #scene *,html[data-qualite=basse] #fort3dScene *,html[data-qualite=basse] #specialDayDecor *{mix-blend-mode:normal!important}
+html[data-qualite=basse] #fort3dScene .f3-fog,
+html[data-qualite=basse] #fort3dScene::after,
+html[data-qualite=basse] .float-icon,
+html[data-qualite=basse] .fog-blob{animation:none!important}
+html[data-qualite=basse] #fort3dScene .f3-fog,html[data-qualite=basse] .fog-blob{filter:none!important}
+html[data-qualite=basse] #snowField,html[data-qualite=basse] #confettiField,html[data-qualite=basse] #bubbleField,
+html[data-qualite=basse] #steamField,html[data-qualite=basse] #batField,html[data-qualite=basse] #shootingStarField,
+html[data-qualite=basse] #embers,html[data-qualite=basse] .seagull,html[data-qualite=basse] .hero-bird{display:none!important}
+html[data-qualite=basse] .bulb{animation:none!important;box-shadow:0 0 6px currentColor}
+/* Reglage des graphismes dans le rapport du Gardien technique. */
+#panneauTechnique .pt-graphismes{display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:.78rem;color:#cfe6ff}
+#panneauTechnique .pt-graphismes b{flex:1 0 100%;font-family:Cinzel,Georgia,serif;color:#8fd0ff}
+#panneauTechnique .pt-graphismes button{flex:1 1 auto;padding:.4rem .6rem;border-radius:9px;border:1px solid rgba(120,200,255,.35);background:rgba(0,0,0,.25);color:#cfe6ff;cursor:pointer;font:inherit}
+#panneauTechnique .pt-graphismes button[aria-pressed=true]{background:rgba(143,208,255,.22);border-color:#8fd0ff;color:#fff}
+</style>
+<script id="fort-moteur">
+/* ================================================================
+   MOTEUR FLUIDE — la couche « moteur de jeu » de Fort Enigma.
+   Inspire de ce que font les moteurs de jeu (Phaser, Unity) et les
+   jeux mobiles, sans dependance externe :
+     1. une seule boucle d'animation (requestAnimationFrame) avec pas
+        de temps borne, partagee par tous les effets pilotes en JS ;
+     2. une qualite graphique adaptative : le moteur mesure la
+        fluidite en continu et allege le decor quand l'appareil peine,
+        puis le remet quand il suit de nouveau ;
+     3. la mise en veille des animations invisibles (decors des
+        univers non affiches, onglet en arriere-plan) — l'equivalent
+        du « culling » des moteurs 3D ;
+     4. les taches de fond (minuteurs de surveillance) executees
+        quand le navigateur est libre, jamais au milieu d'une image ;
+     5. les commandes partout : tactile, clavier, manette ;
+     6. l'installation et le jeu hors connexion (application web).
+   Console : __fortMoteur.etat(), __fortMoteur.qualite('auto'|'haute'|'moyenne'|'basse')
+   ================================================================ */
+(function(){
+  'use strict';
+  var W=window, D=document, H=D.documentElement;
+  var now=function(){return (W.performance&&performance.now)?performance.now():Date.now()};
+
+  /* ---------- 4. taches de fond hors des images ----------
+     Les minuteurs de 500 ms et plus ne servent qu'a surveiller et
+     rebrancher l'interface (les epreuves tournent a 250 ms ou moins).
+     Ils passent par requestIdleCallback : le navigateur les place
+     entre deux images, et ils se taisent quand l'onglet est cache. */
+  var nativeSetInterval=W.setInterval, ric=W.requestIdleCallback;
+  if(ric){
+    W.setInterval=function(fn,delai){
+      if(typeof fn!=='function'||!(+delai>=500)) return nativeSetInterval.apply(W,arguments);
+      var args=Array.prototype.slice.call(arguments,2), attente=false;
+      var lancer=function(){attente=false;fn.apply(W,args)};
+      return nativeSetInterval.call(W,function(){
+        if(D.hidden||attente) return;
+        attente=true;
+        ric.call(W,lancer,{timeout:Math.min(250,delai/2)});
+      },delai);
+    };
+  }
+
+  /* ---------- 1. la boucle ---------- */
+  var abonnes=[], raf=0, dernier=0;
+  function boucle(t){
+    raf=0;
+    var dt=dernier?Math.min(t-dernier,100):16.7;   // pas borne : pas de saut apres une pause
+    dernier=t;
+    for(var i=0;i<abonnes.length;i++){ try{abonnes[i](dt,t)}catch(e){} }
+    if(abonnes.length&&!D.hidden) raf=requestAnimationFrame(boucle);
+  }
+  function relancer(){ if(!raf&&abonnes.length&&!D.hidden){dernier=0;raf=requestAnimationFrame(boucle)} }
+  function ajouter(fn){ if(abonnes.indexOf(fn)<0) abonnes.push(fn); relancer(); return function(){retirer(fn)} }
+  function retirer(fn){ var i=abonnes.indexOf(fn); if(i>=0) abonnes.splice(i,1) }
+
+  /* ---------- 2. qualite adaptative ---------- */
+  var NIVEAUX=['haute','moyenne','basse'];
+  var CLE='fort-qualite';
+  var choix='auto'; try{choix=localStorage.getItem(CLE)||'auto'}catch(e){}
+  if(choix!=='auto'&&NIVEAUX.indexOf(choix)<0) choix='auto';
+  var niveau=choix!=='auto'?choix:(H.classList.contains('perf-lite')?'moyenne':'haute');
+  var hz=60, fpsActuel=0, historique=[];
+  function appliquer(n){
+    niveau=n;
+    H.setAttribute('data-qualite',n);
+    H.classList.toggle('perf-lite',n!=='haute');
+    try{W.__fxd=n==='haute'?1:.5}catch(e){}
+  }
+  appliquer(niveau);
+
+  var images=0, debutMesure=0, sousRegime=0, auRegime=0, remontees=0, derniereBaisse=0, calme=0;
+  var intervalles=[];
+  function mesurer(dt,t){
+    if(t<calme){ images=0; debutMesure=t; return }
+    if(intervalles.length<90){ intervalles.push(dt); if(intervalles.length===90) estimerHz() }
+    if(!debutMesure) debutMesure=t;
+    images++;
+    var ecoule=t-debutMesure;
+    if(ecoule<1000) return;
+    fpsActuel=images*1000/ecoule; images=0; debutMesure=t;
+    historique.push(Math.round(fpsActuel)); if(historique.length>30) historique.shift();
+    if(choix!=='auto') return;
+    if(fpsActuel<hz*.78){ sousRegime++; auRegime=0 }
+    else if(fpsActuel>=hz*.93){ auRegime++; sousRegime=0 }
+    else { sousRegime=0; auRegime=0 }
+    var i=NIVEAUX.indexOf(niveau);
+    if(sousRegime>=3&&i<2){ appliquer(NIVEAUX[i+1]); sousRegime=0; derniereBaisse=t; calme=t+1500 }
+    /* on ne remonte que prudemment : longue periode fluide, et deux
+       fois au plus par partie, pour eviter le va-et-vient */
+    else if(auRegime>=20&&i>0&&remontees<2&&t-derniereBaisse>30000){ appliquer(NIVEAUX[i-1]); auRegime=0; remontees++; calme=t+1500 }
+  }
+  /* frequence reelle de l'ecran (30, 60, 90, 120 Hz...) : un ecran
+     bride a 30 Hz n'est pas un appareil en difficulte */
+  function estimerHz(){
+    var s=intervalles.slice().sort(function(a,b){return a-b});
+    var m=s[Math.floor(s.length*.25)]||16.7;
+    hz=Math.max(30,Math.min(144,Math.round(1000/m)));
+  }
+  function choisir(n){
+    choix=(n==='auto'||NIVEAUX.indexOf(n)>=0)?n:'auto';
+    try{
+      localStorage.setItem(CLE,choix);
+      /* le nombre de particules est fixe au demarrage : on le prepare */
+      if(choix==='auto') localStorage.removeItem('fort-fx');
+      else localStorage.setItem('fort-fx',choix==='haute'?'full':'lite');
+    }catch(e){}
+    sousRegime=auRegime=0; remontees=0;
+    if(choix!=='auto') appliquer(choix);
+    calme=now()+1500;
+    planifierTri();
+    return choix;
+  }
+
+  /* ---------- 3. mise en veille des animations invisibles ---------- */
+  var enVeille=typeof Set==='function'?new Set():null, triPrevu=false;
+  var HORS_TRI='.frame,[role=dialog],#debugPanel,#panneauTechnique,.clue-journal,.master-chat,.gardien-toast,.effraction-overlay';
+  var peutVoir=!!(W.Element&&Element.prototype.checkVisibility);
+  function invisible(el){
+    if(!el.isConnected) return true;
+    /* l'element lui-meme : seulement display (son opacite peut etre
+       animee jusqu'a 0, il ne faut pas le figer a ce moment-la) */
+    if(!el.checkVisibility()) return true;
+    var p=el.parentElement;
+    return !!p&&!p.checkVisibility({opacityProperty:true,visibilityProperty:true});
+  }
+  function trier(){
+    triPrevu=false;
+    if(!peutVoir||!enVeille||!D.getAnimations||D.hidden) return;
+    var vus=new Map();
+    D.getAnimations().forEach(function(a){
+      var el=a.effect&&a.effect.target;
+      if(!el||el.nodeType!==1||vus.has(el)) return;
+      if(typeof CSSAnimation!=='undefined'&&!(a instanceof CSSAnimation)) return;
+      if(el.closest(HORS_TRI)){ vus.set(el,false); return }
+      vus.set(el,invisible(el));
+    });
+    vus.forEach(function(cache,el){
+      if(cache){ if(!enVeille.has(el)){ el.classList.add('fe-veille'); enVeille.add(el) } }
+    });
+    /* on reveille ce qui est redevenu visible (ou a disparu du DOM) */
+    enVeille.forEach(function(el){
+      if(!el.isConnected){ enVeille.delete(el); return }
+      if(!invisible(el)){ el.classList.remove('fe-veille'); enVeille.delete(el) }
+    });
+  }
+  function toutReveiller(){ if(enVeille){ enVeille.forEach(function(el){el.classList.remove('fe-veille')}); enVeille.clear() } }
+  function planifierTri(delai){
+    if(triPrevu) return; triPrevu=true;
+    setTimeout(function(){ ric?ric.call(W,trier,{timeout:600}):trier() },delai||0);
+  }
+  /* changement d'ecran ou d'univers : on reveille tout de suite, puis on
+     retrie une fois les fondus (0,55 s) termines */
+  function changementDeScene(){ toutReveiller(); triPrevu=false; planifierTri(750); calme=now()+1500 }
+
+  /* ---------- 5. commandes partout ---------- */
+  var FOCUSABLES='button:not([disabled]),a[href],input:not([disabled]):not([type=hidden]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"]),[role=button]';
+  var CALQUES='#panneauTechnique,#carnetMarche.ouvert,.effraction-overlay.visible,.clue-journal,.master-chat,[role=dialog]';
+  function visibleEl(el){
+    var r=el.getBoundingClientRect();
+    if(r.width<2||r.height<2) return false;
+    return peutVoir?el.checkVisibility({opacityProperty:true,visibilityProperty:true}):!!el.offsetParent;
+  }
+  function zoneActive(){
+    var calques=D.querySelectorAll(CALQUES);
+    for(var i=calques.length-1;i>=0;i--) if(visibleEl(calques[i])) return calques[i];
+    var dbg=D.getElementById('debugPanel');
+    if(dbg&&visibleEl(dbg)&&getComputedStyle(dbg).display!=='none') return dbg;
+    return D.getElementById('app')||D.body;
+  }
+  function candidats(zone){
+    return Array.prototype.filter.call(zone.querySelectorAll(FOCUSABLES),visibleEl);
+  }
+  /* navigation spatiale, comme sur console ou television */
+  function deplacer(dx,dy){
+    var zone=zoneActive(), liste=candidats(zone);
+    if(!liste.length) return false;
+    var cur=D.activeElement;
+    if(!cur||liste.indexOf(cur)<0){ liste[0].focus({preventScroll:false}); return true }
+    var a=cur.getBoundingClientRect(), ax=a.left+a.width/2, ay=a.top+a.height/2, best=null, bestScore=1e9;
+    liste.forEach(function(el){
+      if(el===cur) return;
+      var b=el.getBoundingClientRect(), bx=b.left+b.width/2, by=b.top+b.height/2;
+      var vx=bx-ax, vy=by-ay, avance=vx*dx+vy*dy;
+      if(avance<=1) return;
+      var ecart=Math.abs(vx*dy)+Math.abs(vy*dx);
+      var score=avance+ecart*2.5;
+      if(score<bestScore){bestScore=score;best=el}
+    });
+    if(best){ best.focus({preventScroll:true}); try{best.scrollIntoView({block:'nearest',inline:'nearest'})}catch(e){} }
+    return !!best;
+  }
+  function retour(){
+    var zone=zoneActive();
+    var f=zone.querySelector('[aria-label=Fermer],.pt-fermer,.cm-fermer,.contract-close,#closeDebug,#masterChatClose');
+    if(f&&visibleEl(f)){ f.click(); return true }
+    return false;
+  }
+  function activer(){
+    var el=D.activeElement;
+    if(el&&el!==D.body&&zoneActive().contains(el)){ el.click(); return true }
+    return deplacer(0,1);
+  }
+  function modeNav(on){ H.classList.toggle('fe-nav',on) }
+
+  var DIRS={ArrowUp:[0,-1],ArrowDown:[0,1],ArrowLeft:[-1,0],ArrowRight:[1,0]};
+  /* ecoute sur window, donc APRES les epreuves : si une epreuve utilise
+     deja les fleches (elle appelle preventDefault), on ne touche a rien */
+  W.addEventListener('keydown',function(e){
+    if(e.defaultPrevented||e.metaKey||e.ctrlKey||e.altKey) return;
+    var tag=(e.target&&e.target.tagName)||'';
+    if(tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT'||(e.target&&e.target.isContentEditable)) return;
+    if(e.key==='Tab'){ modeNav(true); return }
+    var d=DIRS[e.key];
+    if(d){ modeNav(true); if(deplacer(d[0],d[1])) e.preventDefault(); return }
+    if(e.key==='Escape'){ if(retour()) e.preventDefault() }
+  });
+  W.addEventListener('pointerdown',function(){modeNav(false)},{passive:true});
+  /* iOS n'applique :active au toucher que si un ecouteur touchstart existe */
+  D.addEventListener('touchstart',function(){},{passive:true});
+
+  /* manette (Xbox, PlayStation, Switch, Steam Deck...) : croix ou
+     stick gauche pour se deplacer, A pour valider, B pour revenir */
+  var manettes=0, tenu={}, prochain={};
+  function lireManette(dt,t){
+    var pads=navigator.getGamepads?navigator.getGamepads():[];
+    var etat={};
+    for(var i=0;i<pads.length;i++){
+      var p=pads[i]; if(!p) continue;
+      var b=function(k){return p.buttons[k]&&p.buttons[k].pressed};
+      var ax=p.axes[0]||0, ay=p.axes[1]||0;
+      if(b(12)||ay<-.5) etat.haut=1; if(b(13)||ay>.5) etat.bas=1;
+      if(b(14)||ax<-.5) etat.gauche=1; if(b(15)||ax>.5) etat.droite=1;
+      if(b(0)) etat.a=1; if(b(1)) etat.b=1;
+    }
+    Object.keys(ACTIONS).forEach(function(k){
+      if(!etat[k]){ tenu[k]=false; return }
+      var rep=k!=='a'&&k!=='b';
+      if(!tenu[k]||(rep&&t>=prochain[k])){
+        prochain[k]=t+(tenu[k]?140:380);   // repetition quand on maintient
+        tenu[k]=true; modeNav(true); ACTIONS[k]();
+      }
+    });
+  }
+  var ACTIONS={haut:function(){deplacer(0,-1)},bas:function(){deplacer(0,1)},gauche:function(){deplacer(-1,0)},
+               droite:function(){deplacer(1,0)},a:activer,b:retour};
+  W.addEventListener('gamepadconnected',function(){ if(++manettes===1) ajouter(lireManette) });
+  W.addEventListener('gamepaddisconnected',function(){ if(--manettes<=0){manettes=0;retirer(lireManette)} });
+
+  /* l'ecran ne s'eteint pas en pleine epreuve */
+  var verrou=null;
+  function garderEcran(){
+    var enJeu=/^(epreuve|salle-tresor|transition)$/.test(D.body.dataset.screen||'');
+    if(enJeu&&!verrou&&navigator.wakeLock&&!D.hidden){
+      navigator.wakeLock.request('screen').then(function(v){verrou=v;v.addEventListener('release',function(){verrou=null})}).catch(function(){});
+    } else if(!enJeu&&verrou){ verrou.release().catch(function(){}); verrou=null }
+  }
+
+  /* ---------- 6. application installable et hors connexion ---------- */
+  function installer(){
+    if(!('serviceWorker' in navigator)) return;
+    if(!/^https?:$/.test(location.protocol)) return;
+    navigator.serviceWorker.register('sw.js').catch(function(){});
+  }
+
+  /* ---------- reglage visible : dans le rapport du Gardien technique ---------- */
+  var LIBELLES={auto:'Auto',haute:'Haute',moyenne:'Équilibrée',basse:'Économie'};
+  function enrichirPanneau(p){
+    var carte=p.querySelector('.pt-carte'), actions=p.querySelector('.pt-actions');
+    if(!carte||!actions||p.querySelector('.pt-graphismes')) return;
+    var z=D.createElement('div'); z.className='pt-graphismes';
+    var titre=function(){return '🎮 Graphismes — '+(choix==='auto'?'auto ('+LIBELLES[niveau].toLowerCase()+')':LIBELLES[choix].toLowerCase())+(fpsActuel?' · '+Math.round(fpsActuel)+' img/s':'')};
+    z.innerHTML='<b></b>';
+    z.firstChild.textContent=titre();
+    ['auto','haute','moyenne','basse'].forEach(function(k){
+      var btn=D.createElement('button'); btn.type='button'; btn.textContent=LIBELLES[k];
+      btn.setAttribute('aria-pressed',String(choix===k));
+      btn.addEventListener('click',function(){
+        choisir(k);
+        z.querySelectorAll('button').forEach(function(x){x.setAttribute('aria-pressed',String(x===btn))});
+        z.firstChild.textContent=titre();
+      });
+      z.appendChild(btn);
+    });
+    carte.insertBefore(z,actions);
+    var pre=p.querySelector('.pt-corps');
+    if(pre) pre.textContent+='\n\nMoteur : '+etat().resume;
+  }
+
+  function etat(){
+    var e={choix:choix,niveau:niveau,ecranHz:hz,imagesParSeconde:Math.round(fpsActuel),
+           historique:historique.slice(),animationsEnVeille:enVeille?enVeille.size:0,manettes:manettes};
+    e.resume='qualite '+niveau+(choix==='auto'?' (auto)':'')+', '+e.imagesParSeconde+' img/s sur ecran '+hz+' Hz, '
+            +e.animationsEnVeille+' animations en veille';
+    return e;
+  }
+
+  /* ---------- demarrage ---------- */
+  function demarrer(){
+    var b=D.body; if(!b) return;
+    try{
+      new MutationObserver(function(l){
+        for(var i=0;i<l.length;i++){
+          if(l[i].target===b){ changementDeScene(); garderEcran(); return }
+        }
+      }).observe(b,{attributes:true,attributeFilter:['data-screen','data-universe','data-scene','data-timephase','data-weather']});
+      new MutationObserver(function(l){
+        for(var i=0;i<l.length;i++) for(var j=0;j<l[i].addedNodes.length;j++){
+          var n=l[i].addedNodes[j]; if(n.id==='panneauTechnique') enrichirPanneau(n);
+        }
+      }).observe(b,{childList:true});
+    }catch(e){}
+    D.addEventListener('visibilitychange',function(){
+      if(D.hidden){ dernier=0 } else { calme=now()+2000; relancer(); planifierTri(300); garderEcran() }
+    });
+    W.addEventListener('resize',function(){ planifierTri(400) },{passive:true});
+    nativeSetInterval.call(W,function(){ planifierTri() },2500);
+    planifierTri(1200);
+  }
+  if(D.readyState==='loading') D.addEventListener('DOMContentLoaded',demarrer); else demarrer();
+  W.addEventListener('load',function(){
+    installer();
+    /* le premier controle du jeu (1,6 s apres le chargement) peut deja
+       avoir allege le decor : on s'aligne dessus, puis on mesure */
+    setTimeout(function(){
+      if(choix==='auto'&&niveau==='haute'&&H.classList.contains('perf-lite')) appliquer('moyenne');
+      calme=now()+500; ajouter(mesurer);
+    },2000);
+  });
+
+  W.__fortMoteur={ajouter:ajouter,retirer:retirer,qualite:function(n){return n?choisir(n):choix},
+                  etat:etat,trier:trier,deplacer:deplacer};
+})();
+</script>
 </head>
 <body>
 <!-- FORT ENIGMA — DECORS 2.5D GENERATED/INTEGRATED:
@@ -1501,13 +1880,19 @@ html body[data-screen=accueil] .frame-scroll{
 }
 </style>
 <script id="fort-enigma-decor-parallax">
+/* Parallaxe du decor a la souris, pilotee par la boucle du moteur :
+   le decor rejoint la cible en douceur (lissage independant de la
+   frequence de l'ecran), comme une camera de jeu. */
 (()=>{const scene=document.getElementById("scene"),room=document.getElementById("roomLayer");
 if(!scene||!room||window.matchMedia("(prefers-reduced-motion: reduce)").matches)return;
-let raf=0,tx=0,ty=0;
-const apply=()=>{raf=0;room.style.setProperty("--decor-px",(tx*.9).toFixed(2)+"px");room.style.setProperty("--decor-py",(ty*.65).toFixed(2)+"px")};
-const move=(x,y)=>{const r=scene.getBoundingClientRect();tx=((x-(r.left+r.width/2))/r.width)*14;ty=((y-(r.top+r.height/2))/r.height)*10;if(!raf)raf=requestAnimationFrame(apply)};
+const M=window.__fortMoteur;let tx=0,ty=0,x=0,y=0,stop=null;
+const pas=(dt)=>{const k=1-Math.exp(-dt/110);x+=(tx-x)*k;y+=(ty-y)*k;
+  room.style.setProperty("--decor-px",(x*.9).toFixed(2)+"px");room.style.setProperty("--decor-py",(y*.65).toFixed(2)+"px");
+  if(Math.abs(tx-x)<.02&&Math.abs(ty-y)<.02&&stop){stop();stop=null}};
+const suivre=()=>{if(stop)return;if(M)stop=M.ajouter(pas);else requestAnimationFrame(()=>{x=tx;y=ty;pas(1e3)})};
+const move=(cx,cy)=>{const r=scene.getBoundingClientRect();tx=((cx-(r.left+r.width/2))/r.width)*14;ty=((cy-(r.top+r.height/2))/r.height)*10;suivre()};
 scene.addEventListener("pointermove",e=>{if(e.pointerType==="touch")return;move(e.clientX,e.clientY)},{passive:true});
-scene.addEventListener("pointerleave",()=>{tx=ty=0;if(!raf)raf=requestAnimationFrame(apply)},{passive:true});
+scene.addEventListener("pointerleave",()=>{tx=ty=0;suivre()},{passive:true});
 })();
 </script>
 <style id="fort-fix-desktop">
