@@ -4,7 +4,7 @@ Jeu d'aventure et d'énigmes qui tient dans **un seul fichier HTML**, sans
 serveur ni dépendance : `index.html` s'ouvre directement dans un navigateur.
 
 Le joueur traverse dix univers (Fort de Pierre, Atelier à Vapeur, Quartier
-Néon…), affronte des épreuves chronométrées et tente d'ouvrir le Coffre au
+Néon…), affronte vingt épreuves chronométrées et tente d'ouvrir le Coffre au
 Trésor. Le Gardien propose en fin de partie de forger de nouvelles salles,
 qui rejoignent aussitôt le jeu.
 
@@ -35,6 +35,86 @@ python3 -m http.server 8000
 Le fichier pèse environ 2,5 Mo : les illustrations de chaque univers sont
 encodées à l'intérieur (WebP/AVIF compressés), ce qui permet de jouer sans
 connexion.
+
+---
+
+## Les épreuves
+
+Vingt épreuves tirées au sort (`ALL_KINDS` dans `index.html`). Chaque univers
+les habille à sa façon (titre, décor), mais la mécanique reste la même.
+
+| Clé | Épreuve | Remarque |
+|---|---|---|
+| `riddle` | Énigme du Gardien des Clés | |
+| `math` | Calcul Éclair | |
+| `anagram` | Anagramme du Trésor | |
+| `memory` | Mémoire des Symboles | |
+| `labyrinth` | Le Labyrinthe des Égarés | |
+| `seal` | Le Sceau des Anciens | |
+| `morpion` | Morpion du Gardien | |
+| `bingo` | Bingo des Chiffres | |
+| `remparts` | La Course des Remparts | |
+| `cartes` | Le Pari du Panda | |
+| `weights` | Le Poids du Passé | |
+| `crossbow` | Le Tir de l'Arbalète | |
+| `reflex` | Les Auto-tamponneuses | boucle à pas fixe |
+| `wire` | Le Fil d'Argent | boucle à pas fixe |
+| `equilibre` | L'Équilibre du Passeur | boucle à pas fixe, sans duel |
+| `echo` | L'Écho du Fort | sans duel |
+| `lueurs` | Les Lueurs du Jour | uniquement au petit matin |
+| `marche` | Le Marché de Midi | uniquement l'après-midi |
+| `astres` | Les Astres de la Nuit | uniquement le soir et la nuit |
+| `atelier` | Atelier du Gardien | seulement si une proposition a été forgée ; sans duel |
+
+Certains univers écartent quelques épreuves (`UNIVERSE_KIND_EXCLUDE`).
+`roulette` (Machine à Doublons) et `padlock` (Le Verrou des Soupirs) existent
+dans le code mais ne font pas partie du tirage.
+
+**Avant d'ajouter une épreuve**, vérifier qu'elle ne double pas une existante
+par sa *mécanique* et non par son titre. Deux épreuves ont été retirées pour
+cette raison : L'Écho des Cloches (un Simon, identique à Mémoire des
+Symboles) et Le Pendule du Sacrifice (arrêter un indicateur mobile, comme
+Le Tir de l'Arbalète).
+
+---
+
+## Le moteur (FortEngine)
+
+Premier script du document, il sert toutes les autres parties du jeu :
+
+1. **Boucle à pas de temps fixe** (60 pas simulés par seconde). La vitesse de
+   jeu est la même de 24 à 240 Hz et ne ralentit plus quand l'appareil perd
+   des images. `FortEngine.loop({ update, render })` ; les épreuves qui
+   bougent en continu l'utilisent (voir la colonne « boucle à pas fixe »).
+2. **Gouverneur d'animations.** Les animations CSS infinies invisibles
+   (opacité nulle, parent masqué) sont mises en pause, sans aucun effet
+   visuel. Selon le palier, le décor est allégé.
+3. **Ordonnanceur de minuteurs.** Les minuteurs de fond (500 ms et plus) sont
+   regroupés sur un seul, exécutés par tranches et ralentis en arrière-plan.
+4. **Moniteur de fluidité** (mode Auto uniquement). Il mesure les images
+   lentes et règle le palier, avec hystérésis pour éviter les va-et-vient.
+
+| Palier | Nom |
+|---|---|
+| 0 | plein |
+| 1 | équilibré |
+| 2 | économe |
+| 3 | minimal |
+
+Le réglage de qualité du joueur est respecté : **Max** force le palier 0,
+**Éco** le palier 2, **Auto** laisse le moniteur décider.
+
+Paramètres d'adresse utiles au développement :
+
+- `?perf=1` : affiche le compteur de fluidité et le palier courant ;
+- `?fxtier=N` (0 à 3) : impose un palier.
+
+En console : `FortEngine.stats()` (images, tâches longues, animations actives
+et en pause), `FortEngine.setTier(n)`.
+
+**Limite connue :** les mesures ont été faites dans Chromium sans GPU
+(rendu logiciel). Le gain de fluidité visuelle sur un vrai téléphone reste à
+constater avec `?perf=1`.
 
 ---
 
@@ -138,7 +218,12 @@ autre projet.
 Tout est dans `index.html`. Les correctifs successifs sont regroupés en blocs
 `<style>` identifiés en fin de fichier (`fort-frame-anchor`,
 `fort-decors-univers`, `fort-themes-epreuves`, `fort-anti-flash`…), chacun
-commenté avec le défaut qu'il corrige.
+commenté avec le défaut qu'il corrige. Les plus récents concernent
+l'affichage : `fort-transition-card-style` (carte de transition en verre
+dépoli), `fort-cards-tablette-pc` (largeur fluide des cartes),
+`fort-paysage-mobile` (téléphone en mode paysage), `fort-multi-plateforme`
+(écrans très étroits, zones tactiles) et `fort-moteur-paliers` (allègement
+du décor selon le palier du moteur).
 
 Après toute modification :
 
@@ -228,6 +313,20 @@ faire une bonne fois pour toutes :
    une clé API Anthropic (`sk-ant-...`) s'y trouve — utile si quelqu'un
    colle une vraie clé dans le code par erreur au lieu de la mettre en
    variable d'environnement.
+
+### Vérifier que GitHub et Netlify sont synchronisés
+
+`main` est la seule source de vérité : Netlify ne garde rien qui ne soit pas
+dans ce dépôt (hors variables d'environnement, qui sont volontairement
+absentes du code). Pour le contrôler :
+
+1. Dans Netlify, *Deploys*, ouvrir le déploiement de production : il indique
+   le commit dont il est issu.
+2. Comparer avec `git rev-parse HEAD` (ou le dernier commit de `main` sur
+   GitHub). Les deux doivent être identiques.
+
+`main--fort-enigma.netlify.app` n'est pas un second site : c'est l'adresse
+du déploiement de la branche `main` du même projet.
 
 ---
 
