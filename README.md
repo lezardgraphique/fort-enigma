@@ -4,7 +4,7 @@ Jeu d'aventure et d'énigmes qui tient dans **un seul fichier HTML**, sans
 serveur ni dépendance : `index.html` s'ouvre directement dans un navigateur.
 
 Le joueur traverse dix univers (Fort de Pierre, Atelier à Vapeur, Quartier
-Néon…), affronte vingt épreuves chronométrées et tente d'ouvrir le Coffre au
+Néon…), affronte dix-neuf épreuves chronométrées et tente d'ouvrir le Coffre au
 Trésor. Le Gardien propose en fin de partie de forger de nouvelles salles,
 qui rejoignent aussitôt le jeu.
 
@@ -40,8 +40,11 @@ connexion.
 
 ## Les épreuves
 
-Vingt épreuves tirées au sort (`ALL_KINDS` dans `index.html`). Chaque univers
-les habille à sa façon (titre, décor), mais la mécanique reste la même.
+Dix-neuf épreuves tirées au sort (`ALL_KINDS` dans `index.html`). Chaque univers
+les habille à sa façon (titre, décor), mais la mécanique reste la même, sauf
+pour `astres` (voir plus bas). Chaque épreuve affiche, sous son texte
+d'ambiance, une ligne **« 🎯 comment jouer »** : c'est la consigne `sub` du
+générateur, conservée dans `howto` quand `applyThemedMeta` la remplace.
 
 | Clé | Épreuve | Remarque |
 |---|---|---|
@@ -49,7 +52,6 @@ les habille à sa façon (titre, décor), mais la mécanique reste la même.
 | `math` | Calcul Éclair | |
 | `anagram` | Anagramme du Trésor | |
 | `memory` | Mémoire des Symboles | |
-| `labyrinth` | Le Labyrinthe des Égarés | |
 | `seal` | Le Sceau des Anciens | |
 | `morpion` | Morpion du Gardien | |
 | `bingo` | Bingo des Chiffres | |
@@ -63,18 +65,56 @@ les habille à sa façon (titre, décor), mais la mécanique reste la même.
 | `echo` | L'Écho du Fort | sans duel |
 | `lueurs` | Les Lueurs du Jour | uniquement au petit matin |
 | `marche` | Le Marché de Midi | uniquement l'après-midi |
-| `astres` | Les Astres de la Nuit | uniquement le soir et la nuit |
-| `atelier` | Atelier du Gardien | seulement si une proposition a été forgée ; sans duel |
+| `astres` | Les Astres de la Nuit | uniquement le soir et la nuit ; une mécanique propre à chaque univers |
+| `atelier` | Atelier du Gardien | seulement si une proposition a été forgée ; sans duel ; jeu de rythme unique |
 
 Certains univers écartent quelques épreuves (`UNIVERSE_KIND_EXCLUDE`).
 `roulette` (Machine à Doublons) et `padlock` (Le Verrou des Soupirs) existent
 dans le code mais ne font pas partie du tirage.
 
+**Les Astres de la Nuit** sont le seul jeu dont la mécanique change selon
+l'univers, et chaque variante n'existe que dans un seul :
+
+| Univers | Jeu de nuit |
+|---|---|
+| Crique des Pirates | repérer l'étoile différente |
+| Manoir Hanté | retrouver les paires |
+| Fête Foraine | suivre le bon gobelet |
+| Veillée Nocturne | compter les étoiles filantes |
+
+Les autres univers n'ont pas de jeu de nuit (`UNIVERSE_KIND_EXCLUDE`).
+
 **Avant d'ajouter une épreuve**, vérifier qu'elle ne double pas une existante
-par sa *mécanique* et non par son titre. Deux épreuves ont été retirées pour
-cette raison : L'Écho des Cloches (un Simon, identique à Mémoire des
-Symboles) et Le Pendule du Sacrifice (arrêter un indicateur mobile, comme
-Le Tir de l'Arbalète).
+par sa *mécanique* et non par son titre. Ont été retirés pour cette raison :
+L'Écho des Cloches (un Simon, identique à Mémoire des Symboles), Le Pendule du
+Sacrifice (comme Le Tir de l'Arbalète), Le Labyrinthe des Égarés (observer puis
+reproduire, comme Mémoire des Symboles), quatre variantes d'Astres (Chœur =
+mémoire, Rouages = Sceau, Braise = Équilibre, Veilleur = Fil d'Argent) et trois
+mécaniques de l'Atelier (glisse = Arbalète, balance = Équilibre, frappes =
+Remparts).
+
+### Difficulté
+
+Le niveau d'une épreuve (`escalate`) dépend de la progression de la partie, de
+l'heure, du niveau du joueur et de son historique sur ce jeu. Il est étiqueté
+NOVICE (moins de 3), GARDIEN (3 à 5) ou MAÎTRE (6 et plus). Règles à respecter
+pour tout nouveau jeu : il doit rester **faisable à chaque niveau** (vérifier
+avec un joueur simulé de temps de réaction réaliste, pas seulement avec des
+bornes plausibles) et ne jamais punir plus vite que le temps de réaction humain.
+Exemples déjà appliqués : l'aléa de niveau est plafonné à +1 et seulement après
+deux épreuves ; le Bingo garantit une ligne gagnante ; le Fil d'Argent laisse un
+délai de réaction (520 ms au niveau 0, 400 ms au plus bas) avant la décharge.
+
+### Les cartes à collectionner
+
+Dix cartes, une par univers, enregistrées dans `fort-cartes-collection`
+(localStorage). On les gagne en ouvrant le Coffre au Trésor (environ une chance
+sur trois) ou en achetant une Carte mystère au Marché du Fort (50 💰). La galerie
+s'ouvre depuis le bouton « 🃏 Mes cartes » de l'accueil (`window.__fortCartes.ouvrir()`),
+et chaque nouvelle carte déclenche une révélation. Collection complète : Pactole
+du Gardien, +300 💰, versé une seule fois. La monnaie du Marché est exposée par
+`window.bank()` / `window.setBank()` : ne pas les renommer, plusieurs scripts les
+appellent depuis l'extérieur.
 
 ---
 
