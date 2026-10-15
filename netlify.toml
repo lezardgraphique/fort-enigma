@@ -25,7 +25,6 @@
   [headers.values]
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
-    X-Frame-Options = "DENY"
     Strict-Transport-Security = "max-age=63072000; includeSubDomains"
     Permissions-Policy = "geolocation=(self), camera=(), microphone=(), payment=(), usb=()"
     # Une CSP est deja declaree dans <head> d'index.html (balise meta) et
@@ -35,4 +34,10 @@
     # qui ne peut etre efficace que via un en-tete HTTP (les navigateurs
     # l'ignorent silencieusement dans une balise meta) et remplace X-Frame-Options
     # de facon plus moderne pour la protection anti-clickjacking.
-    Content-Security-Policy = "default-src 'none'; script-src 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data:; connect-src 'self' https://api.open-meteo.com https://geocoding-api.open-meteo.com https://ipapi.co https://ipwho.is https://get.geojs.io; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'; media-src 'none'; worker-src 'none'; manifest-src 'none'; frame-ancestors 'none'"
+    # frame-ancestors autorise uniquement l'interface Netlify (app.netlify.com
+    # et les domaines *.netlify.app/*.netlify.com) a afficher le jeu dans un
+    # cadre : sans cela, l'apercu integre a Netlify etait bloque et affichait
+    # « site introuvable ». Tout autre site reste interdit (anti-clickjacking).
+    # X-Frame-Options a ete retire : sa seule valeur possible ici (DENY)
+    # bloquait aussi l'apercu, et frame-ancestors le remplace.
+    Content-Security-Policy = "default-src 'none'; script-src 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data:; connect-src 'self' https://api.open-meteo.com https://geocoding-api.open-meteo.com https://ipapi.co https://ipwho.is https://get.geojs.io; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'; media-src 'none'; worker-src 'none'; manifest-src 'none'; frame-ancestors 'self' https://app.netlify.com https://*.netlify.app https://*.netlify.com"
