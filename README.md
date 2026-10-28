@@ -374,3 +374,8 @@ du déploiement de la branche `main` du même projet.
 
 Projet personnel. Les illustrations ont été générées pour ce jeu ; les
 Doublons et le Coffre au Trésor sont des créations originales.
+
+## Style des cartes et couche plateforme
+
+- **Cartes** : fond bleu nuit, bordure fine or, badge de catégorie, titre doré, emblème à droite (style du prototype « Trois concepts d'épreuves »).
+- **Couche plateforme** (`<script id="fort-plateforme">`) : navigation clavier / manette (flèches, croix, A/B, Échap, T/Start), vibrations, 13 succès sauvegardés (`fort-succes-v1`), transitions et profondeur des cartes, écran maintenu allumé, plein écran. Réglages dans la fenêtre 🏆. Désactivation : `?plat=0`.
