@@ -394,3 +394,15 @@ Couche `<script id="fort-veillee">` par-dessus le jeu (désactivable avec `?veil
 - **Décor vivant** (`<script id="fort-decor">`, désactivable avec `?decor=0`) : particules sur deux plans de profondeur (braises, embruns, neige, pluie, lucioles, sable, vapeur, confettis, étoiles filantes), parallaxe à la souris ou à l'inclinaison du téléphone, lumière animée par univers (torches, lune, aurore, néons, rayons), brume rampante et éclairs d'orage. La météo réelle et l'heure s'y ajoutent. Le cadre devient une vitre qui laisse voir le décor peint. Gouverné par FortEngine.
 - **Hors connexion** : `sw.js` (service worker) + `manifest.webmanifest` + icônes `icone-*.png`. Le jeu se charge et se joue sans réseau ; il est installable comme une application. La météo et le chat du Gardien reprennent dès que la connexion revient.
 
+## Le Gardien (v2) : guide, mécanicien et veilleur
+
+`<script id="fort-gardien">` — onglet 🕯️ sur le bord gauche, bouton « Parler au Gardien », ou touche **G**.
+- **Hors connexion** : répond à toutes les questions sur le jeu (règles, les 19 épreuves avec méthode et astuce, clés, doublons, coffre, univers, modes, horloge, difficulté, Ferveur, défi, succès, réglages, manette, hors ligne, statistiques) à partir de l'état réel de la partie. Ne donne jamais la solution d'une épreuve.
+- **Agit** : débloquer l'écran, relancer l'épreuve, retour accueil, mode fluide / tous les effets, son, réparation des sauvegardes, réglages par défaut, mise à jour, diagnostic.
+- **Veille** : journal des erreurs, auto-réparation des écrans plantés, neutralisation des voiles invisibles qui bloquent les clics, réparation des sauvegardes abîmées au démarrage.
+- **En ligne** : la fonction `gardien-chat` reçoit le contexte de la partie et peut déclencher les mêmes actions (`[[action:…]]`) ; repli local instantané en cas de silence.
+
+## Allègement
+
+Le décor vivant remplace les systèmes de particules DOM du jeu (fées, braises), les calques de décor invisibles sont mis en pause, les animations coûteuses (filtres, ombres animées, flou, mélange de calques) sont retirées, et les épreuves tournent avec un décor allégé.
+

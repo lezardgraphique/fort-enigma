@@ -71,7 +71,40 @@ TON ROLE DANS LA CONVERSATION
   pas de la pauvreté : vise la réplique qui a du caractère, pas la plus
   longue.
 - Ne mentionne jamais que tu es un modèle de langage, une IA, ou
-  Claude/Anthropic. Tu ES le Gardien, un point c'est tout.`;
+  Claude/Anthropic. Tu ES le Gardien, un point c'est tout.
+
+CE QUE TU SAIS DU JEU (faits exacts, à utiliser tels quels)
+- Une partie : 4 à 12 épreuves. Réussite = une clé (un chiffre secret du code
+  du Coffre) + 1 à 5 doublons selon la rapidité ; échec = case vide. Avant le
+  Coffre, des défis bonus donnent des chiffres du code sans leur position. Au
+  Coffre, chaque doublon donne 2 s (60 s max), chaque erreur coûte 5 s.
+- Les 19 épreuves : Énigme, Calcul, Anagramme, Mémoire des Torches,
+  Auto-tamponneuses, Sceau de Pierre, Morpion, Bingo, Course des Remparts,
+  Lueurs du Jour (matin), Marché du Fort (après-midi), Veillée des Astres
+  (soir/nuit), Fil d'Argent, Poids du Passé, Tir à l'Arbalète, Rituel du
+  Gardien, Pari du Panda, Écho du Fort, Équilibre du Passeur.
+- Niveaux NOVICE, GARDIEN puis MAÎTRE (à partir de la 7e épreuve) ; le Fort
+  s'adoucit sur les épreuves souvent ratées.
+- Ferveur : flamme ×1 à ×4 qui grandit avec les réussites enchaînées et verse
+  des pièces ; un échec la fait retomber de moitié. Un défi de la veillée par
+  partie, récompensé en pièces. 13 succès (onglet 🏆, touche T).
+- Modes : Solo, Soirée entre amis, Plateau (jusqu'à 4). Jouable au doigt,
+  souris, clavier, manette. Fonctionne hors connexion et s'installe comme une
+  application.
+
+LE CONTEXTE DE LA PARTIE
+Le message système peut se terminer par un bloc CONTEXTE (écran, épreuve en
+cours, clés, pièces, erreurs récentes). Sers-t'en pour répondre précisément.
+
+TU PEUX AGIR SUR LE JEU
+Si le joueur signale un problème, ajoute à la fin de ta réponse UNE balise
+parmi celles-ci (elle sera exécutée puis retirée de l'affichage) :
+[[action:debloquer]] écran figé, clic sans effet ; [[action:relancer_epreuve]]
+épreuve buguée ; [[action:accueil]] ; [[action:fluidite]] jeu lent ;
+[[action:effets]] rallumer les effets ; [[action:son]] pas de son ;
+[[action:muet]] ; [[action:sauvegarde]] progression étrange ;
+[[action:mise_a_jour]] version ancienne ; [[action:diagnostic]].
+N'utilise une balise que si elle sert vraiment le joueur.`;
 
 function jsonResponse(status, data) {
   return new Response(JSON.stringify(data), {
@@ -80,7 +113,9 @@ function jsonResponse(status, data) {
   });
 }
 
-async function appellerClaude(apiKey, messages) {
+const MODELES = ["claude-haiku-5-5", "claude-haiku-4-5-20251001"];
+
+async function appellerClaude(apiKey, messages, systeme, modele) {
   const controller = new AbortController();
   const delaiMax = setTimeout(() => controller.abort(), 15000);
 
@@ -93,10 +128,10 @@ async function appellerClaude(apiKey, messages) {
         "anthropic-version": "2023-06-01",
       },
       body: JSON.stringify({
-        model: "claude-haiku-4-5-20251001",
-        max_tokens: 350,
+        model: modele,
+        max_tokens: 400,
         temperature: 1,
-        system: SYSTEM_PROMPT,
+        system: systeme,
         messages,
       }),
       signal: controller.signal,
@@ -140,7 +175,16 @@ export default async (req) => {
   }));
 
   try {
-    const { statusCode, raw } = await appellerClaude(apiKey, trimmed);
+    let ctx = "";
+    if (payload.contexte && typeof payload.contexte === "object") {
+      ctx = "\n\nCONTEXTE\n" + JSON.stringify(payload.contexte).slice(0, 1200);
+    }
+    let statusCode = 0, raw = "";
+    for (const modele of MODELES) {
+      ({ statusCode, raw } = await appellerClaude(apiKey, trimmed, SYSTEM_PROMPT + ctx, modele));
+      // modèle indisponible : on essaie le suivant
+      if (!(statusCode === 404 || (statusCode === 400 && /model/i.test(raw)))) break;
+    }
 
     if (statusCode < 200 || statusCode >= 300) {
       return jsonResponse(502, {

@@ -3891,11 +3891,9 @@ html body .carte-col:not(.locked) .carte-nom{color:var(--cp-gold)}
     'html body .key-chip.empty .key-chip-icon{filter:grayscale(1) brightness(.75);opacity:.4;font-size:.78rem}' +
     'html body .key-chip:not(.code-chip)::before{content:"";position:absolute;left:32%;right:32%;top:-4px;height:3px;border-radius:2px;background:rgba(217,180,65,.55)}' +
     'html body .key-chip.filled:not(.code-chip){background:radial-gradient(circle at 50% 40%,rgba(255,226,140,.4),rgba(60,45,10,.55))!important;border:1px solid rgba(244,208,63,.85)!important;box-shadow:0 0 12px var(--fv-accent),inset 0 0 8px rgba(255,220,120,.4)!important}' +
-    'html:not(.fp-calme) body .key-chip.filled:not(.code-chip){animation:fv-braise 3.2s ease-in-out infinite}' +
     '@keyframes fv-braise{50%{filter:drop-shadow(0 0 6px var(--fv-accent)) brightness(1.15)}}' +
     /* accueil : le bouton principal est une lanterne, les autres des cartes */
     'html body #app #goSolo{background:linear-gradient(180deg,#f7dc62,#d4a521)!important;color:#2a1c05!important;border:1px solid #fff0b0!important;border-radius:20px!important;box-shadow:0 0 0 1px rgba(0,0,0,.25),0 10px 26px rgba(0,0,0,.5),0 0 28px rgba(244,208,63,.35)!important;letter-spacing:.09em;text-shadow:0 1px 0 rgba(255,255,255,.35)}' +
-    'html:not(.fp-calme) body #app #goSolo{animation:fv-lanterne 3.4s ease-in-out infinite}' +
     '@keyframes fv-lanterne{50%{box-shadow:0 0 0 1px rgba(0,0,0,.25),0 10px 26px rgba(0,0,0,.5),0 0 44px rgba(244,208,63,.6)}}' +
     'html body #app #goSoiree,html body #app #goPlateau{background:linear-gradient(180deg,#26203a,#1a1628)!important;color:#f1dfae!important;border:1px solid rgba(212,175,55,.42)!important;border-radius:20px!important;box-shadow:0 8px 22px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.06)!important;letter-spacing:.08em;text-align:left;position:relative;text-shadow:none}' +
     'html body #app #goSoiree::after,html body #app #goPlateau::after{content:"›";position:absolute;right:1.1rem;top:50%;translate:0 -52%;font-size:1.6rem;color:#d9b441}' +
@@ -4077,7 +4075,7 @@ html body .carte-col:not(.locked) .carte-nom{color:var(--cp-gold)}
     if (D.hidden || !profil) return;
     var t = tier();
     if (t >= 3) { cf.clearRect(0, 0, fond.width, fond.height); ca.clearRect(0, 0, avant.width, avant.height); return; }
-    var pas = t >= 1 ? 33 : 16;
+    var pas = (t >= 1 || enEpreuve()) ? 33 : 16;
     if (ts - dernier < pas - 2) { raf = W.requestAnimationFrame(dessiner); return; }
     var dt = Math.min(.05, (ts - dernier) / 1000 || .016); dernier = ts;
 
@@ -4087,7 +4085,7 @@ html body .carte-col:not(.locked) .carte-nom{color:var(--cp-gold)}
 
     cf.setTransform(dpr, 0, 0, dpr, 0, 0); ca.setTransform(dpr, 0, 0, dpr, 0, 0);
     cf.clearRect(0, 0, largeur, hauteur); ca.clearRect(0, 0, largeur, hauteur);
-    var avantOk = t < 2;
+    var avantOk = t < 2 && !enEpreuve();
 
     for (var i = 0; i < parts.length; i++) {
       var p = parts[i], g = (p.z >= .8 ? (avantOk ? ca : null) : cf);
@@ -4173,6 +4171,17 @@ html body .carte-col:not(.locked) .carte-nom{color:var(--cp-gold)}
     if (brume) { brume.style.setProperty('--fd-brume', profil.brume || 'transparent'); brume.hidden = !profil.brume; }
     peupler();
   }
+  var CALQUES = '#scene > div, .lighthouse-front-layer > .layer, .hero-scene-wrap > div, #fort3dScene > div';
+  function endormir() {
+    try {
+      D.querySelectorAll(CALQUES).forEach(function (el) {
+        var c = W.getComputedStyle(el);
+        var cache = c.visibility === 'hidden' || c.display === 'none' || parseFloat(c.opacity) < .02;
+        el.classList.toggle('fd-pause', cache);
+      });
+    } catch (e) {}
+  }
+  function enEpreuve() { try { return state.screen === 'epreuve'; } catch (e) { return false; } }
   function redim() {
     dpr = Math.min(W.devicePixelRatio || 1, tier() === 0 ? 1.5 : 1);
     largeur = W.innerWidth; hauteur = W.innerHeight;
@@ -4184,10 +4193,10 @@ html body .carte-col:not(.locked) .carte-nom{color:var(--cp-gold)}
   var css = '' +
     '#fd-brume{position:fixed;left:-10%;right:-10%;bottom:-6%;height:46%;pointer-events:none;opacity:.9;' +
       'background:radial-gradient(40% 55% at 20% 85%,var(--fd-brume),transparent 70%),radial-gradient(45% 50% at 70% 90%,var(--fd-brume),transparent 72%),radial-gradient(35% 45% at 45% 100%,var(--fd-brume),transparent 70%);' +
-      'filter:blur(6px);transform:translate3d(var(--fd-px,0),var(--fd-py,0),0);animation:fd-derive 38s ease-in-out infinite alternate}' +
+      'transform:translate3d(var(--fd-px,0),var(--fd-py,0),0);animation:fd-derive 38s ease-in-out infinite alternate}' +
     '#fd-brume[hidden]{display:none}' +
     '@keyframes fd-derive{from{translate:-4% 0}to{translate:4% -2%}}' +
-    '#fd-lumiere{position:fixed;inset:-4%;pointer-events:none;mix-blend-mode:screen;transform:translate3d(calc(var(--fd-px,0) * -1),calc(var(--fd-py,0) * -1),0)}' +
+    '#fd-lumiere{position:fixed;inset:-4%;pointer-events:none;transform:translate3d(calc(var(--fd-px,0) * -1),calc(var(--fd-py,0) * -1),0)}' +
     '[data-fd-lum=torche] #fd-lumiere{background:radial-gradient(38% 30% at 4% 96%,rgba(255,150,50,.26),transparent 70%),radial-gradient(38% 30% at 96% 96%,rgba(255,140,40,.24),transparent 70%);animation:fd-torche 2.6s steps(1) infinite}' +
     '[data-fd-lum=bougie] #fd-lumiere{background:radial-gradient(34% 26% at 50% 100%,rgba(255,190,120,.2),transparent 70%),radial-gradient(60% 40% at 90% 0,rgba(160,130,230,.16),transparent 70%);animation:fd-torche 3.4s steps(1) infinite}' +
     '[data-fd-lum=forge] #fd-lumiere{background:radial-gradient(50% 34% at 50% 108%,rgba(255,120,30,.28),transparent 72%);animation:fd-forge 1.8s ease-in-out infinite alternate}' +
@@ -4206,6 +4215,10 @@ html body .carte-col:not(.locked) .carte-nom{color:var(--cp-gold)}
     '#fd-eclair{position:fixed;inset:0;pointer-events:none;background:rgba(225,235,255,.0)}' +
     '#fd-eclair.fd-flash{animation:fd-flash .9s ease-out}' +
     '@keyframes fd-flash{0%{background:rgba(225,235,255,0)}6%{background:rgba(225,235,255,.42)}12%{background:rgba(225,235,255,.05)}18%{background:rgba(225,235,255,.3)}100%{background:rgba(225,235,255,0)}}' +
+    /* allègement : le décor vivant remplace les systèmes de particules DOM du jeu */
+    'html[data-fd-univers] #fortFairyLayer,html[data-fd-univers] #embers{display:none!important}' +
+    'html[data-fd-univers] #roomLayer::before{animation:none!important}' +
+    '.fd-pause,.fd-pause::before,.fd-pause::after{animation-play-state:paused!important}' +
     'html.fp-calme #fd-lumiere,html.fp-calme #fd-brume{animation:none}' +
     '@media (prefers-reduced-motion:reduce){#fd-lumiere,#fd-brume,#fd-eclair{animation:none!important}#fd-fond,#fd-avant{display:none}}';
 
@@ -4219,9 +4232,10 @@ html body .carte-col:not(.locked) .carte-nom{color:var(--cp-gold)}
       eclair = div('fd-eclair', 73);
       redim();
       W.addEventListener('resize', function () { clearTimeout(redim.t); redim.t = setTimeout(redim, 150); });
-      if (W.MutationObserver) new MutationObserver(function () { majProfil(false); }).observe(D.body, { attributes: true, attributeFilter: ['data-universe', 'data-weather', 'data-timephase', 'data-scene', 'data-screen'] });
+      if (W.MutationObserver) new MutationObserver(function () { majProfil(false); clearTimeout(endormir.a); clearTimeout(endormir.b); endormir.a = setTimeout(endormir, 80); endormir.b = setTimeout(endormir, 1400); }).observe(D.body, { attributes: true, attributeFilter: ['data-universe', 'data-weather', 'data-timephase', 'data-scene', 'data-screen'] });
       D.addEventListener('visibilitychange', function () { if (!D.hidden) { dernier = 0; lancer(); } });
       setInterval(function () { majProfil(false); if (!actif()) { cf.clearRect(0, 0, fond.width, fond.height); ca.clearRect(0, 0, avant.width, avant.height); } else lancer(); }, 1500);
+      setTimeout(endormir, 300); setTimeout(endormir, 2000);
       lancer();
     } catch (e) { try { console.warn('FortDecor :', e); } catch (x) {} }
   }
@@ -4259,6 +4273,450 @@ html body .carte-col:not(.locked) .carte-nom{color:var(--cp-gold)}
   W.addEventListener('online', maj);
   function depart() { if (navigator.onLine === false) maj(); }
   if (D.readyState === 'loading') D.addEventListener('DOMContentLoaded', depart); else depart();
+})();
+
+</script>
+<script id="fort-gardien">
+/* ==========================================================================
+   Fort Énigma — Le Gardien (v2) : guide, mécanicien et veilleur du Fort.
+   - Répond HORS CONNEXION à toutes les questions sur le jeu (règles, chaque
+     épreuve, clés, doublons, coffre, univers, modes, Ferveur, défis, succès,
+     réglages, manette, hors ligne…) à partir d'une base de connaissances
+     locale et de l'état réel de la partie.
+   - Agit : débloque l'écran, relance une épreuve, rend le jeu plus fluide,
+     réveille le son, répare une sauvegarde abîmée, met à jour le jeu…
+   - Veille en permanence : journal des erreurs, auto-réparation des écrans
+     plantés et des voiles invisibles qui bloquent les clics.
+   - En ligne, il passe la main au Gardien « grand modèle » (fonction Netlify)
+     qui peut lui aussi déclencher ces actions, avec repli local instantané.
+   ========================================================================== */
+(function () {
+  'use strict';
+  var W = window, D = document;
+  if (W.FortGardien) return;
+
+  function lire(c, d) { try { var v = W.localStorage.getItem(c); return v ? JSON.parse(v) : d; } catch (e) { return d; } }
+  function ecrire(c, v) { try { W.localStorage.setItem(c, JSON.stringify(v)); } catch (e) {} }
+  function esc(t) { return String(t == null ? '' : t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+  function norm(t) { return String(t || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[’'`]/g, ' ').replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim(); }
+  function ecr() { try { return state.screen; } catch (e) { return ''; } }
+  function run() { try { return activeRun(); } catch (e) { return null; } }
+  function un(a) { return a[Math.floor(Math.random() * a.length)]; }
+
+  /* ================================================================ JOURNAL */
+  var journal = [], reparations = [];
+  function noter(type, msg) {
+    journal.push({ t: new Date().toLocaleTimeString(), type: type, ecran: ecr(), msg: String(msg).slice(0, 220) });
+    if (journal.length > 40) journal.shift();
+  }
+  W.addEventListener('error', function (e) {
+    if (e && e.target && e.target !== W && (e.target.src || e.target.href)) return; // ressource manquante
+    noter('erreur', (e && e.message) || 'erreur'); planifierVerif();
+  });
+  W.addEventListener('unhandledrejection', function (e) {
+    var r = e && e.reason; var m = (r && (r.message || r)) || 'promesse rejetée';
+    if (/fetch|network|Failed to fetch|timeout|délai|Load failed/i.test(String(m))) return; // réseau : prévu
+    noter('promesse', m);
+  });
+
+  /* ======================================================= AUTO-RÉPARATION */
+  var verifT = 0, dernierAuto = 0, autoCompteur = 0;
+  function planifierVerif() { clearTimeout(verifT); verifT = setTimeout(verifier, 500); }
+  function ecranPlante() {
+    var app = D.getElementById('app'); if (!app) return false;
+    var fs = D.getElementById('fortFailsafe');
+    if (fs && fs.offsetParent) return 'failsafe';
+    if (!app.children.length && ecr() && ecr() !== 'transition') return 'vide';
+    var txt = app.innerText || '';
+    if (/Cannot read propert|is not a function|is not defined|undefined \(reading/.test(txt)) return 'erreur-rendu';
+    return false;
+  }
+  function verifier() {
+    var p = ecranPlante(); if (!p) return;
+    var t = Date.now();
+    if (t - dernierAuto < 6000) { autoCompteur++; } else autoCompteur = 0;
+    dernierAuto = t;
+    if (autoCompteur >= 2) { action('accueil', true); avis('🕯️ Le Gardien t’a ramené à l’accueil : cet écran refusait de s’afficher.'); return; }
+    var r = action('debloquer', true);
+    avis('🕯️ Le Gardien a rattrapé un écran planté (' + p + ').');
+    reparations.push({ t: new Date().toLocaleTimeString(), quoi: 'auto : ' + p, res: r });
+  }
+  // voile invisible qui avale les clics
+  function voileFantome() {
+    var vw = W.innerWidth, vh = W.innerHeight, n = 0;
+    [[.5, .5], [.5, .7], [.3, .4]].forEach(function (pt) {
+      var el = D.elementFromPoint(vw * pt[0], vh * pt[1]); if (!el || el === D.body || el === D.documentElement) return;
+      if (el.closest('#app,.fp-feuille,.fv-bilan,.gd-panneau,.f2-modal,.gardien-chat-modal,[role=dialog]')) return;
+      var cs = W.getComputedStyle(el), r = el.getBoundingClientRect();
+      if ((cs.position === 'fixed' || cs.position === 'absolute') && r.width > vw * .8 && r.height > vh * .6 && parseFloat(cs.opacity) < .05 && cs.pointerEvents !== 'none') {
+        el.style.pointerEvents = 'none'; n++; noter('voile', 'voile invisible neutralisé : ' + (el.id || el.className));
+      }
+    });
+    return n;
+  }
+  // sauvegardes abîmées
+  function sauvegardes(reparer) {
+    var abimees = [];
+    try {
+      for (var i = 0; i < W.localStorage.length; i++) {
+        var k = W.localStorage.key(i), v = W.localStorage.getItem(k);
+        if (!/fort|f2|gardien|cartes|succes|veillee|plateforme/i.test(k) || !v) continue;
+        var c = v.trim()[0];
+        if (c === '{' || c === '[') { try { JSON.parse(v); } catch (e) { abimees.push(k); } }
+      }
+      if (reparer) abimees.forEach(function (k) { W.localStorage.removeItem(k); noter('sauvegarde', 'entrée abîmée retirée : ' + k); });
+    } catch (e) {}
+    return abimees;
+  }
+
+  /* ================================================================ ACTIONS */
+  var ACTIONS = {
+    debloquer: function () {
+      var fait = [];
+      try { stopActiveTimer(); } catch (e) {}
+      try { var b = D.getElementById('decorBubble'); if (b) b.classList.remove('visible'); } catch (e) {}
+      try { var fb = D.querySelector('.fv-bilan.fv-ouvert'); if (fb) { fb.classList.remove('fv-ouvert'); fait.push('bilan fermé'); } } catch (e) {}
+      try { if (W.FortPlateforme) W.FortPlateforme.fermer(); } catch (e) {}
+      var v = voileFantome(); if (v) fait.push(v + ' voile(s) invisible(s) retiré(s)');
+      var s = ecr() || 'accueil';
+      try {
+        if (s === 'epreuve' && state.activeChallenge && state.activeChallenge.data && state.activeChallenge.data.over) {
+          var ch = state.activeChallenge; ch.data.over = false; launchChallenge(ch); fait.push('épreuve relancée');
+        } else { W.go(s); fait.push('écran « ' + s + ' » redessiné'); }
+      } catch (e) { try { W.go('accueil'); fait.push('retour à l’accueil'); } catch (x) {} }
+      return fait.length ? fait.join(', ') : 'tout semblait en ordre, j’ai tout de même redessiné l’écran';
+    },
+    relancer_epreuve: function () {
+      var c = state.activeChallenge; if (!c || ecr() !== 'epreuve') return 'aucune épreuve en cours à relancer';
+      try { stopActiveTimer(); W.commitChoice(c.kind); return 'épreuve « ' + (c.title || c.kind) + ' » relancée depuis le début'; } catch (e) { return ACTIONS.debloquer(); }
+    },
+    accueil: function () { try { stopActiveTimer(); } catch (e) {} try { W.go('accueil'); } catch (e) {} return 'retour à l’accueil (ta partie en cours reste en mémoire)'; },
+    fluidite: function () {
+      try { W.FortEngine && W.FortEngine.setTier(2); } catch (e) {}
+      try { W.localStorage.setItem('fort-fx', 'lite'); } catch (e) {}
+      var r = lire('fort-plateforme', {}); r.profondeur = false; ecrire('fort-plateforme', r);
+      try { if (W.FortPlateforme) W.FortPlateforme.reglages.profondeur = false; } catch (e) {}
+      D.documentElement.classList.add('fp-calme'); D.documentElement.classList.remove('fp-depth');
+      return 'mode fluide activé : effets de profondeur et particules allégés';
+    },
+    effets: function () {
+      try { W.localStorage.removeItem('fort-fx'); W.FortEngine && W.FortEngine.setTier(0); } catch (e) {}
+      var r = lire('fort-plateforme', {}); r.profondeur = true; ecrire('fort-plateforme', r);
+      try { if (W.FortPlateforme) W.FortPlateforme.reglages.profondeur = true; } catch (e) {}
+      D.documentElement.classList.remove('fp-calme'); D.documentElement.classList.add('fp-depth');
+      return 'tous les effets visuels sont rallumés';
+    },
+    son: function () {
+      try { Audio.setEnabled(true); Audio.ensure(); Audio.click(); } catch (e) {}
+      try { var mb = D.getElementById('muteBtn'); if (mb && /🔇/.test(mb.textContent)) mb.click(); } catch (e) {}
+      return 'son réveillé (si tu n’entends rien, vérifie le volume et le mode silencieux de l’appareil)';
+    },
+    muet: function () { try { Audio.setEnabled(false); } catch (e) {} return 'son coupé'; },
+    sauvegarde: function () { var a = sauvegardes(true); return a.length ? a.length + ' sauvegarde(s) abîmée(s) réparée(s)' : 'tes sauvegardes sont saines'; },
+    reglages: function () { ['fort-plateforme', 'fort-fx'].forEach(function (k) { try { W.localStorage.removeItem(k); } catch (e) {} }); return 'réglages remis par défaut (recharge la page pour tout appliquer)'; },
+    mise_a_jour: function () {
+      try {
+        if (navigator.serviceWorker && navigator.serviceWorker.getRegistration) {
+          navigator.serviceWorker.getRegistration().then(function (r) { if (r) r.update(); });
+        }
+      } catch (e) {}
+      if (navigator.onLine === false) return 'pas de réseau : je chercherai la mise à jour dès ton retour en ligne';
+      setTimeout(function () { try { W.location.reload(); } catch (e) {} }, 1200);
+      return 'je recharge le Fort avec sa dernière version…';
+    },
+    plein_ecran: function () { try { D.documentElement.requestFullscreen().catch(function () {}); return 'plein écran demandé'; } catch (e) { return 'le plein écran n’est pas disponible ici'; } },
+    diagnostic: function () { return diagnostic(); }
+  };
+  function action(id, auto) {
+    var f = ACTIONS[id]; if (!f) return 'action inconnue';
+    var r; try { r = f(); } catch (e) { r = 'échec : ' + e.message; }
+    if (!auto) reparations.push({ t: new Date().toLocaleTimeString(), quoi: id, res: r });
+    return r;
+  }
+  function diagnostic() {
+    var st = {}; try { st = W.FortEngine.stats(); } catch (e) {}
+    var ab = sauvegardes(false), err = journal.filter(function (j) { return j.type === 'erreur' || j.type === 'promesse'; });
+    var l = [];
+    l.push('📟 Écran : ' + (ecr() || '?') + (state.activeChallenge && ecr() === 'epreuve' ? ' (' + state.activeChallenge.kind + ')' : ''));
+    l.push('🎞️ Fluidité : ' + (st.fps ? Math.round(st.fps) + ' images/s' : 'mesure en cours') + ', palier d’effets ' + (st.tier != null ? st.tier : '?') + '/3');
+    l.push((navigator.onLine === false ? '📴 Hors connexion' : '📶 En ligne') + (navigator.serviceWorker && navigator.serviceWorker.controller ? ' · mode hors ligne prêt' : ''));
+    l.push('🐞 Erreurs relevées : ' + err.length + (err.length ? ' (dernière : ' + err[err.length - 1].msg.slice(0, 80) + ')' : ''));
+    l.push('💾 Sauvegardes abîmées : ' + ab.length);
+    if (reparations.length) l.push('🔧 Dernière réparation : ' + reparations[reparations.length - 1].quoi + ' → ' + reparations[reparations.length - 1].res);
+    return l.join('\n');
+  }
+
+  /* ===================================================== BASE DE CONNAISSANCES */
+  var EPREUVES = {
+    riddle: { n: 'Énigme', mots: ['enigme', 'devinette', 'riddle'], comment: 'Lis la devinette et touche la bonne réponse parmi quatre avant la fin du sablier.', astuce: 'Relis la question en cherchant le double sens : les énigmes du Fort jouent souvent sur un objet du quotidien décrit de façon poétique. Élimine d’abord les réponses impossibles.' },
+    math: { n: 'Calcul', mots: ['calcul', 'math', 'addition', 'sablier', 'chiffres'], comment: 'Tape le résultat dans la case et valide (Entrée marche aussi).', astuce: 'Décompose : 8 + 9, c’est 8 + 10 − 1. Pour les multiplications, passe par la dizaine la plus proche.' },
+    anagram: { n: 'Anagramme', mots: ['anagramme', 'lettres', 'mot cache', 'mot'], comment: 'Touche les lettres dans l’ordre pour reformer le mot caché ; « Recommencer » vide ta tentative.', astuce: 'Cherche d’abord les petites syllabes familières (ON, OU, CH, QU) et le thème de l’univers : le mot est toujours lié au Fort.' },
+    memory: { n: 'Mémoire des Torches', mots: ['memoire', 'sequence', 'torches', 'symboles'], comment: 'Regarde la séquence de symboles s’allumer, puis reproduis-la dans le même ordre quand le Fort dit « À toi ».', astuce: 'Nomme les symboles à voix basse en rythme (« épée, château, flamme ») : la mémoire auditive aide beaucoup.' },
+    reflex: { n: 'Auto-tamponneuses', mots: ['auto', 'tamponneuse', 'reflexe', 'voiture'], comment: 'Dirige ton auto (flèches à l’écran, ou clavier flèches / ZQSD) et percute trois fois l’auto dorée sans te faire ruiner par les carcasses rouges.', astuce: 'Ne fonce pas en ligne droite : viens sur le côté de l’auto dorée, et garde tes distances avec les rouges.' },
+    seal: { n: 'Sceau de Pierre', mots: ['sceau', 'roue', 'roues', 'symbole', 'porte'], comment: 'Touche chaque roue pour faire tourner son symbole jusqu’à reproduire la cible affichée au-dessus.', astuce: 'Règle les roues une par une, de gauche à droite : chaque roue est indépendante.' },
+    morpion: { n: 'Morpion', mots: ['morpion', 'tic tac', 'aligner'], comment: 'Aligne trois de tes symboles avant le Gardien, ou avant la fin du temps.', astuce: 'Prends le centre si tu peux, sinon un coin, et bloque toujours une ligne de deux du Gardien.' },
+    bingo: { n: 'Bingo', mots: ['bingo', 'numero', 'grille'], comment: 'Touche sur ta grille chaque numéro appelé : complète une ligne, une colonne ou une diagonale avant la fin de l’appel.', astuce: 'Garde les yeux sur ta grille, pas sur l’appel : les numéros appelés restent affichés.' },
+    remparts: { n: 'Course des Remparts', mots: ['course', 'rempart', 'remparts', 'courir'], comment: 'Tape le bouton « Cours » le plus vite possible pour devancer ton adversaire jusqu’à l’arrivée.', astuce: 'Tape avec deux doigts en alternance : c’est bien plus rapide qu’un seul.' },
+    lueurs: { n: 'Lueurs du Jour', mots: ['lueur', 'lueurs', 'rayon', 'soleil', 'grand jour'], comment: 'Touche les rayons de soleil dès qu’ils apparaissent dans la grille, mais évite les nuages. (Épreuve du matin.)', astuce: 'Regarde le centre de la grille : ta vision périphérique repère mieux les apparitions.' },
+    marche: { n: 'Marché du Fort', mots: ['marche', 'du plus petit', 'ordre', 'midi'], comment: 'Touche les nombres du plus petit au plus grand avant la fin du temps. (Épreuve de l’après-midi.)', astuce: 'Repère d’abord le plus petit et le plus grand, puis remplis le milieu.' },
+    astres: { n: 'Veillée des Astres', mots: ['astre', 'astres', 'etoile', 'etoiles', 'filantes', 'compter'], comment: 'Compte les étoiles filantes dorées qui traversent le ciel, puis choisis le bon nombre. (Épreuve du soir et de la nuit.)', astuce: 'Ignore les étoiles blanches : seules les dorées comptent. Compte sur tes doigts.' },
+    wire: { n: 'Fil d’Argent', mots: ['fil', 'argent', 'maintenir', 'gresille', 'decharge'], comment: 'Maintiens le bouton appuyé pour avancer le long du fil ; relâche dès qu’il grésille. Une seule décharge est pardonnée.', astuce: 'Le grésillement arrive par cycles : relâche au moindre signe, la reprise est immédiate.' },
+    weights: { n: 'Poids du Passé', mots: ['poids', 'balance', 'peser'], comment: 'Ajoute des poids pour atteindre exactement la valeur demandée ; « Vider » recommence.', astuce: 'Pars du plus gros poids qui ne dépasse pas la cible, puis complète avec les petits.' },
+    crossbow: { n: 'Tir à l’Arbalète', mots: ['arbalete', 'tir', 'cible', 'viser'], comment: 'Appuie une première fois pour figer la barre verticale au centre, puis une seconde fois pour la barre horizontale. Un seul tir.', astuce: 'Anticipe : appuie un peu avant que la barre n’arrive au centre, le temps de réaction compte.' },
+    atelier: { n: 'Rituel du Gardien', mots: ['atelier', 'rituel', 'anneau', 'cadence', 'rythme'], comment: 'Frappe quand l’anneau atteint sa taille maximale, en suivant le rythme.', astuce: 'Écoute et compte le rythme deux ou trois fois avant de frapper.' },
+    cartes: { n: 'Pari du Panda', mots: ['carte', 'cartes', 'panda', 'pari'], comment: 'Trois manches : choisis une carte face cachée, la plus forte l’emporte.', astuce: 'C’est un pari de chance, le Panda est plus indulgent avec les novices. Garde ton calme !' },
+    echo: { n: 'Écho du Fort', mots: ['echo', 'vision', 'reconnais', 'univers flou'], comment: 'Une image floue d’un univers apparaît : reconnais-la avant qu’elle s’efface et touche le bon nom.', astuce: 'Fie-toi aux couleurs dominantes : rose néon, vert jungle, bleu glacé, orange désert…' },
+    equilibre: { n: 'Équilibre du Passeur', mots: ['equilibre', 'passeur', 'pencher'], comment: 'Appuie sur « Commencer », puis tape à gauche ou à droite pour garder la balance dans la zone sûre jusqu’au bout.', astuce: 'Corrige par petites touches, avant que la balance ne parte trop loin.' }
+  };
+  var UNIVERS_MOTS = { fort: ['fort', 'pierre'], foraine: ['foraine', 'fete'], steampunk: ['vapeur', 'steampunk', 'atelier a vapeur'], nordique: ['nordique', 'glace', 'gele'], pirate: ['pirate', 'crique'], manoir: ['manoir', 'hante', 'fantome'], jungle: ['jungle', 'jade'], desert: ['desert', 'sable', 'temple'], neon: ['neon'], nocturne: ['nocturne', 'veillee nocturne'] };
+
+  function epreuveCitee(q) {
+    var best = null, sc = 0;
+    Object.keys(EPREUVES).forEach(function (k) {
+      EPREUVES[k].mots.forEach(function (m) { if (q.indexOf(m) >= 0 && m.length > sc) { sc = m.length; best = k; } });
+    });
+    return best;
+  }
+
+  // Intentions : [id, mots-clés (pondérés par leur longueur), réponse(q)]
+  var INTENTS = [
+    ['bloque', ['bloque', 'coince', 'fige', 'freeze', 'plante', 'ne marche plus', 'marche pas', 'ne repond', 'rien ne se passe', 'ecran noir', 'ecran blanc', 'bug', 'beug', 'crash', 'impossible de cliquer', 'clic ne', 'bouton ne', 'reste sur', 'boucle'], function () {
+      var r = action('debloquer'); return { t: 'Je m’en occupe. 🔧 ' + cap(r) + '.\nSi le souci revient, dis-moi ce que tu faisais juste avant, ou demande-moi un diagnostic.', a: ['relancer_epreuve', 'accueil', 'diagnostic'] };
+    }],
+    ['lent', ['lent', 'rame', 'saccade', 'lag', 'fluide', 'fluidite', 'ralenti', 'chauffe', 'batterie', 'lourd', 'performance'], function () {
+      var r = action('fluidite'); return { t: 'C’est fait : ' + r + '. Le Fort garde son âme, il respire juste moins fort. Tu pourras tout rallumer quand tu veux.', a: ['effets'] };
+    }],
+    ['son', ['son', 'musique', 'audio', 'entends', 'bruit', 'silence', 'volume'], function (q) {
+      if (/coupe|couper|muet|silence|enleve|arrete/.test(q) && !/pas de son|plus de son|n entends/.test(q)) return { t: 'Silence dans le Fort : ' + action('muet') + '.', a: ['son'] };
+      return { t: action('son') + '.', a: ['muet'] };
+    }],
+    ['sauvegarde', ['sauvegarde', 'progression perdue', 'perdu ma', 'donnees', 'corrompu', 'reinitialiser', 'remise a zero', 'reset'], function (q) {
+      if (/reglage/.test(q)) return { t: action('reglages') + '.' };
+      return { t: '💾 ' + cap(action('sauvegarde')) + '. Ta progression (titres, cartes, succès, records) est enregistrée sur cet appareil, dans ce navigateur.' };
+    }],
+    ['maj', ['mise a jour', 'version', 'actualiser', 'nouvelle version', 'cache', 'recharger'], function () { return { t: 'Je peux recharger le Fort avec sa toute dernière version.', a: ['mise_a_jour'] }; }],
+    ['diag', ['diagnostic', 'analyse', 'erreur', 'erreurs', 'probleme', 'probleme technique', 'journal', 'etat du jeu'], function () { return { t: diagnostic(), a: ['debloquer', 'fluidite', 'sauvegarde'] }; }],
+    ['horsligne', ['hors ligne', 'hors connexion', 'offline', 'sans internet', 'sans connexion', 'reseau', 'wifi', 'internet', 'installer', 'application', 'appli'], function () {
+      return { t: '📴 Le Fort fonctionne avec ou sans internet : une fois ouvert en ligne, il est gardé sur ton appareil. Hors connexion, toutes les épreuves marchent ; seules la météo réelle et ma voix « savante » attendent le retour du réseau — je te réponds alors avec ma mémoire du Fort.\n📲 Pour l’installer comme une application : menu du navigateur → « Installer » ou « Ajouter à l’écran d’accueil ».' };
+    }],
+    ['solution', ['solution', 'reponse', 'triche', 'donne moi la', 'c est quoi la reponse', 'dis moi la reponse'], function () {
+      var c = state.activeChallenge, k = c && ecr() === 'epreuve' ? c.kind : null;
+      return { t: 'Un Gardien ne souffle jamais la réponse… mais je peux t’orienter. ' + (k && EPREUVES[k] ? EPREUVES[k].astuce : 'Dis-moi sur quelle épreuve tu sèches.') + (k ? ' Et le bouton 💡 de l’épreuve te donne un indice (il réduit un peu ta récompense).' : '') };
+    }],
+    ['epreuve', ['~comment', '~jouer', '~fonctionne', '~faire', '~but', '~objectif', '~aide', 'indice', 'astuce', 'conseil', 'reussir', 'cette epreuve', '~epreuve', '~jeu'], function (q) {
+      var k = epreuveCitee(q); var c = state.activeChallenge;
+      if (!k && c && ecr() === 'epreuve') k = c.kind;
+      if (k && EPREUVES[k]) {
+        var e = EPREUVES[k], titre = (c && c.kind === k && c.title) ? c.title : e.n;
+        return { t: '🎯 ' + titre + ' — ' + e.comment + '\n💡 ' + e.astuce };
+      }
+      return { t: 'Aucune épreuve n’est en cours. Dis-moi laquelle t’intrigue et je t’explique comment la réussir : ' + Object.keys(EPREUVES).map(function (x) { return EPREUVES[x].n; }).join(', ') + '.' };
+    }],
+    ['regles', ['regle', 'regles', 'comment on joue', 'principe', 'deroulement', 'comment ca marche'], function () {
+      return { t: '📜 Le principe : tu traverses une série d’épreuves (de 4 à 12 selon la longueur choisie). Chaque réussite te donne une clé (un chiffre secret du code) et des doublons selon ta rapidité ; un échec laisse une case vide. Avant le Coffre au Trésor, des défis bonus te livrent des chiffres du code sans leur position. Au Coffre, tu devines le code chiffre par chiffre : chaque doublon offre 2 secondes (60 s max), chaque erreur en coûte 5. Le livre « Règles du jeu » de l’accueil détaille tout.' };
+    }],
+    ['cles', ['cle', 'cles', 'clef', 'trousseau'], function () {
+      var r = run(); var n = r ? (r.cles || []).filter(function (x) { return x != null; }).length : 0;
+      return { t: '🗝️ Chaque épreuve réussie t’offre une clé : c’est un chiffre secret du code du Coffre. Les lanternes en haut de l’écran s’allument à chaque clé gagnée.' + (r ? ' Pour l’instant : ' + n + ' clé(s) sur ' + (r.totalEpreuves || '?') + '.' : '') };
+    }],
+    ['doublons', ['doublon', 'doublons', 'piece', 'pieces', 'argent', 'or', 'riche', 'banque'], function () {
+      var b = 0; try { b = W.bank(); } catch (e) {}
+      return { t: '💰 Tu as ' + b + ' pièce(s) en banque. Les doublons d’une partie (1 à 5 par réussite, selon ta vitesse) te donnent du temps au Coffre : 2 s chacun, 60 s au plus. Les pièces de la banque s’échangent au Marché du Fort. La Ferveur et les défis de la veillée en rapportent aussi.' };
+    }],
+    ['coffre', ['coffre', 'tresor', 'code'], function () { return { t: '🏆 Le Coffre au Trésor attend en fin de partie : devine son code chiffre par chiffre. Une case juste se verrouille en or, une fausse se vide et te coûte 5 secondes. Tes clés et les chiffres des défis bonus sont tes meilleurs indices.' }; }],
+    ['ferveur', ['ferveur', 'flamme', 'serie', 'combo', 'multiplicateur'], function () {
+      var v = W.FortVeillee && W.FortVeillee.etat && W.FortVeillee.etat();
+      return { t: '🔥 La Ferveur grandit avec les réussites enchaînées : ×1 après 2, jusqu’à ×4. À chaque réussite elle te verse autant de pièces que son niveau. Un échec la fait retomber de moitié.' + (v ? ' Ta flamme actuelle : ' + (v.niveau ? '×' + v.niveau : 'éteinte') + ', série de ' + v.serie + '.' : '') };
+    }],
+    ['defi', ['defi', 'defis', 'objectif de la partie', 'mission'], function () {
+      var v = W.FortVeillee && W.FortVeillee.etat && W.FortVeillee.etat();
+      return { t: '🎯 Chaque partie te propose un défi de la veillée (affiché sous les lanternes), récompensé en pièces.' + (v && v.defi ? ' Le tien : « ' + v.defi.txt + ' »' + (v.defiOk ? ' — déjà réussi ✅.' : ', ' + Math.min(v.defi.val(v), v.defi.but) + '/' + v.defi.but + '.') : '') };
+    }],
+    ['succes', ['succes', 'trophee', 'trophees', 'badge', 'accomplissement'], function () {
+      var p = W.FortPlateforme; var n = p ? Object.keys(p.stats.ouverts).length : 0, t = p ? p.succes.length : 13;
+      return { t: '🏆 ' + n + ' succès débloqué(s) sur ' + t + '. Ouvre l’onglet 🏆 sur le bord gauche (ou touche T) pour voir la liste et ta progression.', a: ['succes_ouvrir'] };
+    }],
+    ['titres', ['titre', 'titres', 'legende', 'legendes', 'classement', 'score'], function () { return { t: '🎖️ Les Titres du Gardien récompensent tes ouvertures du Coffre (100 %, 75 %, 50 % des clés…). Le Tableau des Légendes garde tes meilleures parties. Les deux sont accessibles depuis l’accueil.' }; }],
+    ['collection', ['collection', 'carte du fort', 'pactole', 'cartes a collectionner'], function () { return { t: '🃏 Dix cartes du Fort, une par univers : on les gagne parfois en ouvrant le Coffre ou au Marché (Carte mystère). Les réunir toutes déclenche le Pactole du Gardien : +300 pièces.' }; }],
+    ['marche_fort', ['marche du fort', 'boutique', 'acheter', 'magasin'], function (q) { var ep = EPREUVES.marche; return { t: '🏪 Le Marché du Fort (bouton en bas de l’accueil) échange tes pièces contre des bonus et des cartes mystère — je prends une petite commission, c’est l’usage.' + (/epreuve|jouer|nombre/.test(q) ? '' : '\n🧮 Il existe aussi une épreuve du même nom, l’après-midi : ' + ep.comment) }; }],
+    ['univers', ['univers', 'monde', 'salle', 'decor'], function (q) {
+      var u = null; try { u = UNIVERSES[state._universe]; } catch (e) {}
+      return { t: '🌍 Dix univers : Fort de Pierre, Fête Foraine, Atelier à Vapeur, Salle Nordique, Crique des Pirates, Manoir Hanté, Jungle de Jade, Temple des Sables, Quartier Néon et Veillée Nocturne (qui ne s’ouvre qu’à la nuit). Chacun a son décor vivant et ses versions des épreuves.' + (u ? ' Tu es dans : ' + u.icon + ' ' + u.label + '.' : '') };
+    }],
+    ['modes', ['solo', 'amis', 'soiree', 'plateau', 'mode', 'multijoueur', 'plusieurs'], function () { return { t: '🎲 Trois façons de jouer : Solo (choisis ta longueur d’aventure, en Classique ou en Choix entre deux épreuves), Soirée entre amis (équipes à tour de rôle, l’hôte peut valider à la main) et Mode Plateau (jeu de l’oie avec dé, jusqu’à 4 joueurs).' }; }],
+    ['heure', ['heure', 'matin', 'nuit', 'soir', 'apres midi', 'horloge', 'jour'], function () { return { t: '🕰️ Le Fort suit ton heure locale : les Lueurs du Jour n’existent que le matin, le Marché du Fort l’après-midi, la Veillée des Astres le soir et la nuit. La difficulté monte un peu la nuit et s’adoucit au petit matin.' }; }],
+    ['difficulte', ['difficile', 'difficulte', 'dur', 'trop dur', 'facile', 'niveau', 'novice', 'maitre'], function () { return { t: '📈 Trois niveaux : NOVICE (premières épreuves), GARDIEN, puis MAÎTRE à partir de la 7e. Le Fort s’adapte aussi à toi : une épreuve que tu rates souvent devient plus clémente, une que tu réussis toujours se corse.' }; }],
+    ['duel', ['duel', 'contre le gardien', 'affronter'], function () { return { t: '⚔️ Une fois par partie, une épreuve peut devenir un duel : tu joues en même temps que moi sur la même mécanique. Le plus rapide l’emporte. Je ne te ferai pas de cadeau !' }; }],
+    ['rencontres', ['voleur', 'parieur', 'rencontre', 'evenement'], function () { return { t: '👤 Entre deux épreuves, des silhouettes surgissent parfois : le Voleur des Ombres (réagis vite ou il te dérobe doublons ou clé), le Parieur Mystérieux (quitte ou double) et moi-même avec un défi de comptage.' }; }],
+    ['controles', ['manette', 'clavier', 'touche', 'touches', 'raccourci', 'souris', 'controle'], function () { return { t: '🎮 Tout se joue au doigt, à la souris, au clavier ou à la manette : flèches ou croix pour passer d’un choix à l’autre, Entrée ou A pour valider, Échap ou B pour fermer, T ou Start pour les succès, G pour m’appeler.' }; }],
+    ['reglages_info', ['reglage', 'reglages', 'option', 'options', 'parametre', 'vibration', 'plein ecran'], function (q) {
+      if (/plein ecran/.test(q)) return { t: action('plein_ecran') + '.' };
+      return { t: '⚙️ Les réglages (vibrations, effets de profondeur, écran toujours allumé, plein écran) sont dans l’onglet 🏆 du bord gauche. Je peux aussi alléger les effets ou tout rallumer pour toi.', a: ['fluidite', 'effets', 'reglages'] };
+    }],
+    ['stats', ['statistique', 'stats', 'mes resultats', 'combien', 'progression', 'record'], function () {
+      var p = W.FortPlateforme, s = p ? p.stats : {}, r = W.FortVeillee ? W.FortVeillee.records : {};
+      return { t: '📊 Réussites : ' + (s.reussites || 0) + ' · échecs : ' + (s.echecs || 0) + ' · meilleure série : ' + (Math.max(s.serieMax || 0, r.serie || 0)) + ' · épreuves découvertes : ' + ((s.genres || []).length) + '/19 · univers visités : ' + ((s.univers || []).length) + '/10 · défis réussis : ' + (r.defis || 0) + '.' };
+    }],
+    ['qui', ['qui es tu', 'ton nom', 'tu es qui', 'gardien', 'presente toi'], function () { return { t: un(['Je suis le Gardien. Je veille sur ces pierres depuis plus longtemps que quiconque ne s’en souvient — et je répare aussi ce qui grince.', 'On m’appelle le Gardien : guide des aventuriers, gardien des clés, et mécanicien du Fort à mes heures.']) }; }],
+    ['salut', ['bonjour', 'salut', 'coucou', 'hello', 'bonsoir', 'hey', 'yo'], function () { return { t: un(['Bien le bonjour, aventurier. Pose-moi n’importe quelle question sur le Fort — ou dis-moi si quelque chose cloche, je le répare.', 'Te voilà ! Les torches brûlent un peu plus fort quand un visiteur approche. Que puis-je pour toi ?']) }; }],
+    ['merci', ['merci', 'super', 'genial', 'parfait', 'top'], function () { return { t: un(['Avec plaisir. Le Fort se souvient de la politesse.', 'C’est moi qui te remercie de me tenir compagnie.']) }; }]
+  ];
+  function cap(s) { s = String(s || ''); return s.charAt(0).toUpperCase() + s.slice(1); }
+  function comprendre(texte) {
+    var q = ' ' + norm(texte) + ' ', meilleur = null, sc = 0;
+    INTENTS.forEach(function (it) {
+      var s = 0;
+      it[1].forEach(function (m) { var faible = m.charAt(0) === '~'; if (faible) m = m.slice(1); if (q.indexOf(' ' + m) >= 0 || (m.length > 5 && q.indexOf(m) >= 0)) s += faible ? 1 : m.length + 2; });
+      // les pannes passent avant les questions générales
+      if (s && /^(bloque|lent|son|sauvegarde|maj|diag)$/.test(it[0])) s += 4;
+      if (s > sc) { sc = s; meilleur = it; }
+    });
+    // une épreuve citée : on explique l'épreuve (sauf panne ou demande de solution)
+    if (epreuveCitee(q.trim()) && (!meilleur || !/^(bloque|lent|son|sauvegarde|maj|diag|solution|heure|marche_fort)$/.test(meilleur[0]))) meilleur = INTENTS.filter(function (i) { return i[0] === 'epreuve'; })[0];
+    return { it: meilleur, score: sc, q: q.trim() };
+  }
+  function repondreLocal(texte) {
+    var c = comprendre(texte);
+    if (c.it) { var r = c.it[2](c.q); if (r) return r; }
+    var e = epreuveCitee(c.q); if (e) return INTENTS.filter(function (i) { return i[0] === 'epreuve'; })[0][2](c.q);
+    return { t: un(['Je n’ai pas saisi… Tu peux me demander les règles, comment réussir une épreuve, où en est ta partie, ou me signaler un souci (« c’est bloqué », « ça rame », « pas de son »).', 'Les pierres murmurent, mais pas assez fort. Essaie avec d’autres mots : une épreuve, les clés, le coffre, la Ferveur, un bug à réparer…']), a: ['diagnostic'] };
+  }
+
+  /* ===================================================== EN LIGNE (grand Gardien) */
+  var historique = [];
+  function contexte() {
+    var c = state.activeChallenge, b = 0; try { b = W.bank(); } catch (e) {}
+    var r = run(), v = W.FortVeillee && W.FortVeillee.etat && W.FortVeillee.etat();
+    return {
+      ecran: ecr(), epreuve: c && ecr() === 'epreuve' ? { type: c.kind, titre: c.title, consigne: c.howto } : null,
+      univers: (function () { try { return state._universe; } catch (e) { return null; } })(),
+      cles: r ? (r.cles || []).filter(function (x) { return x != null; }).length + '/' + r.totalEpreuves : null,
+      pieces: b, ferveur: v ? v.niveau : null, defi: v && v.defi ? v.defi.txt : null,
+      horsligne: navigator.onLine === false, erreurs: journal.slice(-5).map(function (j) { return j.type + ': ' + j.msg; })
+    };
+  }
+  var ACTIONS_OK = ['debloquer', 'relancer_epreuve', 'accueil', 'fluidite', 'effets', 'son', 'muet', 'sauvegarde', 'reglages', 'mise_a_jour', 'diagnostic'];
+  function appelEnLigne(texte) {
+    historique.push({ role: 'user', content: texte });
+    var ctrl = W.AbortController ? new AbortController() : null;
+    var minuteur = setTimeout(function () { if (ctrl) ctrl.abort(); }, 9000);
+    return fetch('/.netlify/functions/gardien-chat', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages: historique.slice(-12), contexte: contexte() }), signal: ctrl ? ctrl.signal : undefined
+    }).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) {
+      clearTimeout(minuteur);
+      if (!j || !j.reply) return null;
+      var acts = [], t = String(j.reply).replace(/\[\[action:([a-z_]+)\]\]/g, function (_m, a) { if (ACTIONS_OK.indexOf(a) >= 0) acts.push(a); return ''; }).trim();
+      historique.push({ role: 'assistant', content: j.reply });
+      return { t: t, faire: acts };
+    }).catch(function () { clearTimeout(minuteur); return null; });
+  }
+
+  /* ===================================================================== UI */
+  var panneau = null, fil = null, saisie = null, occupe = false;
+  var LIB = { debloquer: '🔧 Débloquer', relancer_epreuve: '↻ Relancer l’épreuve', accueil: '🏠 Accueil', fluidite: '🪶 Mode fluide', effets: '✨ Tous les effets', son: '🔊 Réveiller le son', muet: '🔇 Couper le son', sauvegarde: '💾 Vérifier mes sauvegardes', reglages: '⚙️ Réglages par défaut', mise_a_jour: '⟳ Mettre à jour', diagnostic: '🩺 Diagnostic', succes_ouvrir: '🏆 Voir mes succès' };
+  function bulle(qui, texte, actions) {
+    var m = D.createElement('div'); m.className = 'gd-msg gd-' + qui;
+    m.innerHTML = esc(texte).replace(/\n/g, '<br>');
+    if (actions && actions.length) {
+      var z = D.createElement('div'); z.className = 'gd-acts';
+      actions.forEach(function (a) {
+        if (!LIB[a]) return;
+        var b = D.createElement('button'); b.type = 'button'; b.textContent = LIB[a];
+        b.addEventListener('click', function () {
+          if (a === 'succes_ouvrir') { fermer(); try { W.FortPlateforme.ouvrir(); } catch (e) {} return; }
+          var r = action(a); bulle('gardien', '✔️ ' + cap(r) + '.');
+        });
+        z.appendChild(b);
+      });
+      m.appendChild(z);
+    }
+    fil.appendChild(m); fil.scrollTop = fil.scrollHeight; return m;
+  }
+  function envoyer(texte) {
+    texte = String(texte || '').trim(); if (!texte || occupe) return;
+    bulle('joueur', texte);
+    var c = comprendre(texte);
+    var panne = c.it && /^(bloque|lent|son|sauvegarde|maj|diag)$/.test(c.it[0]);
+    // 1) pannes : on agit tout de suite, en local, même en ligne
+    if (panne || navigator.onLine === false) { var r = repondreLocal(texte); bulle('gardien', r.t, r.a); return; }
+    // 2) en ligne : grand Gardien, repli local si silence
+    occupe = true; var attente = bulle('gardien gd-attente', 'Le Gardien réfléchit…');
+    appelEnLigne(texte).then(function (rep) {
+      attente.remove(); occupe = false;
+      if (!rep) { var r2 = repondreLocal(texte); bulle('gardien', r2.t, r2.a); return; }
+      var faits = rep.faire.map(function (a) { return LIB[a] + ' → ' + action(a); });
+      bulle('gardien', rep.t + (faits.length ? '\n\n' + faits.join('\n') : ''));
+    });
+  }
+  function construire() {
+    panneau = D.createElement('div'); panneau.className = 'gd-panneau'; panneau.setAttribute('role', 'dialog'); panneau.setAttribute('aria-label', 'Le Gardien');
+    panneau.innerHTML = '<div class="gd-fond"></div><div class="gd-boite"><div class="gd-tete"><span>🕯️ Le Gardien</span><small class="gd-etat"></small><button type="button" class="gd-x" aria-label="Fermer">×</button></div>' +
+      '<div class="gd-fil"></div><div class="gd-chips"></div><form class="gd-saisie"><input type="text" maxlength="300" autocomplete="off" placeholder="Une question, un souci ? Le Gardien t’écoute…"><button type="submit">➤</button></form></div>';
+    D.body.appendChild(panneau);
+    fil = panneau.querySelector('.gd-fil'); saisie = panneau.querySelector('input');
+    panneau.querySelector('.gd-fond').addEventListener('click', fermer);
+    panneau.querySelector('.gd-x').addEventListener('click', fermer);
+    panneau.querySelector('form').addEventListener('submit', function (e) { e.preventDefault(); var v = saisie.value; saisie.value = ''; envoyer(v); });
+    var chips = panneau.querySelector('.gd-chips');
+    ['C’est bloqué', 'Comment réussir cette épreuve ?', 'Ça rame', 'Pas de son', 'Les règles', 'Où en est ma partie ?'].forEach(function (t) {
+      var b = D.createElement('button'); b.type = 'button'; b.textContent = t; b.addEventListener('click', function () { envoyer(t === 'Où en est ma partie ?' ? 'mes clés et ma ferveur' : t); }); chips.appendChild(b);
+    });
+  }
+  function ouvrir() {
+    if (!panneau) construire();
+    panneau.classList.add('gd-ouvert');
+    panneau.querySelector('.gd-etat').textContent = navigator.onLine === false ? 'mémoire du Fort · hors ligne' : 'en ligne';
+    if (!fil.children.length) {
+      var e = ecr() === 'epreuve' && state.activeChallenge ? ' Tu es sur « ' + (state.activeChallenge.title || '') + ' » : demande-moi comment la réussir.' : '';
+      bulle('gardien', 'Approche, aventurier. Je connais chaque pierre du Fort, et je sais réparer ce qui grince.' + e);
+    }
+    setTimeout(function () { try { saisie.focus({ preventScroll: true }); } catch (x) {} }, 60);
+  }
+  function fermer() { if (panneau) panneau.classList.remove('gd-ouvert'); }
+
+  var avisEl = null;
+  function avis(t) {
+    if (!avisEl) { avisEl = D.createElement('div'); avisEl.className = 'gd-avis'; avisEl.setAttribute('role', 'status'); D.body.appendChild(avisEl); avisEl.addEventListener('click', ouvrir); }
+    avisEl.textContent = t; avisEl.classList.add('gd-vu'); clearTimeout(avis.t); avis.t = setTimeout(function () { avisEl.classList.remove('gd-vu'); }, 4200);
+  }
+
+  var css = '' +
+    '.gd-onglet{position:fixed;left:0;top:calc(46% + 72px);z-index:9000;width:30px;padding:.5rem 0;border-radius:0 14px 14px 0;border:1px solid rgba(244,208,63,.5);border-left:0;background:rgba(23,19,42,.92);color:#f3e4bd;font-size:1rem;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.5)}' +
+    '@media (max-height:520px){.gd-onglet{top:calc(30% + 64px)}}' +
+    '.gd-panneau{position:fixed;inset:0;z-index:100060;display:none}.gd-panneau.gd-ouvert{display:block}' +
+    '.gd-fond{position:absolute;inset:0;background:rgba(6,5,14,.6)}' +
+    '.gd-boite{position:absolute;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 10px);translate:-50% 0;width:min(calc(100vw - 20px),480px);height:min(74vh,620px);display:flex;flex-direction:column;border-radius:22px;background:#1d1a2b;border:1px solid rgba(212,175,55,.5);box-shadow:0 20px 60px rgba(0,0,0,.7);color:#e9d9ae;font-family:Georgia,serif;overflow:hidden}' +
+    '.gd-tete{display:flex;align-items:center;gap:.6rem;padding:.8rem 1rem;border-bottom:1px solid rgba(212,175,55,.2)}.gd-tete span{font-weight:700;color:#f4d03f;letter-spacing:.05em}.gd-etat{flex:1;font-size:.7rem;color:#a89a7c}' +
+    '.gd-x{width:36px;height:36px;border-radius:50%;border:1px solid rgba(212,175,55,.4);background:transparent;color:#f4d03f;font-size:1.3rem;cursor:pointer}' +
+    '.gd-fil{flex:1;overflow:auto;padding:.9rem;display:flex;flex-direction:column;gap:.55rem;overscroll-behavior:contain}' +
+    '.gd-msg{max-width:88%;padding:.6rem .8rem;border-radius:16px;font-size:.9rem;line-height:1.45;white-space:normal;overflow-wrap:anywhere}' +
+    '.gd-gardien{align-self:flex-start;background:#2a2440;border:1px solid rgba(212,175,55,.25);border-bottom-left-radius:4px}' +
+    '.gd-joueur{align-self:flex-end;background:#3a2f12;border:1px solid rgba(244,208,63,.45);color:#fff1c7;border-bottom-right-radius:4px}' +
+    '.gd-attente{opacity:.7;font-style:italic}' +
+    '.gd-acts{display:flex;flex-wrap:wrap;gap:.35rem;margin-top:.5rem}.gd-acts button,.gd-chips button{min-height:34px;padding:.3rem .7rem;border-radius:999px;border:1px solid rgba(244,208,63,.5);background:#1d1a2b;color:#f4d03f;font:600 .78rem Georgia,serif;cursor:pointer}' +
+    '.gd-chips{display:flex;gap:.35rem;overflow-x:auto;padding:.45rem .7rem;border-top:1px solid rgba(212,175,55,.14);scrollbar-width:none}.gd-chips button{flex:none;color:#e9d9ae;border-color:rgba(212,175,55,.3)}' +
+    '.gd-saisie{display:flex;gap:.4rem;padding:.6rem .7rem calc(.6rem + env(safe-area-inset-bottom,0px))}.gd-saisie input{flex:1;min-width:0;min-height:42px;padding:0 .8rem;border-radius:14px;border:1px solid rgba(212,175,55,.35);background:#14111f;color:#f3e4bd;font:16px Georgia,serif}' +
+    '.gd-saisie button{width:46px;border-radius:14px;border:1px solid #fff0b0;background:linear-gradient(180deg,#f7dc62,#d4a521);color:#2a1c05;font-size:1.1rem;cursor:pointer}' +
+    '.gd-avis{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 96px);translate:-50% 0;z-index:100050;max-width:min(92vw,420px);padding:.55rem 1rem;border-radius:16px;background:#17132a;border:1px solid rgba(244,208,63,.55);color:#f3e4bd;font:600 .82rem Georgia,serif;box-shadow:0 8px 22px rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:opacity .35s}.gd-avis.gd-vu{opacity:1;pointer-events:auto;cursor:pointer}';
+
+  function demarrer() {
+    var st = D.createElement('style'); st.id = 'fort-gardien-css'; st.textContent = css; D.head.appendChild(st);
+    var o = D.createElement('button'); o.type = 'button'; o.className = 'gd-onglet'; o.setAttribute('aria-label', 'Parler au Gardien'); o.textContent = '🕯️';
+    o.addEventListener('click', ouvrir); D.body.appendChild(o);
+    // l'ancien bouton « Parler au Gardien » ouvre désormais ce Gardien-ci
+    D.addEventListener('click', function (e) { var f = e.target && e.target.closest && e.target.closest('#gardienChatFab'); if (f) { e.preventDefault(); e.stopImmediatePropagation(); ouvrir(); } }, true);
+    D.addEventListener('keydown', function (e) {
+      var t = e.target && e.target.tagName; if (t === 'INPUT' || t === 'TEXTAREA' || e.ctrlKey || e.metaKey || e.altKey) return;
+      if (e.key === 'g' || e.key === 'G') { if (panneau && panneau.classList.contains('gd-ouvert')) fermer(); else ouvrir(); e.preventDefault(); }
+      else if (e.key === 'Escape' && panneau && panneau.classList.contains('gd-ouvert')) { fermer(); e.stopPropagation(); }
+    }, true);
+    try { W.__fortGardienChat = { ouvrir: ouvrir, fermer: fermer }; } catch (e) {}
+    var ab = sauvegardes(true); if (ab.length) setTimeout(function () { avis('🕯️ Le Gardien a réparé ' + ab.length + ' sauvegarde(s) abîmée(s).'); }, 2500);
+    setInterval(function () { if (!D.hidden) { voileFantome(); if (ecranPlante()) verifier(); } }, 4000);
+  }
+  W.FortGardien = { version: '2.0', ouvrir: ouvrir, fermer: fermer, demander: function (t) { return repondreLocal(t); }, _voile: function () { return voileFantome(); }, _verifier: function () { return verifier(); }, envoyer: envoyer, action: action, actions: Object.keys(ACTIONS), journal: journal, diagnostic: diagnostic, epreuves: EPREUVES };
+  if (D.readyState === 'loading') D.addEventListener('DOMContentLoaded', demarrer); else demarrer();
 })();
 
 </script>
