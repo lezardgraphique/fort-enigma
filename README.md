@@ -421,7 +421,16 @@ Le décor vivant remplace les systèmes de particules DOM du jeu (fées, braises
 
 `<script id="fort-filargent">` : une clé (ou une bourse en défi bonus) pend à un fil d'argent. Maintenir (doigt, souris, Espace ou Entrée) chauffe le fil, relâcher le refroidit. Tant que la chaleur reste dans la zone dorée, le fil fond ; fondu, il lâche la clé dans le coffre. La zone rouge fait surchauffer le fil : une surchauffe est pardonnée, la seconde fait perdre la clé. Plus le niveau monte, plus la zone est étroite, la chauffe rapide et la fonte longue (courants d'air à partir du niveau 4).
 
-## Format des cadres et des cartes
+## Mise en page « décor d'abord »
 
-`<script id="fort-format">` : les cadres sont centrés à l'écran et prennent la hauteur de leur contenu, avec une largeur limitée (560 px pour les menus, 620 px pour les épreuves, 640 px pour l'accueil). Ils deviennent une vitre teintée et floutée qui laisse voir le décor peint. Les cartes de choix sont resserrées (description sur deux lignes maximum), l'accueil est compacté (titre adapté à la hauteur d'écran, boutons sur deux colonnes).
+`<script id="fort-format">` — inspirée des jeux mobiles d'aventure (Monument Valley, The Room) et des règles de la « zone du pouce » :
+- le décor peint occupe tout l'écran ; une seule barre fine en haut (clés, pièces, son) ;
+- tout le jeu tient dans **un panneau** : en bas de l'écran sur téléphone (à portée de pouce), sur le côté droit sur ordinateur et tablette à l'horizontale ;
+- les boutons secondaires (succès, Gardien, registre) sont regroupés en petites pastilles ; plus de lanternes, coins dorés ni guirlandes sur les cadres ;
+- l'en-tête des épreuves est resserré : toutes les commandes des 19 épreuves sont visibles sans défiler sur un téléphone de 360×640 ;
+- un téléphone tenu à l'horizontale propose de revenir à la verticale (avec « Continuer à l'horizontale »).
+
+## Aperçu du lien
+
+`apercu.jpg` (1200×630) + balises Open Graph / Twitter dans `index.html` : le lien partagé affiche la miniature du jeu.
 

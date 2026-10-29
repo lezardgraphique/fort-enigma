@@ -6,7 +6,7 @@
 <meta name="referrer" content="no-referrer">
 
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#0f121a"><link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icone-192.png">
+  <meta name="theme-color" content="#0f121a"><link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icone-192.png"><meta name="description" content="Relève les épreuves du Gardien, gagne les clés et ouvre le Coffre au Trésor : 19 épreuves, 10 univers, jouable en ligne et hors connexion."><meta property="og:type" content="website"><meta property="og:site_name" content="Fort Énigma"><meta property="og:locale" content="fr_FR"><meta property="og:title" content="Fort Énigma — L’Appel du Gardien"><meta property="og:description" content="19 épreuves, 10 univers, un coffre à ouvrir. Jouable en ligne et hors connexion."><meta property="og:url" content="https://fort-enigma.netlify.app/"><meta property="og:image" content="https://fort-enigma.netlify.app/apercu.jpg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="Fort Énigma : le port du Fort au clair de lune"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="https://fort-enigma.netlify.app/apercu.jpg">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Fort Énigma">
@@ -5010,15 +5010,8 @@ html body .carte-col:not(.locked) .carte-nom{color:var(--cp-gold)}
     'body[data-screen=epreuve] .gardien-toast.visible{transform:translate(-50%,0)}' +
     /* la clé de défilement ne se pose plus sur la lanterne du coin */
     '.scroll-thread-key,.scroll-thread-rail{margin-top:30px}' +
-    /* boutons Succès et Gardien : en bas à gauche, hors du cadre */
-    'html body .fp-bouton,html body .gd-onglet{top:auto!important;bottom:calc(env(safe-area-inset-bottom,0px) + 14px);width:44px!important;height:44px;padding:0!important;border-radius:50%!important;border:1px solid rgba(244,208,63,.5)!important;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;font-size:1rem;line-height:1}' +
-    'html body .fp-bouton{left:12px!important}html body .gd-onglet{left:64px!important}' +
-    'html body .fp-bouton .fp-n{position:absolute;top:-4px;right:-4px;min-width:18px;height:18px;border-radius:9px;background:#f4d03f;color:#2a1c05!important;font:700 .65rem/18px Georgia,serif;text-align:center}' +
-    'body[data-screen=accueil] .fp-bouton,body[data-screen=accueil] .gd-onglet{bottom:calc(env(safe-area-inset-bottom,0px) + 58px)}' +
-    'body[data-screen=accueil] .gd-onglet{display:none}' +
     /* la ligne de crédits passait sous le cadre de l’accueil : elle reste visible dans les Règles et l’Histoire */
-    'body:not([data-screen=regles]):not([data-screen=histoire]) footer.credits{display:none!important}' +
-    'body[data-screen=epreuve] .gd-onglet,body[data-screen=transition] .gd-onglet{left:12px!important}';
+    'body:not([data-screen=regles]):not([data-screen=histoire]) .credits{display:none!important}';
 
   function corrigerTextes() {
     // certains univers disaient « chauffe sans relâche » : contraire à la règle du Fil d'Argent
@@ -5049,48 +5042,132 @@ html body .carte-col:not(.locked) .carte-nom{color:var(--cp-gold)}
 </script>
 <script id="fort-format">
 /* ==========================================================================
-   Fort Énigma — Format des cadres et des cartes (v1)
-   Les cadres restent centrés à l'écran, prennent la hauteur de leur contenu
-   (plus de grand panneau plein écran), et deviennent une vitre teintée qui
-   laisse voir le décor peint. Les cartes de choix sont resserrées.
+   Fort Énigma — Mise en page « décor d'abord » (v2)
+   Inspirée des jeux mobiles d'aventure (Monument Valley, The Room…) :
+   - le décor peint occupe tout l'écran ;
+   - une seule barre fine en haut (clés, pièces, son) ;
+   - tout le jeu tient dans UN panneau : en bas, à portée de pouce, sur
+     téléphone ; sur le côté droit sur grand écran ou en paysage ;
+   - les boutons secondaires (succès, Gardien, registre) sont regroupés en
+     petites pastilles discrètes en haut à droite ;
+   - plus de lanternes ni de coins dorés sur les cadres, plus de bandeau
+     redondant sous le cadre.
    ========================================================================== */
 (function () {
   'use strict';
   var D = document;
   if (window.__fortFormat) return; window.__fortFormat = true;
+
+  var PORTRAIT = '(orientation: portrait), (max-aspect-ratio: 5/4)';
   var css = '' +
-    /* centrage vertical : marges automatiques (jamais de contenu rogné en haut) */
-    'html body #app{justify-content:flex-start!important}' +
-    'html body #app > .frame{margin-top:auto!important;margin-bottom:auto!important;flex:0 1 auto}' +
-    'html body #app.with-topbar{padding-top:calc(var(--topbar-h,73px) + 30px)!important}' +
-    /* largeur : jamais plus large que nécessaire */
-    'html body #app > .frame{width:min(calc(100vw - 32px),560px)!important;max-width:560px!important;align-self:center}' +
-    'html body[data-screen=accueil] #app > .frame{width:min(calc(100vw - 32px),640px)!important;max-width:640px!important}' +
-    'html body[data-screen=epreuve] #app > .frame,html body[data-screen=salle-tresor] #app > .frame,html body[data-screen=plateau-board] #app > .frame{width:min(calc(100vw - 32px),620px)!important;max-width:620px!important}' +
-    /* vitre teintée : le décor reste visible, le texte reste lisible */
-    'html body:not([data-screen=intro]) #app .frame.frame{background-color:transparent!important;background-image:linear-gradient(180deg,rgba(20,18,34,.60),rgba(10,10,20,.70))!important;' +
-      'backdrop-filter:blur(7px) saturate(1.15)!important;-webkit-backdrop-filter:blur(7px) saturate(1.15)!important;box-shadow:0 18px 50px rgba(0,0,0,.45)!important}' +
-    'html body[data-active-kind] #app .frame.frame,html body[data-screen=epreuve] #app .frame.frame{background-image:linear-gradient(180deg,rgba(18,16,30,.72),rgba(10,10,20,.80))!important}' +
-    /* cartes de choix resserrées */
-    'html body #app .choice-cards.choice-cards{gap:.6rem!important;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr))!important}' +
-    'html body #app .choice-card.choice-card{padding:.8rem .95rem!important;gap:.3rem .6rem!important;background:linear-gradient(180deg,rgba(38,32,58,.86),rgba(26,22,40,.86))!important}' +
-    'html body #app .choice-card .choice-card-title{font-size:1.02rem!important;line-height:1.2!important;margin:0!important}' +
-    'html body #app .choice-card .choice-card-blurb{font-size:.84rem!important;line-height:1.35!important;margin:0!important;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}' +
-    'html body #app .choice-card .choice-card-icon .kind-emblem,html body #app .choice-card .choice-card-icon .game-icon{width:38px!important;height:38px!important}' +
-    'html body #app .choice-card .choice-card-tag{font-size:.62rem!important;padding:.18rem .55rem!important}' +
-    /* cartes d'événement et cartes de titres plus légères */
-    'html body #app .event-choice{background:rgba(30,26,46,.82)!important}' +
-    'html body #app .titre-gardien-card{background:rgba(30,26,46,.72)!important}' +
-    /* accueil compact : titre et boutons tiennent dans un cadre plus étroit */
-    'html body[data-screen=accueil] #app .frame .title-xl{font-size:clamp(2.2rem,min(9vw,7.5vh),3.4rem)!important;line-height:1.02!important;margin:.2rem 0 .3rem!important}' +
-    'html body[data-screen=accueil] #app .frame .subtitle{font-size:clamp(.92rem,2.2vh,1.08rem)!important;margin:.2rem 0 .5rem!important}' +
+    /* ------------------------------------------------ allègement commun */
+    '#app .frame > .lantern,#app .frame .lantern-top-left,#app .frame .lantern-top-right,#app .frame .lantern-bottom-left,#app .frame .lantern-bottom-right{display:none!important}' +
+    '#app .frame.frame::before,#app .frame.frame::after{display:none!important}' +
+    '#f2ChestStrip{display:none!important}' +
+    /* messages du Gardien : un bandeau fin sous la barre du haut, jamais sur le panneau de jeu */
+    'html body .gardien-toast.gardien-toast{top:var(--fh-haut,64px)!important;bottom:auto!important;max-width:min(92vw,440px)!important;padding:.5rem .75rem!important;font-size:.84rem!important;transform:translate(-50%,-160%)!important;max-height:28dvh}' +
+    'html body .gardien-toast.gardien-toast.visible{transform:translate(-50%,0)!important}' +
+    'html body #app .fort-coin,html body #app .frame .guirlande-wrap,html body #app .frame .bulb{display:none!important}' +
+    /* hors de l’accueil, la rangée Marché / Contrat / Gardien disparaît (le Gardien reste dans sa pastille) */
+    'body:not([data-screen=accueil]) #fortContractFab,body:not([data-screen=accueil]) #gardienChatFab,body:not([data-screen=accueil]) #fortV2Menu{display:none!important}' +
+    /* barre du haut sur une seule ligne : clés, pièces, son */
+    'html body .topbar{flex-wrap:nowrap!important;gap:.35rem!important;padding:.35rem .75rem!important;align-items:center!important;justify-content:center!important;' +
+      'background:linear-gradient(180deg,rgba(8,8,16,.55),rgba(8,8,16,0))!important;border:0!important;box-shadow:none!important}' +
+    'html body .topbar > .pill:not(:has(.portrait-frame)):first-child,html body .topbar #digitalClock,html body .topbar .pill:has(#digitalClock),html body .topbar .pill:has(.portrait-frame){display:none!important}' +
+    'html body .topbar .keys-row{gap:4px!important;flex:0 1 auto!important;margin:0!important}' +
+    'html body .topbar .key-chip{width:22px!important;height:22px!important}' +
+    'html body .topbar #chatBtn,html body .topbar #muteBtn{width:34px!important;height:34px!important;min-width:0!important;padding:0!important;border-radius:50%!important;font-size:.9rem!important}' +
+    /* pastilles secondaires regroupées en haut à droite */
+    'html body .fp-bouton,html body .gd-onglet,html body #registreBtn{position:fixed!important;left:auto!important;bottom:auto!important;width:38px!important;height:38px!important;padding:0!important;border-radius:50%!important;' +
+      'display:flex!important;align-items:center;justify-content:center;font-size:.95rem!important;background:rgba(18,15,30,.78)!important;border:1px solid rgba(244,208,63,.4)!important;box-shadow:0 4px 12px rgba(0,0,0,.4)!important;z-index:95!important}' +
+    'html body .fp-bouton[hidden]{display:none!important}' +
+    'html body .fp-bouton{right:10px!important;top:calc(var(--fh-haut,64px) + 0px)!important}' +
+    'html body .gd-onglet{right:10px!important;top:calc(var(--fh-haut,64px) + 46px)!important}' +
+    'html body #registreBtn{right:10px!important;top:calc(var(--fh-haut,64px) + 92px)!important}' +
+    'html body .fp-bouton .fp-n{position:absolute;top:-4px;right:-4px;min-width:16px;height:16px;border-radius:8px;background:#f4d03f;color:#2a1c05!important;font:700 .6rem/16px Georgia,serif;text-align:center}' +
+    'body[data-screen=accueil] .gd-onglet{display:none!important}' +
+    /* vitre teintée, sans fioritures */
+    'html body:not([data-screen=intro]) #app .frame.frame{background-color:transparent!important;background-image:linear-gradient(180deg,rgba(20,18,34,.74),rgba(12,11,22,.84))!important;' +
+      'backdrop-filter:blur(10px) saturate(1.1)!important;-webkit-backdrop-filter:blur(10px) saturate(1.1)!important;border:1px solid rgba(244,208,63,.28)!important;box-shadow:0 -10px 40px rgba(0,0,0,.45)!important}' +
+    /* cartes de choix : nettes et compactes */
+    'html body #app .choice-cards.choice-cards{gap:.55rem!important;grid-template-columns:1fr!important}' +
+    'html body #app .choice-card.choice-card{padding:.75rem .9rem!important;gap:.25rem .6rem!important;background:rgba(36,31,56,.78)!important}' +
+    'html body #app .choice-card .choice-card-title{font-size:1rem!important;line-height:1.2!important;margin:0!important}' +
+    'html body #app .choice-card .choice-card-blurb{font-size:.82rem!important;line-height:1.35!important;margin:0!important;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}' +
+    'html body #app .choice-card .choice-card-icon .kind-emblem,html body #app .choice-card .choice-card-icon .game-icon{width:36px!important;height:36px!important}' +
+    'html body #app .choice-card .choice-card-tag{font-size:.6rem!important;padding:.16rem .5rem!important}' +
+    /* accueil : titre plus sobre, boutons groupés */
+    'html body[data-screen=accueil] #app .frame .title-xl{font-size:clamp(2rem,min(9vw,6.4vh),3rem)!important;line-height:1.02!important;margin:.1rem 0 .2rem!important}' +
+    'html body[data-screen=accueil] #app .frame .subtitle{font-size:clamp(.88rem,2vh,1rem)!important;margin:.15rem 0 .4rem!important}' +
     'html body[data-screen=accueil] #app .frame .btn-row{display:grid!important;grid-template-columns:1fr 1fr!important;gap:.5rem!important}' +
     'html body[data-screen=accueil] #app .frame .btn-row #goSolo{grid-column:1 / -1}' +
-    'html body[data-screen=accueil] #app .frame .btn-row .btn{min-height:46px!important;height:auto!important;padding:.6rem .9rem!important;font-size:.86rem!important;margin:0!important}' +
-    '@media (max-width:420px){html body[data-screen=accueil] #app .frame .btn-row{grid-template-columns:1fr!important}}' +
-    /* petits écrans en hauteur : on garde de l’air autour du cadre */
-    '@media (max-height:700px){html body #app.with-topbar{padding-top:calc(var(--topbar-h,73px) + 26px)!important}}';
-  function demarrer() { var s = D.createElement('style'); s.id = 'fort-format-css'; s.textContent = css; D.head.appendChild(s); }
+    'html body[data-screen=accueil] #app .frame .btn-row .btn{min-height:46px!important;height:auto!important;padding:.55rem .8rem!important;font-size:.84rem!important;margin:0!important}' +
+
+      /* épreuves : en-tête resserré, tout le jeu reste visible sans faire défiler */
+    'body[data-screen=epreuve] #app .frame-scroll > div:first-child:not([class]):not([id]){display:none!important}' +
+    'body[data-screen=epreuve] #app .frame .kind-emblem-wrap{display:none!important}' +
+    'body[data-screen=epreuve] #app .frame .challenge-sub{display:none!important}' +
+    'body[data-screen=epreuve] #app .frame .pill{padding:.12rem .6rem!important;font-size:.62rem!important;margin:0 auto .2rem!important}' +
+    'body[data-screen=epreuve] #app .frame .challenge-title{margin:.1rem 0 .2rem!important;font-size:1.15rem!important}' +
+    'body[data-screen=epreuve] #app .frame .challenge-howto{margin:.1rem 0 .3rem!important;font-size:.82rem!important}' +
+    'body[data-screen=epreuve] #app .frame #hintBox{height:auto!important;max-height:none!important;overflow:visible!important;margin-top:.25rem!important;padding-top:.2rem!important;padding-bottom:.2rem!important}' +
+    'body[data-screen=epreuve] #app .frame .options-grid,body[data-screen=epreuve] #app #optionsGrid{gap:.4rem!important}' +
+    'body[data-screen=epreuve] #app .frame .sablier-wrap{transform:scale(.8);margin:-.35rem auto -.35rem!important}' +
+    /* ------------------------------------------- téléphone : panneau du bas */
+    '@media ' + PORTRAIT + '{' +
+      'html body #app#app{justify-content:flex-end!important;padding:0!important;max-width:none!important;width:100%!important;margin:0!important}' +
+      'html body #app > .frame{width:min(100%,600px)!important;max-width:600px!important;align-self:center;margin:auto 0 0!important;' +
+        'border-radius:26px 26px 0 0!important;border-bottom:0!important;padding-bottom:calc(env(safe-area-inset-bottom,0px) + 8px)!important;' +
+        'max-height:min(64dvh,720px)!important;flex:0 1 auto}' +
+      'html body[data-screen=epreuve] #app > .frame,html body[data-screen=salle-tresor] #app > .frame,html body[data-screen=bonus-chiffre] #app > .frame,html body[data-screen=plateau-board] #app > .frame{max-height:calc(100dvh - var(--fh-haut,64px) - 30px)!important}' +
+      'html body[data-screen=regles] #app > .frame,html body[data-screen=histoire] #app > .frame,html body[data-screen=solo-setup] #app > .frame,html body[data-screen=soiree-setup] #app > .frame,html body[data-screen=plateau-setup] #app > .frame{max-height:min(78dvh,860px)!important}' +
+      /* à l’accueil, le panneau laisse la place à la rangée Marché / Contrat / Gardien */
+      'html body[data-screen=accueil] #app > .frame{margin-bottom:calc(env(safe-area-inset-bottom,0px) + 48px)!important;border-radius:26px!important;border-bottom:1px solid rgba(244,208,63,.28)!important;width:calc(100% - 20px)!important;max-height:min(70dvh,760px)!important;padding-bottom:14px!important}' +
+      'html body #app > .frame::-webkit-scrollbar{display:none}' +
+    '}' +
+
+    /* --------------------------- grand écran / paysage : panneau sur le côté */
+    '@media (orientation: landscape) and (min-aspect-ratio: 5/4){' +
+      'html body #app#app{align-items:flex-end!important;justify-content:center!important;max-width:none!important;width:100%!important;margin:0!important;padding:calc(var(--topbar-h,56px) + 8px) clamp(12px,3vw,48px) 12px!important}' +
+      'html body #app#app > .frame{align-self:flex-end!important;width:clamp(340px,40vw,500px)!important;max-width:500px!important;margin:auto 0!important;border-radius:24px!important;' +
+        'max-height:calc(100dvh - var(--topbar-h,56px) - 24px)!important}' +
+      'html body[data-screen=epreuve] #app > .frame,html body[data-screen=salle-tresor] #app > .frame,html body[data-screen=plateau-board] #app > .frame{width:clamp(360px,46vw,600px)!important;max-width:600px!important}' +
+      'html body[data-screen=accueil] #app#app{padding-bottom:56px!important}' +
+      'html body[data-screen=accueil] #app > .frame{max-height:calc(100dvh - 80px)!important}' +
+      'html body .fp-bouton,html body .gd-onglet,html body #registreBtn{right:auto!important;left:12px!important}' +
+    '}' +
+    /* téléphone tenu à l'horizontale : le jeu est pensé pour la verticale */
+    '#fr-tourne{position:fixed;inset:0;z-index:100070;display:none;flex-direction:column;align-items:center;justify-content:center;gap:1rem;padding:1.5rem;text-align:center;background:rgba(8,7,16,.92);color:#f3e4bd;font-family:Georgia,serif}' +
+    '#fr-tourne b{font-size:2.6rem;display:block;animation:fr-pivote 2.4s ease-in-out infinite}' +
+    '@keyframes fr-pivote{0%,30%{rotate:90deg}60%,100%{rotate:0deg}}' +
+    '#fr-tourne button{min-height:42px;padding:.5rem 1.1rem;border-radius:999px;border:1px solid rgba(244,208,63,.5);background:transparent;color:#f4d03f;font:600 .9rem Georgia,serif;cursor:pointer}' +
+    '@media (orientation: landscape) and (max-height: 500px) and (pointer: coarse){html:not(.fr-paysage-ok) #fr-tourne{display:flex}}';
+
+  function hautBarre() {
+    var t = D.querySelector('.topbar'), h = 8;
+    if (t && t.offsetParent !== null) { var r = t.getBoundingClientRect(); if (r.height) h = Math.round(r.bottom + 8); }
+    D.documentElement.style.setProperty('--fh-haut', h + 'px');
+  }
+  function tourne() {
+    try { if (sessionStorage.getItem('fort-paysage-ok')) D.documentElement.classList.add('fr-paysage-ok'); } catch (e) {}
+    var d = D.createElement('div'); d.id = 'fr-tourne'; d.setAttribute('role', 'dialog'); d.setAttribute('aria-label', 'Tourner l’appareil');
+    d.innerHTML = '<b aria-hidden="true">📱</b><p style="margin:0;max-width:22rem;line-height:1.4">Le Fort se joue mieux à la verticale : tourne ton téléphone pour profiter du décor et des commandes.</p><button type="button">Continuer à l’horizontale</button>';
+    d.querySelector('button').addEventListener('click', function () { D.documentElement.classList.add('fr-paysage-ok'); try { sessionStorage.setItem('fort-paysage-ok', '1'); } catch (e) {} });
+    D.body.appendChild(d);
+  }
+  function demarrer() {
+    tourne();
+    var s = D.createElement('style'); s.id = 'fort-format-css'; s.textContent = css; D.head.appendChild(s);
+    hautBarre();
+    var ecranAvant = D.body.dataset.screen;
+    if (window.MutationObserver) { var t = 0; new MutationObserver(function () {
+      clearTimeout(t); t = setTimeout(hautBarre, 60);
+      // un message du Gardien ne survit pas au changement d'écran (ex. offre de temps d'une épreuve terminée)
+      if (D.body.dataset.screen !== ecranAvant) { ecranAvant = D.body.dataset.screen; var g = D.getElementById('gardienToast'); if (g) g.classList.remove('visible'); }
+    }).observe(D.body, { attributes: true, attributeFilter: ['data-screen'] }); }
+    window.addEventListener('resize', hautBarre);
+    setInterval(hautBarre, 2000);
+  }
   if (D.readyState === 'loading') D.addEventListener('DOMContentLoaded', demarrer); else demarrer();
 })();
 
