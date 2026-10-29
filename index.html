@@ -5016,6 +5016,8 @@ html body .carte-col:not(.locked) .carte-nom{color:var(--cp-gold)}
     'html body .fp-bouton .fp-n{position:absolute;top:-4px;right:-4px;min-width:18px;height:18px;border-radius:9px;background:#f4d03f;color:#2a1c05!important;font:700 .65rem/18px Georgia,serif;text-align:center}' +
     'body[data-screen=accueil] .fp-bouton,body[data-screen=accueil] .gd-onglet{bottom:calc(env(safe-area-inset-bottom,0px) + 58px)}' +
     'body[data-screen=accueil] .gd-onglet{display:none}' +
+    /* la ligne de crédits passait sous le cadre de l’accueil : elle reste visible dans les Règles et l’Histoire */
+    'body:not([data-screen=regles]):not([data-screen=histoire]) footer.credits{display:none!important}' +
     'body[data-screen=epreuve] .gd-onglet,body[data-screen=transition] .gd-onglet{left:12px!important}';
 
   function corrigerTextes() {
