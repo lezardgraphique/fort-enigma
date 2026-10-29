@@ -3336,7 +3336,7 @@ html body .carte-col:not(.locked) .carte-nom{color:var(--cp-gold)}
   function entreeEcran() {
     if (!appEl) appEl = D.getElementById('app');
     if (appEl && !reduit && tier() < 3) {
-      appEl.classList.remove('fp-entree'); void appEl.offsetWidth; appEl.classList.add('fp-entree');
+      /* plus de fondu global de l'écran : il faisait clignoter l'affichage */
     }
   }
   function surEcran(nom) {
@@ -3607,9 +3607,7 @@ html body .carte-col:not(.locked) .carte-nom{color:var(--cp-gold)}
     '.fp-depth #app .choice-card.choice-card{transform:perspective(760px) rotateX(var(--fp-rx,0deg)) rotateY(var(--fp-ry,0deg));transition:transform .18s ease-out,border-color .25s,box-shadow .25s;will-change:transform}' +
     '.fp-depth #app .choice-card.choice-card:hover{box-shadow:0 16px 34px rgba(0,0,0,.55),0 0 22px rgba(244,208,63,.18)}' +
     '#app .choice-card.choice-card:active,#app .event-choice:active{scale:.975;transition:scale .08s}' +
-    '.fp-depth #app .choice-card,.fp-depth #app .event-choice{animation:fp-monte .5s cubic-bezier(.2,.8,.2,1) backwards;animation-delay:calc(var(--fp-i,0)*70ms)}' +
     '@keyframes fp-monte{from{opacity:0;translate:0 16px}to{opacity:1;translate:0 0}}' +
-    '#app.fp-entree{animation:fp-fondu .34s ease-out}' +
     '@keyframes fp-fondu{from{opacity:0}to{opacity:1}}' +
     '.fp-pouls{animation:fp-pouls .5s ease-out!important}' +
     '@keyframes fp-pouls{from{box-shadow:0 0 0 0 rgba(244,208,63,.5)}to{box-shadow:0 0 0 16px rgba(244,208,63,0)}}' +
@@ -3825,13 +3823,20 @@ html body .carte-col:not(.locked) .carte-nom{color:var(--cp-gold)}
     if (f) { var r = f.getBoundingClientRect(); if (r.top > 0) haut = Math.max(haut, r.top - 27); }
     hud.style.top = Math.round(haut) + 'px';
   }
-  function surveillerBulle() {
-    var b = D.getElementById('decorBubble'); if (!b || b.__fv || !W.MutationObserver) return; b.__fv = true;
+  function surveillerBulle() { ['decorBubble', 'fortDecorHint'].forEach(surveillerUne); }
+  function surveillerUne(id) {
+    var b = D.getElementById(id); if (!b || b.__fv || !W.MutationObserver) return; b.__fv = true;
     var t = 0;
-    new MutationObserver(function () {
-      if (b.classList.contains('visible')) { clearTimeout(t); t = setTimeout(function () { b.classList.remove('visible'); }, 7000); }
-    }).observe(b, { attributes: true, attributeFilter: ['class'] });
-    if (b.classList.contains('visible')) t = setTimeout(function () { b.classList.remove('visible'); }, 7000);
+    function examiner() {
+      if (!b.classList.contains('visible')) return;
+      clearTimeout(t);
+      // une bulle posée sur les cartes ou le cadre gêne la lecture : on la retire
+      var f = D.querySelector('#app .frame'), rb = b.getBoundingClientRect(), rf = f && f.getBoundingClientRect();
+      if (ecran() !== 'accueil' || (rf && rb.bottom > rf.top + 8 && rb.top < rf.bottom - 8 && rb.right > rf.left + 8 && rb.left < rf.right - 8)) { b.classList.remove('visible'); return; }
+      t = setTimeout(function () { b.classList.remove('visible'); }, 7000);
+    }
+    new MutationObserver(function () { setTimeout(examiner, 30); }).observe(b, { attributes: true, attributeFilter: ['class', 'style'] });
+    examiner();
   }
   function pulse() {
     if (!hud || reduit) return; hud.classList.remove('fv-bat'); void hud.offsetWidth; hud.classList.add('fv-bat');
@@ -3907,7 +3912,7 @@ html body .carte-col:not(.locked) .carte-nom{color:var(--cp-gold)}
     'html body #app #goSoiree,html body #app #goPlateau{padding-right:2.8rem!important}' +
     '@media (min-height:640px){html body #app .frame:has(#goSolo){padding-bottom:3.4rem!important}}' +
     'html body[data-scroll-key-phase="neon"] .scroll-thread-key{filter:hue-rotate(95deg) saturate(1.15) drop-shadow(0 1px 2px rgba(0,0,0,.45))}' +
-    '#decorBubble{pointer-events:none!important}' +
+    '#decorBubble,#fortDecorHint{pointer-events:none!important}' +
     '#hintBtn{min-height:34px}' +
     '@media (max-width:430px){#weatherCityInput,#weatherCityBtn,#localWeatherBtn{min-height:34px}}' +
     /* HUD veillée */
@@ -3987,12 +3992,12 @@ html body .carte-col:not(.locked) .carte-nom{color:var(--cp-gold)}
     foraine:   { p: [['confetti', 18, ['#e0457b', '#f4d03f', '#5ec8e5', '#8ee07a']], ['luciole', 14, '#ffd27a']], lum: 'guirlande', brume: null },
     steampunk: { p: [['vapeur', 9, 'rgba(235,225,210,.10)'], ['etincelle', 16, '#ffbe5c']], lum: 'forge', brume: 'rgba(200,160,110,.18)' },
     nordique:  { p: [['neige', 46, '#f2f8ff']], lum: 'aurore', brume: 'rgba(200,230,255,.22)' },
-    pirate:    { p: [['pluie', 60, 'rgba(190,215,230,.45)'], ['embrun', 12, '#e8f3f7']], lum: 'lune', brume: 'rgba(120,160,170,.26)', eclairs: true },
-    manoir:    { p: [['vapeur', 7, 'rgba(180,150,230,.10)'], ['luciole', 12, '#c9b6ff']], lum: 'bougie', brume: 'rgba(150,120,200,.28)', eclairs: true },
+    pirate:    { p: [['pluie', 60, 'rgba(190,215,230,.45)'], ['embrun', 12, '#e8f3f7']], lum: 'lune', brume: 'rgba(120,160,170,.26)' },
+    manoir:    { p: [['vapeur', 7, 'rgba(180,150,230,.10)'], ['luciole', 12, '#c9b6ff']], lum: 'bougie', brume: 'rgba(150,120,200,.28)' },
     jungle:    { p: [['luciole', 24, '#b6ff7a'], ['pollen', 18, '#f3f0b0']], lum: 'rayons', brume: 'rgba(90,170,110,.20)' },
     desert:    { p: [['sable', 40, '#e9c48a'], ['pollen', 8, '#ffe2a8']], lum: 'soleil', brume: 'rgba(230,170,100,.18)' },
     neon:      { p: [['pluie', 54, ['rgba(255,46,196,.55)', 'rgba(70,220,255,.55)']]], lum: 'neon', brume: 'rgba(255,46,196,.14)' },
-    nocturne:  { p: [['etoile', 40, '#ffffff'], ['luciole', 14, '#d9e0ff']], lum: 'lune', brume: 'rgba(150,160,230,.18)', filantes: true }
+    nocturne:  { p: [['etoile', 40, '#ffffff'], ['luciole', 14, '#d9e0ff']], lum: 'lune', brume: 'rgba(150,160,230,.18)' }
   };
 
   /* ---------------------------------------------------------- calques */
@@ -4080,12 +4085,10 @@ html body .carte-col:not(.locked) .carte-nom{color:var(--cp-gold)}
     var dt = Math.min(.05, (ts - dernier) / 1000 || .016); dernier = ts;
 
     off.x += (cible.x - off.x) * .05; off.y += (cible.y - off.y) * .05;
-    H.style.setProperty('--fd-px', (off.x * -10).toFixed(1) + 'px');
-    H.style.setProperty('--fd-py', (off.y * -6).toFixed(1) + 'px');
 
     cf.setTransform(dpr, 0, 0, dpr, 0, 0); ca.setTransform(dpr, 0, 0, dpr, 0, 0);
     cf.clearRect(0, 0, largeur, hauteur); ca.clearRect(0, 0, largeur, hauteur);
-    var avantOk = t < 2 && !enEpreuve();
+    var avantOk = false; // plus rien ne passe devant l'interface
 
     for (var i = 0; i < parts.length; i++) {
       var p = parts[i], g = (p.z >= .8 ? (avantOk ? ca : null) : cf);
@@ -4131,24 +4134,8 @@ html body .carte-col:not(.locked) .carte-nom{color:var(--cp-gold)}
     }
     cf.globalAlpha = 1; ca.globalAlpha = 1;
 
-    // étoiles filantes
-    if (profil.filantes && t < 2) {
-      if (!filante && ts > prochaineFilante) { filante = { x: alea(.2, .9) * largeur, y: alea(.05, .3) * hauteur, v: 0 }; prochaineFilante = ts + alea(6000, 14000); }
-      if (filante) {
-        filante.v += dt; var fx = filante.x - filante.v * 520, fy = filante.y + filante.v * 220;
-        var gr = cf.createLinearGradient(fx, fy, fx + 70, fy - 30); gr.addColorStop(0, 'rgba(255,255,255,.9)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
-        cf.strokeStyle = gr; cf.lineWidth = 1.5; cf.beginPath(); cf.moveTo(fx, fy); cf.lineTo(fx + 70, fy - 30); cf.stroke();
-        if (filante.v > .9) filante = null;
-      }
-    }
-    // éclairs
-    if (orage() && t < 2 && ts > prochainEclair) {
-      prochainEclair = ts + alea(9000, 22000);
-      if (dernier > 4000) { eclair.classList.remove('fd-flash'); void eclair.offsetWidth; eclair.classList.add('fd-flash'); }
-    }
     raf = W.requestAnimationFrame(dessiner);
   }
-  function orage() { return !!(profil && (profil.eclairs || (D.body.dataset.weather === 'pluvieux' && /nuit|soir/.test(D.body.dataset.timephase || '')))); }
   function lancer() { if (!raf && !reduit && actif()) raf = W.requestAnimationFrame(dessiner); }
 
   /* -------------------------------------------------------- choix du profil */
@@ -4181,6 +4168,21 @@ html body .carte-col:not(.locked) .carte-nom{color:var(--cp-gold)}
       });
     } catch (e) {}
   }
+
+  /* ----------------------------------------------------- anti-clignotement
+     Les animations du jeu qui font varier brusquement la lumière (torches qui
+     vacillent, ampoules, lanternes, étoiles qui clignotent, éclairs) sont
+     arrêtées sur leur état stable. Le mouvement doux (dérive, vagues) reste. */
+  var CLIGNOTE = /^(torchFlickerGlobal|bulbGlow|lanternFlicker|starBlink|codeProjectGlow|fortFairyTwinkle|torchPulse|lightning[A-Za-z]*|eclair[A-Za-z]*|flash[A-Za-z]*|flicker[A-Za-z]*|blink[A-Za-z]*|twinkle[A-Za-z]*|clignot[A-Za-z]*)$/i;
+  function apaiser() {
+    try {
+      if (!D.getAnimations) return;
+      D.getAnimations().forEach(function (a) {
+        var n = a.animationName || '';
+        if (n && CLIGNOTE.test(n) && a.playState !== 'finished') { try { a.cancel(); } catch (e) {} }
+      });
+    } catch (e) {}
+  }
   function enEpreuve() { try { return state.screen === 'epreuve'; } catch (e) { return false; } }
   function redim() {
     dpr = Math.min(W.devicePixelRatio || 1, tier() === 0 ? 1.5 : 1);
@@ -4197,45 +4199,43 @@ html body .carte-col:not(.locked) .carte-nom{color:var(--cp-gold)}
     '#fd-brume[hidden]{display:none}' +
     '@keyframes fd-derive{from{translate:-4% 0}to{translate:4% -2%}}' +
     '#fd-lumiere{position:fixed;inset:-4%;pointer-events:none;transform:translate3d(calc(var(--fd-px,0) * -1),calc(var(--fd-py,0) * -1),0)}' +
-    '[data-fd-lum=torche] #fd-lumiere{background:radial-gradient(38% 30% at 4% 96%,rgba(255,150,50,.26),transparent 70%),radial-gradient(38% 30% at 96% 96%,rgba(255,140,40,.24),transparent 70%);animation:fd-torche 2.6s steps(1) infinite}' +
-    '[data-fd-lum=bougie] #fd-lumiere{background:radial-gradient(34% 26% at 50% 100%,rgba(255,190,120,.2),transparent 70%),radial-gradient(60% 40% at 90% 0,rgba(160,130,230,.16),transparent 70%);animation:fd-torche 3.4s steps(1) infinite}' +
-    '[data-fd-lum=forge] #fd-lumiere{background:radial-gradient(50% 34% at 50% 108%,rgba(255,120,30,.28),transparent 72%);animation:fd-forge 1.8s ease-in-out infinite alternate}' +
+    '[data-fd-lum=torche] #fd-lumiere{background:radial-gradient(38% 30% at 4% 96%,rgba(255,150,50,.26),transparent 70%),radial-gradient(38% 30% at 96% 96%,rgba(255,140,40,.24),transparent 70%)}' +
+    '[data-fd-lum=bougie] #fd-lumiere{background:radial-gradient(34% 26% at 50% 100%,rgba(255,190,120,.2),transparent 70%),radial-gradient(60% 40% at 90% 0,rgba(160,130,230,.16),transparent 70%)}' +
+    '[data-fd-lum=forge] #fd-lumiere{background:radial-gradient(50% 34% at 50% 108%,rgba(255,120,30,.28),transparent 72%)}' +
     '[data-fd-lum=lune] #fd-lumiere{background:radial-gradient(45% 32% at 88% 4%,rgba(200,220,255,.22),transparent 72%)}' +
-    '[data-fd-lum=aurore] #fd-lumiere{background:linear-gradient(170deg,rgba(80,255,190,.16),rgba(80,170,255,.12) 22%,transparent 42%);animation:fd-aurore 14s ease-in-out infinite alternate}' +
-    '[data-fd-lum=neon] #fd-lumiere{background:radial-gradient(40% 30% at 0 30%,rgba(255,46,196,.22),transparent 70%),radial-gradient(40% 30% at 100% 70%,rgba(60,220,255,.2),transparent 70%);animation:fd-neon 4s ease-in-out infinite}' +
-    '[data-fd-lum=guirlande] #fd-lumiere{background:radial-gradient(6% 4% at 12% 8%,rgba(255,90,140,.35),transparent),radial-gradient(6% 4% at 35% 5%,rgba(255,210,90,.35),transparent),radial-gradient(6% 4% at 62% 8%,rgba(90,200,255,.35),transparent),radial-gradient(6% 4% at 86% 5%,rgba(140,230,120,.35),transparent),radial-gradient(50% 30% at 50% 100%,rgba(255,180,90,.14),transparent 70%);animation:fd-neon 2.8s ease-in-out infinite}' +
-    '[data-fd-lum=rayons] #fd-lumiere,[data-fd-lum=soleil] #fd-lumiere{background:repeating-linear-gradient(105deg,transparent 0 7%,rgba(255,240,180,.07) 9% 12%,transparent 15% 22%);mask-image:linear-gradient(180deg,#000,transparent 75%);-webkit-mask-image:linear-gradient(180deg,#000,transparent 75%);animation:fd-rayons 12s ease-in-out infinite alternate}' +
+    '[data-fd-lum=aurore] #fd-lumiere{background:linear-gradient(170deg,rgba(80,255,190,.16),rgba(80,170,255,.12) 22%,transparent 42%)}' +
+    '[data-fd-lum=neon] #fd-lumiere{background:radial-gradient(40% 30% at 0 30%,rgba(255,46,196,.22),transparent 70%),radial-gradient(40% 30% at 100% 70%,rgba(60,220,255,.2),transparent 70%)}' +
+    '[data-fd-lum=guirlande] #fd-lumiere{background:radial-gradient(6% 4% at 12% 8%,rgba(255,90,140,.35),transparent),radial-gradient(6% 4% at 35% 5%,rgba(255,210,90,.35),transparent),radial-gradient(6% 4% at 62% 8%,rgba(90,200,255,.35),transparent),radial-gradient(6% 4% at 86% 5%,rgba(140,230,120,.35),transparent),radial-gradient(50% 30% at 50% 100%,rgba(255,180,90,.14),transparent 70%)}' +
+    '[data-fd-lum=rayons] #fd-lumiere,[data-fd-lum=soleil] #fd-lumiere{background:repeating-linear-gradient(105deg,transparent 0 7%,rgba(255,240,180,.07) 9% 12%,transparent 15% 22%);mask-image:linear-gradient(180deg,#000,transparent 75%);-webkit-mask-image:linear-gradient(180deg,#000,transparent 75%)}' +
     '[data-fd-lum=soleil] #fd-lumiere{background-color:rgba(255,170,80,.05)}' +
-    '@keyframes fd-torche{0%{opacity:1}13%{opacity:.82}21%{opacity:.95}38%{opacity:.76}52%{opacity:1}67%{opacity:.86}81%{opacity:.97}}' +
-    '@keyframes fd-forge{to{opacity:.7}}@keyframes fd-neon{50%{opacity:.6}}' +
-    '@keyframes fd-aurore{to{filter:hue-rotate(50deg);translate:0 3%}}@keyframes fd-rayons{to{translate:4% 0;opacity:.7}}' +
     /* le cadre devient une vitre : on voit le décor peint et la météo à travers */
     'html.fp-depth body[data-universe]:not([data-universe=""]):not([data-active-kind]) .frame{background-image:linear-gradient(rgba(20,18,32,.46),rgba(12,12,22,.64))!important;backdrop-filter:blur(3px) saturate(1.2)!important;-webkit-backdrop-filter:blur(3px) saturate(1.2)!important}' +
     'html.fp-depth body[data-active-kind] .frame{background-image:linear-gradient(rgba(20,18,32,.62),rgba(12,12,22,.78))!important}' +
-    '#fd-eclair{position:fixed;inset:0;pointer-events:none;background:rgba(225,235,255,.0)}' +
-    '#fd-eclair.fd-flash{animation:fd-flash .9s ease-out}' +
-    '@keyframes fd-flash{0%{background:rgba(225,235,255,0)}6%{background:rgba(225,235,255,.42)}12%{background:rgba(225,235,255,.05)}18%{background:rgba(225,235,255,.3)}100%{background:rgba(225,235,255,0)}}' +
     /* allègement : le décor vivant remplace les systèmes de particules DOM du jeu */
     'html[data-fd-univers] #fortFairyLayer,html[data-fd-univers] #embers{display:none!important}' +
     'html[data-fd-univers] #roomLayer::before{animation:none!important}' +
+    '#scene>.layer.lightning,.layer.lightning{display:none!important}' +
+    '#scene::after{animation:none!important}' +
+    /* le cadre ne joue qu'une seule entrée : avant, une 2e animation le refaisait disparaître (clignotement) */
+    '#app .screen-bg:not(.screen-entering),#app .event-frame-bg:not(.screen-entering){animation:none!important}' +
     '.fd-pause,.fd-pause::before,.fd-pause::after{animation-play-state:paused!important}' +
     'html.fp-calme #fd-lumiere,html.fp-calme #fd-brume{animation:none}' +
-    '@media (prefers-reduced-motion:reduce){#fd-lumiere,#fd-brume,#fd-eclair{animation:none!important}#fd-fond,#fd-avant{display:none}}';
+    '@media (prefers-reduced-motion:reduce){#fd-lumiere,#fd-brume{animation:none!important}#fd-fond,#fd-avant{display:none}}';
 
   function demarrer() {
     try {
       var st = D.createElement('style'); st.id = 'fort-decor-css'; st.textContent = css; D.head.appendChild(st);
       brume = div('fd-brume', 1);
       fond = calque('fd-fond', 1); cf = fond.getContext('2d');
-      lum = div('fd-lumiere', 71);
-      avant = calque('fd-avant', 72); ca = avant.getContext('2d');
-      eclair = div('fd-eclair', 73);
+      lum = div('fd-lumiere', 2);
+      avant = calque('fd-avant', 1); avant.style.display = 'none'; ca = avant.getContext('2d');
       redim();
       W.addEventListener('resize', function () { clearTimeout(redim.t); redim.t = setTimeout(redim, 150); });
-      if (W.MutationObserver) new MutationObserver(function () { majProfil(false); clearTimeout(endormir.a); clearTimeout(endormir.b); endormir.a = setTimeout(endormir, 80); endormir.b = setTimeout(endormir, 1400); }).observe(D.body, { attributes: true, attributeFilter: ['data-universe', 'data-weather', 'data-timephase', 'data-scene', 'data-screen'] });
+      if (W.MutationObserver) new MutationObserver(function () { majProfil(false); clearTimeout(endormir.a); clearTimeout(endormir.b); endormir.a = setTimeout(function () { endormir(); apaiser(); }, 80); endormir.b = setTimeout(function () { endormir(); apaiser(); }, 1400); }).observe(D.body, { attributes: true, attributeFilter: ['data-universe', 'data-weather', 'data-timephase', 'data-scene', 'data-screen'] });
       D.addEventListener('visibilitychange', function () { if (!D.hidden) { dernier = 0; lancer(); } });
       setInterval(function () { majProfil(false); if (!actif()) { cf.clearRect(0, 0, fond.width, fond.height); ca.clearRect(0, 0, avant.width, avant.height); } else lancer(); }, 1500);
-      setTimeout(endormir, 300); setTimeout(endormir, 2000);
+      setTimeout(function () { endormir(); apaiser(); }, 300); setTimeout(function () { endormir(); apaiser(); }, 2000);
+      if (W.MutationObserver) { var tA = 0; new MutationObserver(function () { clearTimeout(tA); tA = setTimeout(apaiser, 60); }).observe(D.body, { childList: true, subtree: true }); }
       lancer();
     } catch (e) { try { console.warn('FortDecor :', e); } catch (x) {} }
   }

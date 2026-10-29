@@ -406,3 +406,10 @@ Couche `<script id="fort-veillee">` par-dessus le jeu (désactivable avec `?veil
 
 Le décor vivant remplace les systèmes de particules DOM du jeu (fées, braises), les calques de décor invisibles sont mis en pause, les animations coûteuses (filtres, ombres animées, flou, mélange de calques) sont retirées, et les épreuves tournent avec un décor allégé.
 
+## Décor stable (anti-clignotement)
+
+- Plus d'éclairs, d'étoiles filantes ni de lumières qui vacillent : la lumière d'ambiance de chaque univers est fixe et passe derrière le cadre.
+- Les animations du jeu qui faisaient varier brusquement la lumière (torches, ampoules, lanternes, étoiles, éclairs) sont arrêtées sur leur état stable.
+- Le cadre ne joue plus qu'une seule animation d'entrée (avant, une seconde le refaisait disparaître) ; plus de fondu global de l'écran ni de cartes qui réapparaissent à chaque rafraîchissement.
+- Les particules ne passent plus devant l'interface, et les bulles d'aide du décor ne recouvrent plus les cartes.
+
