@@ -413,3 +413,11 @@ Le décor vivant remplace les systèmes de particules DOM du jeu (fées, braises
 - Le cadre ne joue plus qu'une seule animation d'entrée (avant, une seconde le refaisait disparaître) ; plus de fondu global de l'écran ni de cartes qui réapparaissent à chaque rafraîchissement.
 - Les particules ne passent plus devant l'interface, et les bulles d'aide du décor ne recouvrent plus les cartes.
 
+## Fond simple et fluide
+
+`<script id="fort-fond">` (désactivable avec `?fond=0`) : un seul tableau peint en plein écran — la scène de l'accueil, puis le décor de l'univers en cours — avec un fondu enchaîné doux quand l'univers change. Toutes les couches animées de l'ancien décor (ciel, vagues, nuages, fées, braises, oiseaux, guirlandes, château 3D, éléments saisonniers, particules) sont retirées ; la salle du trésor reste. Le cadre entre sans passer par la transparence, le « Fort qui tremble » ne flashe plus, et les messages du Gardien s'affichent en haut pendant une épreuve.
+
+## Le Fil d'Argent (v3)
+
+`<script id="fort-filargent">` : une clé (ou une bourse en défi bonus) pend à un fil d'argent. Maintenir (doigt, souris, Espace ou Entrée) chauffe le fil, relâcher le refroidit. Tant que la chaleur reste dans la zone dorée, le fil fond ; fondu, il lâche la clé dans le coffre. La zone rouge fait surchauffer le fil : une surchauffe est pardonnée, la seconde fait perdre la clé. Plus le niveau monte, plus la zone est étroite, la chauffe rapide et la fonte longue (courants d'air à partir du niveau 4).
+

@@ -4136,7 +4136,8 @@ html body .carte-col:not(.locked) .carte-nom{color:var(--cp-gold)}
 
     raf = W.requestAnimationFrame(dessiner);
   }
-  function lancer() { if (!raf && !reduit && actif()) raf = W.requestAnimationFrame(dessiner); }
+  // Décor simplifié : plus de particules ni de lumières animées (voir fond.js)
+  function lancer() {}
 
   /* -------------------------------------------------------- choix du profil */
   function universeCourant() {
@@ -4187,7 +4188,7 @@ html body .carte-col:not(.locked) .carte-nom{color:var(--cp-gold)}
   function redim() {
     dpr = Math.min(W.devicePixelRatio || 1, tier() === 0 ? 1.5 : 1);
     largeur = W.innerWidth; hauteur = W.innerHeight;
-    [fond, avant].forEach(function (c) { if (!c) return; c.width = Math.round(largeur * dpr); c.height = Math.round(hauteur * dpr); });
+    [fond, avant].forEach(function (c) { if (!c) return; c.width = 1; c.height = 1; });
     majProfil(true);
   }
 
@@ -4217,6 +4218,7 @@ html body .carte-col:not(.locked) .carte-nom{color:var(--cp-gold)}
     '#scene>.layer.lightning,.layer.lightning{display:none!important}' +
     '#scene::after{animation:none!important}' +
     /* le cadre ne joue qu'une seule entrée : avant, une 2e animation le refaisait disparaître (clignotement) */
+    '#fd-brume,#fd-lumiere,#fd-fond,#fd-avant{display:none!important}' +
     '#app .screen-bg:not(.screen-entering),#app .event-frame-bg:not(.screen-entering){animation:none!important}' +
     '.fd-pause,.fd-pause::before,.fd-pause::after{animation-play-state:paused!important}' +
     'html.fp-calme #fd-lumiere,html.fp-calme #fd-brume{animation:none}' +
@@ -4460,7 +4462,7 @@ html body .carte-col:not(.locked) .carte-nom{color:var(--cp-gold)}
     lueurs: { n: 'Lueurs du Jour', mots: ['lueur', 'lueurs', 'rayon', 'soleil', 'grand jour'], comment: 'Touche les rayons de soleil dès qu’ils apparaissent dans la grille, mais évite les nuages. (Épreuve du matin.)', astuce: 'Regarde le centre de la grille : ta vision périphérique repère mieux les apparitions.' },
     marche: { n: 'Marché du Fort', mots: ['marche', 'du plus petit', 'ordre', 'midi'], comment: 'Touche les nombres du plus petit au plus grand avant la fin du temps. (Épreuve de l’après-midi.)', astuce: 'Repère d’abord le plus petit et le plus grand, puis remplis le milieu.' },
     astres: { n: 'Veillée des Astres', mots: ['astre', 'astres', 'etoile', 'etoiles', 'filantes', 'compter'], comment: 'Compte les étoiles filantes dorées qui traversent le ciel, puis choisis le bon nombre. (Épreuve du soir et de la nuit.)', astuce: 'Ignore les étoiles blanches : seules les dorées comptent. Compte sur tes doigts.' },
-    wire: { n: 'Fil d’Argent', mots: ['fil', 'argent', 'maintenir', 'gresille', 'decharge'], comment: 'Maintiens le bouton appuyé pour avancer le long du fil ; relâche dès qu’il grésille. Une seule décharge est pardonnée.', astuce: 'Le grésillement arrive par cycles : relâche au moindre signe, la reprise est immédiate.' },
+    wire: { n: 'Fil d’Argent', mots: ['fil', 'argent', 'chauffer', 'chaleur', 'fondre', 'surchauffe'], comment: 'Une clé pend à un fil d’argent : maintiens le bouton (ou Espace) pour chauffer, relâche pour refroidir. Garde le curseur dans la zone dorée jusqu’à ce que le fil fonde et que la clé tombe dans le coffre. La zone rouge fait surchauffer le fil — une seule surchauffe est pardonnée.', astuce: 'Chauffe par petites pressions : relâche dès que le curseur entre dans la zone dorée, puis réappuie quand il redescend vers son bord gauche.' },
     weights: { n: 'Poids du Passé', mots: ['poids', 'balance', 'peser'], comment: 'Ajoute des poids pour atteindre exactement la valeur demandée ; « Vider » recommence.', astuce: 'Pars du plus gros poids qui ne dépasse pas la cible, puis complète avec les petits.' },
     crossbow: { n: 'Tir à l’Arbalète', mots: ['arbalete', 'tir', 'cible', 'viser'], comment: 'Appuie une première fois pour figer la barre verticale au centre, puis une seconde fois pour la barre horizontale. Un seul tir.', astuce: 'Anticipe : appuie un peu avant que la barre n’arrive au centre, le temps de réaction compte.' },
     atelier: { n: 'Rituel du Gardien', mots: ['atelier', 'rituel', 'anneau', 'cadence', 'rythme'], comment: 'Frappe quand l’anneau atteint sa taille maximale, en suivant le rythme.', astuce: 'Écoute et compte le rythme deux ou trois fois avant de frapper.' },
@@ -4716,6 +4718,329 @@ html body .carte-col:not(.locked) .carte-nom{color:var(--cp-gold)}
     setInterval(function () { if (!D.hidden) { voileFantome(); if (ecranPlante()) verifier(); } }, 4000);
   }
   W.FortGardien = { version: '2.0', ouvrir: ouvrir, fermer: fermer, demander: function (t) { return repondreLocal(t); }, _voile: function () { return voileFantome(); }, _verifier: function () { return verifier(); }, envoyer: envoyer, action: action, actions: Object.keys(ACTIONS), journal: journal, diagnostic: diagnostic, epreuves: EPREUVES };
+  if (D.readyState === 'loading') D.addEventListener('DOMContentLoaded', demarrer); else demarrer();
+})();
+
+</script>
+<script id="fort-filargent">
+/* ==========================================================================
+   Fort Énigma — Le Fil d'Argent (v3) : « Chauffe le fil, fais tomber la clé »
+   Une clé (ou une bourse, pendant les défis bonus) pend à un fil d'argent.
+   Maintiens pour chauffer : la jauge monte ; relâche : elle redescend.
+   Tant que la chaleur reste dans la zone de fusion dorée, le fil fond.
+   Fil fondu = la clé tombe dans le coffre. Trop chaud (zone rouge) : le fil
+   rougit, et s'il y reste, la clé est perdue — une surchauffe est pardonnée.
+   Remplace makeWire / wireHtml / attachWire du jeu (même identifiant « wire »).
+   ========================================================================== */
+(function () {
+  'use strict';
+  var W = window, D = document;
+  if (W.__filArgentV3) return; W.__filArgentV3 = true;
+
+  W.makeWire = function (e) {
+    var bonus = (function () { try { return state.bonusMode || state.screen === 'bonus-chiffre'; } catch (x) { return false; } })();
+    var d = Math.max(0, e || 0);
+    var largeur = Math.max(15, 30 - d * 1.6);                 // largeur de la zone de fusion (%)
+    var bas = 52 + Math.min(10, d);                            // début de la zone
+    return {
+      kind: 'wire',
+      title: 'Le Fil d’Argent',
+      sub: 'Chauffe le fil pour faire tomber la ' + (bonus ? 'bourse' : 'clé') + ' : garde la flamme dans la zone dorée, sans surchauffer.',
+      howto: 'Maintiens pour chauffer, relâche pour refroidir : reste dans la zone dorée jusqu’à ce que le fil fonde.',
+      duration: Math.max(18, 26 - Math.floor(d / 2)),
+      data: {
+        chaleur: 0, fonte: 0,
+        zoneMin: bas, zoneMax: bas + largeur,
+        montee: 34 + d * 3.2,                 // %/s en chauffant
+        descente: 26 + d * 1.5,               // %/s en refroidissant
+        besoin: 3.2 + d * 0.28,               // secondes cumulées dans la zone
+        rouge: 0, grace: Math.max(450, 900 - d * 45), pardons: 1,
+        derive: d >= 4 ? 4 + d : 0,           // courants d'air aux niveaux élevés
+        holding: false, over: false, reward: bonus ? 'doublons' : 'key'
+      }
+    };
+  };
+
+  function cleSvg(e) {
+    var t = 'fort'; try { t = state._universe || 'fort'; } catch (x) {}
+    if (e.data.reward === 'key') {
+      try { return '<svg viewBox="-16 -15 70 30" class="fa-objet-svg" style="transform:rotate(90deg)"><defs>' + keyGradDefs('faGrad', t) + '</defs>' + keyShapeInner('faGrad', t) + '</svg>'; } catch (x) { return '<span style="font-size:2.4rem">🗝️</span>'; }
+    }
+    return '<span style="font-size:2.4rem">💰</span>';
+  }
+
+  W.wireHtml = function (e) {
+    var n = e.data;
+    var jeu = '' +
+      '<div class="fa-scene" id="faScene">' +
+        '<div class="fa-pince fa-g"></div><div class="fa-pince fa-d"></div>' +
+        '<div class="fa-fil" id="faFil"></div>' +
+        '<div class="fa-objet" id="faObjet">' + cleSvg(e) + '</div>' +
+        '<div class="fa-coffre">🧰</div>' +
+        '<div class="fa-flamme" id="faFlamme">🔥</div>' +
+      '</div>' +
+      '<div class="fa-jauge" aria-hidden="true"><div class="fa-zone" style="left:' + n.zoneMin + '%;width:' + (n.zoneMax - n.zoneMin) + '%"></div><div class="fa-rouge" style="left:' + n.zoneMax + '%"></div><div class="fa-curseur" id="faCurseur"></div></div>' +
+      '<div class="fa-legende"><span>froid</span><span>fusion</span><span>surchauffe</span></div>' +
+      '<div class="fa-fonte"><i id="faFonte"></i></div>' +
+      '<button class="btn btn-gold btn-block wire2-hold fa-btn" id="wireBtn" type="button">🔥 MAINTENIR POUR CHAUFFER</button>' +
+      '<p class="wire2-etat fa-etat" id="wireStatus">Fais monter la chaleur jusqu’à la zone dorée.</p>';
+    if (e.isDuel) {
+      return '<div class="duel-container"><div class="duel-board"><div class="eyebrow" style="font-size:.65rem">Toi</div><div class="duel-board-inner">' + jeu + '</div></div>' +
+        '<div class="duel-board guardian"><div class="eyebrow" style="font-size:.65rem">Gardien</div><div class="duel-board-inner" style="margin-top:1.5rem;display:flex;align-items:center;justify-content:center;min-height:110px"><div style="text-align:center;color:var(--parchment-dark);font-size:.85rem;font-style:italic" id="guardianWireStatus">Attend son tour...</div></div></div></div>';
+    }
+    return '<div class="wire-game-wrap fa-wrap">' + jeu + '</div>';
+  };
+
+  W.attachWire = function (e) {
+    var n = e.data;
+    var btn = D.getElementById('wireBtn'), statut = D.getElementById('wireStatus'), curseur = D.getElementById('faCurseur'),
+        fonte = D.getElementById('faFonte'), fil = D.getElementById('faFil'), objet = D.getElementById('faObjet'),
+        flamme = D.getElementById('faFlamme'), scene = D.getElementById('faScene');
+    if (!btn) return;
+    var dernierMsg = '';
+    function dire(t) { if (statut && t !== dernierMsg) { statut.innerHTML = t; dernierMsg = t; } }
+
+    function finir(gagne) {
+      if (n.over) return; n.over = true; n.holding = false;
+      if (!gagne) {
+        if (objet) objet.classList.add('fa-perdu');
+        dire('💥 <b>Surchauffe !</b> Le fil a cédé trop vite, la ' + (n.reward === 'key' ? 'clé' : 'bourse') + ' a roulé hors du coffre.');
+        try { Audio.fail(); } catch (x) {}
+        var ch = state.activeChallenge; try { stopActiveTimer(); } catch (x) {}
+        setTimeout(function () { if (state.activeChallenge === ch) resolveChallenge(false, 0); }, 900);
+        return;
+      }
+      if (fil) fil.classList.add('fa-rompu');
+      if (objet) objet.classList.add('fa-tombe');
+      dire('✅ <b>Le fil fond…</b> et la ' + (n.reward === 'key' ? 'clé' : 'bourse') + ' tombe dans le coffre !');
+      try { Audio.success(); } catch (x) {}
+      if (n.reward !== 'key') {
+        setTimeout(function () {
+          if (state.screen !== 'epreuve') return;
+          var run = activeRun(), db = rand(10, 15), dg = String(rand(0, 9));
+          run.doublons += db; registerBonusDigit(dg); try { Audio.coin(); } catch (x) {}
+          state._bonusResult = { success: true, doublons: db, digit: dg, special: 'bourse' };
+          state._bonusKeyIndex = (state._bonusKeyIndex || 0) + 1; state._chestOpened = false;
+          go('bonus-resultat');
+        }, 900);
+      } else {
+        var ch2 = state.activeChallenge, debut = n._t0 || performance.now();
+        var ratio = Math.max(.3, Math.min(1, 1 - (performance.now() - debut) / 1000 / (e.duration || 20)));
+        setTimeout(function () { if (state.activeChallenge === ch2) resolveChallenge(true, ratio); }, 900);
+      }
+    }
+
+    function boucle(pas) {
+      if (n.over) return false;
+      if (!n._t0) n._t0 = performance.now();
+      var dt = Math.min(.05, pas / 1000);
+      n.chaleur += (n.holding ? n.montee : -n.descente) * dt;
+      if (n.derive) n.chaleur += Math.sin(performance.now() / 700) * n.derive * dt;
+      n.chaleur = Math.max(0, Math.min(100, n.chaleur));
+      var dans = n.chaleur >= n.zoneMin && n.chaleur <= n.zoneMax, trop = n.chaleur > n.zoneMax;
+      if (dans) n.fonte = Math.min(100, n.fonte + 100 * dt / n.besoin);
+      if (trop) {
+        n.rouge += pas;
+        if (n.rouge > n.grace) {
+          if (n.pardons > 0) {
+            n.pardons--; n.rouge = 0; n.chaleur = n.zoneMin - 12; n.fonte = Math.max(0, n.fonte - 20);
+            try { Audio.fail(); } catch (x) {}
+            dire('⚠️ <b>Trop chaud !</b> Le fil rougit — relâche plus tôt. (dernière chance)');
+          } else { finir(false); return false; }
+        } else dire('🔴 Trop chaud : relâche !');
+      } else {
+        n.rouge = Math.max(0, n.rouge - pas);
+        if (dans) dire('✨ Le fil fond… garde la flamme dans la zone dorée.');
+        else if (n.fonte > 0) dire(n.holding ? 'Encore un peu de chaleur…' : 'Le fil refroidit : chauffe à nouveau.');
+      }
+      // rendu
+      if (curseur) curseur.style.left = n.chaleur + '%';
+      if (fonte) fonte.style.width = n.fonte + '%';
+      if (scene) {
+        scene.style.setProperty('--fa-chaleur', (n.chaleur / 100).toFixed(3));
+        scene.style.setProperty('--fa-fonte', (n.fonte / 100).toFixed(3));
+        scene.classList.toggle('fa-chaud', trop); scene.classList.toggle('fa-fusion', dans);
+      }
+      if (flamme) flamme.style.opacity = n.holding ? 1 : .35;
+      if (n.fonte >= 100) { finir(true); return false; }
+    }
+
+    function presser(ev) { if (ev && ev.preventDefault) ev.preventDefault(); if (!n.over) { n.holding = true; btn.classList.add('fa-presse'); } }
+    function relacher() { n.holding = false; btn.classList.remove('fa-presse'); }
+    btn.addEventListener('pointerdown', presser);
+    ['pointerup', 'pointerleave', 'pointercancel'].forEach(function (t) { btn.addEventListener(t, relacher); });
+    btn.addEventListener('contextmenu', function (ev) { ev.preventDefault(); });
+    // clavier : maintenir Espace ou Entrée
+    function bas(ev) { if ((ev.key === ' ' || ev.key === 'Enter') && state.screen === 'epreuve' && !n.over) { ev.preventDefault(); presser(); } }
+    function haut(ev) { if (ev.key === ' ' || ev.key === 'Enter') relacher(); }
+    D.addEventListener('keydown', bas); D.addEventListener('keyup', haut);
+    var nettoyer = setInterval(function () { if (n.over || !D.body.contains(btn)) { D.removeEventListener('keydown', bas); D.removeEventListener('keyup', haut); clearInterval(nettoyer); } }, 1000);
+
+    if (e.isDuel) {
+      var gS = D.getElementById('guardianWireStatus');
+      setTimeout(function () {
+        if (n.over) return;
+        if (gS) gS.textContent = 'Le Gardien chauffe son fil...';
+        var delai = 1000 * (0.5 * e.duration + Math.random() * e.duration * 0.3);
+        state._gardienTimeoutId = setTimeout(function () {
+          if (n.over) return;
+          if (gS) gS.textContent = guardianSucceeds(e) ? '✅ La clé du Gardien est tombée' : '💥 Le fil du Gardien a surchauffé !';
+          try { Audio.fail(); } catch (x) {}
+          var chg = state.activeChallenge;
+          setTimeout(function () { if (state.activeChallenge === chg) resolveChallenge(false); }, 600);
+        }, delai);
+      }, 400);
+    }
+    state._wireRafId = FortEngine.loop({ update: boucle });
+  };
+
+  var css = '' +
+    '.fa-wrap{display:flex;flex-direction:column;align-items:stretch;gap:.55rem;width:min(100%,340px);margin:0 auto}' +
+    '.fa-jauge,.fa-legende,.fa-fonte,.fa-scene{width:100%;align-self:stretch;box-sizing:border-box}' +
+    '.fa-scene{--fa-chaleur:0;--fa-fonte:0;position:relative;height:150px;margin:.2rem auto 0;width:min(100%,320px)}' +
+    '.fa-pince{position:absolute;top:26px;width:14px;height:28px;border-radius:4px;background:linear-gradient(#8a8f9c,#4b4f5a);box-shadow:inset 0 1px 0 rgba(255,255,255,.3)}.fa-g{left:4px}.fa-d{right:4px}' +
+    '.fa-fil{position:absolute;left:16px;right:16px;top:38px;height:3px;border-radius:3px;' +
+      'background:linear-gradient(90deg,#d9dde6,rgb(calc(217 + 38 * var(--fa-chaleur)),calc(221 - 90 * var(--fa-chaleur)),calc(230 - 200 * var(--fa-chaleur))) 50%,#d9dde6);' +
+      'box-shadow:0 0 calc(10px * var(--fa-chaleur)) rgba(255,140,40,calc(.9 * var(--fa-chaleur)));transform:translateY(calc(10px * var(--fa-fonte)));transition:transform .2s linear}' +
+    '.fa-fil.fa-rompu{opacity:0;transition:opacity .3s}' +
+    '.fa-objet{position:absolute;left:50%;top:40px;translate:-50% calc(10px * var(--fa-fonte));transition:translate .2s linear;width:46px;display:flex;justify-content:center}' +
+    '.fa-objet-svg{width:52px;height:auto;filter:drop-shadow(0 2px 5px rgba(0,0,0,.5));overflow:visible}' +
+    '.fa-objet.fa-tombe{translate:-50% 72px;transition:translate .55s cubic-bezier(.5,0,.9,.5)}' +
+    '.fa-objet.fa-perdu{translate:90px 110px;rotate:70deg;opacity:0;transition:all .7s ease-in}' +
+    '.fa-coffre{position:absolute;left:50%;bottom:0;translate:-50% 0;font-size:2.2rem}' +
+    '.fa-flamme{position:absolute;left:calc(50% - 64px);top:52px;font-size:1.6rem;transition:opacity .15s;filter:drop-shadow(0 0 6px rgba(255,140,40,.7))}' +
+    '.fa-scene.fa-chaud .fa-fil{background:#ff5a3c}' +
+    '.fa-jauge{position:relative;height:16px;border-radius:999px;background:linear-gradient(90deg,#2f4a7a,#3a3550 45%,#3a3550);border:1px solid rgba(212,175,55,.35);overflow:hidden}' +
+    '.fa-zone{position:absolute;top:0;bottom:0;background:linear-gradient(90deg,rgba(244,208,63,.55),rgba(255,170,60,.75));box-shadow:inset 0 0 6px rgba(255,220,120,.6)}' +
+    '.fa-rouge{position:absolute;top:0;bottom:0;right:0;background:rgba(231,76,60,.6)}' +
+    '.fa-curseur{position:absolute;top:-3px;bottom:-3px;width:4px;margin-left:-2px;border-radius:2px;background:#fff;box-shadow:0 0 6px #fff;left:0}' +
+    '.fa-legende{display:flex;justify-content:space-between;font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;color:var(--parchment-dark,#cdbd9c);margin-top:-.2rem}' +
+    '.fa-fonte{height:7px;border-radius:7px;background:rgba(255,255,255,.08);overflow:hidden}.fa-fonte i{display:block;height:100%;width:0;background:linear-gradient(90deg,#c79a1e,#ffb347)}' +
+    '.fa-btn{touch-action:none;user-select:none;-webkit-user-select:none}.fa-btn.fa-presse{filter:brightness(1.12);scale:.98}' +
+    '.fa-etat{text-align:center;min-height:2.6em;margin:0;font-size:.88rem}';
+  function demarrer() { var st = D.createElement('style'); st.id = 'fort-filargent-css'; st.textContent = css; D.head.appendChild(st); }
+  if (D.readyState === 'loading') D.addEventListener('DOMContentLoaded', demarrer); else demarrer();
+})();
+
+</script>
+<script id="fort-fond">
+/* ==========================================================================
+   Fort Énigma — Fond simple et fluide (v1)
+   Un seul tableau peint en plein écran : la scène de l'accueil, puis le décor
+   de l'univers en cours. Changement d'univers = fondu enchaîné doux entre deux
+   images (aucun passage par le noir ou le blanc). Toutes les couches animées
+   de l'ancien décor (ciel, vagues, nuages, fées, braises, oiseaux, guirlandes,
+   château 3D, éléments saisonniers…) sont retirées. La salle du trésor reste.
+   Désactivation : ?fond=0
+   ========================================================================== */
+(function () {
+  'use strict';
+  var W = window, D = document;
+  try { if (/[?&]fond=0/.test(W.location.search) || W.FortFond) return; } catch (e) {}
+
+  var MENUS = /^(accueil|solo-setup|soiree-setup|plateau-setup|regles|histoire|legendes|titres-gardien|classement|intro|plateau-classement)$/;
+  var cacheAccueil = {}, couches = [], active = 0, courant = '';
+
+  function phase() {
+    var p = (D.body.dataset.timephase || '');
+    return /matin|apresmidi/.test(p) && p !== 'petitmatin' ? 'jour' : p === 'soir' ? 'soir' : 'nuit';
+  }
+  function imageAccueil() {
+    var ph = phase();
+    var q = D.querySelectorAll('.hero-quai'), choix = null, repli = null;
+    for (var i = 0; i < q.length; i++) {
+      var c = W.getComputedStyle(q[i]), bg = c.backgroundImage;
+      if (!bg || bg === 'none') continue;
+      var url = (bg.match(/url\([^)]*\)/g) || []).pop(); if (!url) continue;
+      if (!repli) repli = url;
+      if (q[i].classList.contains('phase-' + ph)) choix = url;
+    }
+    if (choix || repli) cacheAccueil[ph] = choix || repli;
+    if (cacheAccueil[ph]) return cacheAccueil[ph];
+    for (var k in cacheAccueil) return cacheAccueil[k];
+    var g = D.getElementById('globalCastleBg');
+    if (g) { var b = W.getComputedStyle(g).backgroundImage; var u = (b.match(/url\([^)]*\)/g) || [])[0]; if (u) return u; }
+    return '';
+  }
+  function imageUnivers() {
+    var v = W.getComputedStyle(D.body).getPropertyValue('--decor-univers').trim();
+    if (v && v !== 'none') return v;
+    var r = D.getElementById('roomLayer');
+    if (r) { var b = W.getComputedStyle(r, '::before').backgroundImage; if (b && b !== 'none') return (b.match(/url\([^)]*\)/g) || [])[0] || ''; }
+    return '';
+  }
+  function cible() {
+    var ecr = ''; try { ecr = state.screen; } catch (e) {}
+    var menu = MENUS.test(ecr) || D.body.dataset.scene === 'menu' || !D.body.dataset.universe;
+    return menu ? imageAccueil() : (imageUnivers() || imageAccueil());
+  }
+  function maj() {
+    var url = cible(); if (!url || url === courant) return;
+    courant = url;
+    var suivante = couches[1 - active];
+    suivante.style.backgroundImage = url;
+    // on attend que l'image soit prête pour lancer le fondu (jamais de trou noir)
+    var src = (url.match(/url\(["']?([^"')]+)["']?\)/) || [])[1];
+    var lancer = function () {
+      suivante.classList.add('ff-vu'); couches[active].classList.remove('ff-vu'); active = 1 - active;
+    };
+    if (src && W.Image) { var im = new Image(); im.onload = im.onerror = function () { requestAnimationFrame(lancer); }; im.src = src; }
+    else lancer();
+  }
+
+  var css = '' +
+    /* le nouveau fond */
+    '.ff-couche{position:fixed;inset:0;z-index:0;pointer-events:none;background-size:cover;background-position:50% 40%;background-repeat:no-repeat;opacity:0;transition:opacity .7s ease}' +
+    '.ff-couche.ff-vu{opacity:1}' +
+    '#ff-voile{position:fixed;inset:0;z-index:0;pointer-events:none;background:linear-gradient(180deg,rgba(8,8,16,.30),rgba(8,8,16,.12) 35%,rgba(8,8,16,.45)),radial-gradient(120% 90% at 50% 42%,transparent 55%,rgba(5,4,12,.5))}' +
+    /* l'ancien décor animé disparaît (la salle du trésor reste) */
+    '#scene>*:not(#treasureLayer),#scene::before,#scene::after{display:none!important}' +
+    '#app .hero-scene-wrap,#app .hero-aurora-shimmer,#app .hero-bird,#fort3dScene,#fortFairyLayer,#embers,#globalCastleBg,.guirlande-wrap,.lighthouse-front-layer,.bridge-front-layer,' +
+      '#heartsField,#fishField,#bubbleField,#muguetField,#easterField,#halloweenDecor,.muguet-decor,.easter-decor,.bastille-bunting,#tricolorPlaneField,[id$="Field"]:not(input),' +
+      '#fortDecorHint,#decorBubble,#celestialSun,#celestialMoon{display:none!important}' +
+    'body::after{display:none!important}' +
+    /* le « Fort qui tremble » faisait flasher le cadre (luminosité ×1,4) : supprimé */
+    'body.guardian-distraction .frame{animation:none!important;filter:none!important}' +
+    /* le cadre entre sans passer par la transparence : sinon le décor peint, plus clair, flashe le temps du fondu */
+    '#app .screen-entering{animation:ff-entree .35s cubic-bezier(.2,.7,.3,1) both!important}' +
+    '@keyframes ff-entree{from{transform:scale(.97)}to{transform:none}}' +
+    '#app .screen-bg,#app .event-frame-bg{animation:none!important}' +
+    /* pendant une épreuve, les messages du Gardien s'affichent en haut, jamais sur les commandes */
+    'body[data-screen=epreuve] .gardien-toast{bottom:auto!important;top:calc(var(--topbar-h,73px) + 30px);transform:translate(-50%,-180%)}' +
+    'body[data-screen=epreuve] .gardien-toast.visible{transform:translate(-50%,0)}' +
+    /* la clé de défilement ne se pose plus sur la lanterne du coin */
+    '.scroll-thread-key,.scroll-thread-rail{margin-top:30px}' +
+    /* boutons Succès et Gardien : en bas à gauche, hors du cadre */
+    'html body .fp-bouton,html body .gd-onglet{top:auto!important;bottom:calc(env(safe-area-inset-bottom,0px) + 14px);width:44px!important;height:44px;padding:0!important;border-radius:50%!important;border:1px solid rgba(244,208,63,.5)!important;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;font-size:1rem;line-height:1}' +
+    'html body .fp-bouton{left:12px!important}html body .gd-onglet{left:64px!important}' +
+    'html body .fp-bouton .fp-n{position:absolute;top:-4px;right:-4px;min-width:18px;height:18px;border-radius:9px;background:#f4d03f;color:#2a1c05!important;font:700 .65rem/18px Georgia,serif;text-align:center}' +
+    'body[data-screen=accueil] .fp-bouton,body[data-screen=accueil] .gd-onglet{bottom:calc(env(safe-area-inset-bottom,0px) + 58px)}' +
+    'body[data-screen=accueil] .gd-onglet{display:none}' +
+    'body[data-screen=epreuve] .gd-onglet,body[data-screen=transition] .gd-onglet{left:12px!important}';
+
+  function corrigerTextes() {
+    // certains univers disaient « chauffe sans relâche » : contraire à la règle du Fil d'Argent
+    if (typeof W.applyThemedMeta === 'function' && !W.applyThemedMeta.__ff) {
+      var a0 = W.applyThemedMeta;
+      var a1 = function (n) { var r = a0.apply(this, arguments); try { if (n && n.kind === 'wire') ['sub', 'title'].forEach(function (k) { if (n[k]) n[k] = String(n[k]).replace(/sans rel[âa]che/gi, 'avec mesure'); }); } catch (e) {} return r; };
+      a1.__ff = true; W.applyThemedMeta = a1;
+    }
+  }
+  function demarrer() {
+    try {
+      corrigerTextes();
+      var st = D.createElement('style'); st.id = 'fort-fond-css'; st.textContent = css; D.head.appendChild(st);
+      for (var i = 0; i < 2; i++) { var c = D.createElement('div'); c.className = 'ff-couche'; c.setAttribute('aria-hidden', 'true'); D.body.insertBefore(c, D.body.firstChild); couches.push(c); }
+      var v = D.createElement('div'); v.id = 'ff-voile'; v.setAttribute('aria-hidden', 'true'); D.body.insertBefore(v, couches[1].nextSibling);
+      maj();
+      if (W.MutationObserver) {
+        var t = 0;
+        new MutationObserver(function () { clearTimeout(t); t = setTimeout(maj, 40); }).observe(D.body, { attributes: true, attributeFilter: ['data-universe', 'data-screen', 'data-scene', 'data-timephase'] });
+      }
+      setTimeout(maj, 400); setTimeout(maj, 1500);
+    } catch (e) { try { console.warn('FortFond :', e); } catch (x) {} }
+  }
+  W.FortFond = { version: '1.0', maj: maj, image: function () { return courant.slice(0, 60); } };
   if (D.readyState === 'loading') D.addEventListener('DOMContentLoaded', demarrer); else demarrer();
 })();
 
