@@ -3806,6 +3806,7 @@ html body .carte-col:not(.locked) .carte-nom{color:var(--cp-gold)}
     var ec = e || ecran(), r = R;
     hud.hidden = !(r && VISIBLE[ec]);
     if (hud.hidden) return;
+    placer(); setTimeout(placer, 600); setTimeout(placer, 1800);
     hud.dataset.niveau = r.niveau;
     hud.querySelector('.fv-x').textContent = r.niveau ? '×' + r.niveau : '—';
     var pips = hud.querySelectorAll('.fv-pips i'), reste = r.serie % 2;
@@ -3815,6 +3816,22 @@ html body .carte-col:not(.locked) .carte-nom{color:var(--cp-gold)}
     hud.querySelector('.fv-dt').textContent = r.defiOk ? 'Défi réussi · +' + d.gain : d.txt + ' · ' + v + '/' + d.but;
     hud.querySelector('em i').style.width = Math.round(100 * v / d.but) + '%';
     hud.classList.toggle('fv-ok', r.defiOk);
+  }
+  function placer() {
+    if (!hud) return;
+    var f = D.querySelector('#app .frame'), tb = 73;
+    try { tb = parseFloat(W.getComputedStyle(D.documentElement).getPropertyValue('--topbar-h')) || 73; } catch (e) {}
+    var haut = tb - 2;
+    if (f) { var r = f.getBoundingClientRect(); if (r.top > 0) haut = Math.max(haut, r.top - 27); }
+    hud.style.top = Math.round(haut) + 'px';
+  }
+  function surveillerBulle() {
+    var b = D.getElementById('decorBubble'); if (!b || b.__fv || !W.MutationObserver) return; b.__fv = true;
+    var t = 0;
+    new MutationObserver(function () {
+      if (b.classList.contains('visible')) { clearTimeout(t); t = setTimeout(function () { b.classList.remove('visible'); }, 7000); }
+    }).observe(b, { attributes: true, attributeFilter: ['class'] });
+    if (b.classList.contains('visible')) t = setTimeout(function () { b.classList.remove('visible'); }, 7000);
   }
   function pulse() {
     if (!hud || reduit) return; hud.classList.remove('fv-bat'); void hud.offsetWidth; hud.classList.add('fv-bat');
@@ -3886,6 +3903,15 @@ html body .carte-col:not(.locked) .carte-nom{color:var(--cp-gold)}
     /* cadre et atmosphère */
     '.fp-depth #app .frame{backdrop-filter:blur(4px) saturate(1.12);-webkit-backdrop-filter:blur(4px) saturate(1.12)}' +
     'body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:2;background:radial-gradient(120% 90% at 50% 42%,transparent 58%,rgba(5,4,12,.5) 100%)}' +
+    /* correctifs d'affichage */
+    'html body #app .choice-cards.choice-cards{align-items:stretch}' +
+    'html body #app .choice-card.choice-card{align-self:stretch;align-content:start}' +
+    'html body #app #goSoiree,html body #app #goPlateau{padding-right:2.8rem!important}' +
+    '@media (min-height:640px){html body #app .frame:has(#goSolo){padding-bottom:3.4rem!important}}' +
+    'html body[data-scroll-key-phase="neon"] .scroll-thread-key{filter:hue-rotate(95deg) saturate(1.15) drop-shadow(0 1px 2px rgba(0,0,0,.45))}' +
+    '#decorBubble{pointer-events:none!important}' +
+    '#hintBtn{min-height:34px}' +
+    '@media (max-width:430px){#weatherCityInput,#weatherCityBtn,#localWeatherBtn{min-height:34px}}' +
     /* HUD veillée */
     '#fv-hud{position:fixed;left:50%;translate:-50% 0;top:calc(var(--topbar-h,73px) - 2px);width:min(calc(100vw - 24px),420px);z-index:60;display:flex;align-items:center;justify-content:space-between;gap:.6rem;height:24px;pointer-events:none;font-family:Georgia,serif}' +
     '#fv-hud[hidden]{display:none}' +
@@ -3924,6 +3950,9 @@ html body .carte-col:not(.locked) .carte-nom{color:var(--cp-gold)}
       var app = D.getElementById('app');
       if (app && W.MutationObserver) new MutationObserver(planifier).observe(app, { childList: true, subtree: true });
       marquer(); suivre(); majHud();
+      W.addEventListener('resize', placer);
+      if (W.MutationObserver) new MutationObserver(surveillerBulle).observe(D.body, { childList: true });
+      surveillerBulle();
       var u = null; try { u = UNIVERSES[state._universe]; } catch (x) {} if (u) D.documentElement.style.setProperty('--fv-accent', u.color);
     } catch (e) { try { console.warn('FortVeillee :', e); } catch (x) {} }
   }
