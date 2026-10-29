@@ -421,3 +421,7 @@ Le décor vivant remplace les systèmes de particules DOM du jeu (fées, braises
 
 `<script id="fort-filargent">` : une clé (ou une bourse en défi bonus) pend à un fil d'argent. Maintenir (doigt, souris, Espace ou Entrée) chauffe le fil, relâcher le refroidit. Tant que la chaleur reste dans la zone dorée, le fil fond ; fondu, il lâche la clé dans le coffre. La zone rouge fait surchauffer le fil : une surchauffe est pardonnée, la seconde fait perdre la clé. Plus le niveau monte, plus la zone est étroite, la chauffe rapide et la fonte longue (courants d'air à partir du niveau 4).
 
+## Format des cadres et des cartes
+
+`<script id="fort-format">` : les cadres sont centrés à l'écran et prennent la hauteur de leur contenu, avec une largeur limitée (560 px pour les menus, 620 px pour les épreuves, 640 px pour l'accueil). Ils deviennent une vitre teintée et floutée qui laisse voir le décor peint. Les cartes de choix sont resserrées (description sur deux lignes maximum), l'accueil est compacté (titre adapté à la hauteur d'écran, boutons sur deux colonnes).
+
