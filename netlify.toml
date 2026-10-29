@@ -40,4 +40,18 @@
     # « site introuvable ». Tout autre site reste interdit (anti-clickjacking).
     # X-Frame-Options a ete retire : sa seule valeur possible ici (DENY)
     # bloquait aussi l'apercu, et frame-ancestors le remplace.
-    Content-Security-Policy = "default-src 'none'; script-src 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data:; connect-src 'self' https://api.open-meteo.com https://geocoding-api.open-meteo.com https://ipapi.co https://ipwho.is https://get.geojs.io; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'; media-src 'none'; worker-src 'none'; manifest-src 'none'; frame-ancestors 'self' https://app.netlify.com https://*.netlify.app https://*.netlify.com"
+    Content-Security-Policy = "default-src 'none'; script-src 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data:; connect-src 'self' https://api.open-meteo.com https://geocoding-api.open-meteo.com https://ipapi.co https://ipwho.is https://get.geojs.io; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'; media-src 'none'; worker-src 'self'; manifest-src 'self'; frame-ancestors 'self' https://app.netlify.com https://*.netlify.app https://*.netlify.com"
+
+# Mode hors connexion : le service worker doit toujours etre relu pour que
+# les mises a jour du jeu arrivent sans attendre.
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "no-cache"
+    Service-Worker-Allowed = "/"
+
+[[headers]]
+  for = "/manifest.webmanifest"
+  [headers.values]
+    Content-Type = "application/manifest+json"
+

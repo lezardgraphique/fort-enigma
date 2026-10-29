@@ -389,3 +389,8 @@ Couche `<script id="fort-veillee">` par-dessus le jeu (désactivable avec `?veil
 - **Maîtrise** : chaque carte indique Inédit (+5 pièces), En progrès, Maîtrisé ou Redoutable.
 - **Bilan du Gardien** en fin de partie, avec records (`fort-veillee-records`).
 
+## Décor vivant et mode hors connexion
+
+- **Décor vivant** (`<script id="fort-decor">`, désactivable avec `?decor=0`) : particules sur deux plans de profondeur (braises, embruns, neige, pluie, lucioles, sable, vapeur, confettis, étoiles filantes), parallaxe à la souris ou à l'inclinaison du téléphone, lumière animée par univers (torches, lune, aurore, néons, rayons), brume rampante et éclairs d'orage. La météo réelle et l'heure s'y ajoutent. Le cadre devient une vitre qui laisse voir le décor peint. Gouverné par FortEngine.
+- **Hors connexion** : `sw.js` (service worker) + `manifest.webmanifest` + icônes `icone-*.png`. Le jeu se charge et se joue sans réseau ; il est installable comme une application. La météo et le chat du Gardien reprennent dès que la connexion revient.
+

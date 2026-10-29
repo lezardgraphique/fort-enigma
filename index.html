@@ -2,11 +2,11 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data:; connect-src 'self' https://api.open-meteo.com https://geocoding-api.open-meteo.com https://ipapi.co https://ipwho.is https://get.geojs.io; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'; media-src 'none'; worker-src 'none'; manifest-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data:; connect-src 'self' https://api.open-meteo.com https://geocoding-api.open-meteo.com https://ipapi.co https://ipwho.is https://get.geojs.io; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'; media-src 'none'; worker-src 'self'; manifest-src 'self'">
 <meta name="referrer" content="no-referrer">
 
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#0f121a">
+  <meta name="theme-color" content="#0f121a"><link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icone-192.png">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Fort Énigma">
@@ -3913,7 +3913,7 @@ html body .carte-col:not(.locked) .carte-nom{color:var(--cp-gold)}
     '#hintBtn{min-height:34px}' +
     '@media (max-width:430px){#weatherCityInput,#weatherCityBtn,#localWeatherBtn{min-height:34px}}' +
     /* HUD veillée */
-    '#fv-hud{position:fixed;left:50%;translate:-50% 0;top:calc(var(--topbar-h,73px) - 2px);width:min(calc(100vw - 24px),420px);z-index:60;display:flex;align-items:center;justify-content:space-between;gap:.6rem;height:24px;pointer-events:none;font-family:Georgia,serif}' +
+    '#fv-hud{position:fixed;left:50%;translate:-50% 0;top:calc(var(--topbar-h,73px) - 2px);width:min(calc(100vw - 24px),420px);z-index:90;display:flex;align-items:center;justify-content:space-between;gap:.6rem;height:24px;pointer-events:none;font-family:Georgia,serif}' +
     '#fv-hud[hidden]{display:none}' +
     '.fv-flamme{display:flex;align-items:center;gap:.3rem;padding:0 .6rem 0 .4rem;height:24px;border-radius:999px;background:rgba(20,17,31,.88);border:1px solid rgba(217,180,65,.35);color:#cdbd9c;font-size:.74rem}' +
     '.fv-flamme .fv-feu{font-size:.95rem;filter:grayscale(1) brightness(.8);opacity:.6;transition:all .3s}' +
@@ -3958,6 +3958,307 @@ html body .carte-col:not(.locked) .carte-nom{color:var(--cp-gold)}
   }
   W.FortVeillee = { version: '1.0', records: REC, defis: DEFIS, etat: function () { return R; }, bilan: ouvrirBilan, _reussite: reussite, _echec: echec };
   if (D.readyState === 'loading') D.addEventListener('DOMContentLoaded', demarrer); else demarrer();
+})();
+
+</script>
+<script id="fort-decor">
+/* ==========================================================================
+   Fort Énigma — « Décor vivant » (v1)
+   Chaque univers respire : particules en deux plans de profondeur (lointain
+   derrière le cadre, proche devant), parallaxe à la souris ou à l'inclinaison
+   du téléphone, lumière animée (torches, lune, néons, rayons, aurore), brume
+   rampante et éclairs d'orage. La météo réelle du joueur s'y mêle (pluie,
+   nuages) ainsi que l'heure (nuit plus sombre, plus de lucioles).
+   Gouverné par FortEngine (paliers 0 à 3) ; coupé si « réduire les
+   animations » est demandé. Désactivation : ?decor=0
+   ========================================================================== */
+(function () {
+  'use strict';
+  var W = window, D = document, H = D.documentElement;
+  try { if (/[?&]decor=0/.test(W.location.search) || W.FortDecor) return; } catch (e) {}
+
+  var reduit = false; try { reduit = !!W.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+  function tier() { try { return W.FortEngine ? W.FortEngine.tier : 0; } catch (e) { return 0; } }
+  function actif() { var r = {}; try { r = JSON.parse(W.localStorage.getItem('fort-plateforme') || '{}'); } catch (e) {} return r.profondeur !== false; }
+
+  /* --------------------------------------------------------------- profils
+     p : [type, nombre de base, couleur(s)]  lum : lumière  brume : couleur  eclairs : orage */
+  var PROFILS = {
+    accueil:   { p: [['braise', 22, '#ffb347'], ['luciole', 10, '#ffe08a']], lum: 'torche', brume: 'rgba(120,110,160,.20)' },
+    fort:      { p: [['braise', 24, '#ffa53a'], ['embrun', 16, '#dfe9f5']], lum: 'torche', brume: 'rgba(170,190,215,.22)' },
+    foraine:   { p: [['confetti', 18, ['#e0457b', '#f4d03f', '#5ec8e5', '#8ee07a']], ['luciole', 14, '#ffd27a']], lum: 'guirlande', brume: null },
+    steampunk: { p: [['vapeur', 9, 'rgba(235,225,210,.10)'], ['etincelle', 16, '#ffbe5c']], lum: 'forge', brume: 'rgba(200,160,110,.18)' },
+    nordique:  { p: [['neige', 46, '#f2f8ff']], lum: 'aurore', brume: 'rgba(200,230,255,.22)' },
+    pirate:    { p: [['pluie', 60, 'rgba(190,215,230,.45)'], ['embrun', 12, '#e8f3f7']], lum: 'lune', brume: 'rgba(120,160,170,.26)', eclairs: true },
+    manoir:    { p: [['vapeur', 7, 'rgba(180,150,230,.10)'], ['luciole', 12, '#c9b6ff']], lum: 'bougie', brume: 'rgba(150,120,200,.28)', eclairs: true },
+    jungle:    { p: [['luciole', 24, '#b6ff7a'], ['pollen', 18, '#f3f0b0']], lum: 'rayons', brume: 'rgba(90,170,110,.20)' },
+    desert:    { p: [['sable', 40, '#e9c48a'], ['pollen', 8, '#ffe2a8']], lum: 'soleil', brume: 'rgba(230,170,100,.18)' },
+    neon:      { p: [['pluie', 54, ['rgba(255,46,196,.55)', 'rgba(70,220,255,.55)']]], lum: 'neon', brume: 'rgba(255,46,196,.14)' },
+    nocturne:  { p: [['etoile', 40, '#ffffff'], ['luciole', 14, '#d9e0ff']], lum: 'lune', brume: 'rgba(150,160,230,.18)', filantes: true }
+  };
+
+  /* ---------------------------------------------------------- calques */
+  var fond, avant, cf, ca, lum, brume, eclair;
+  function calque(id, z) {
+    var c = D.createElement('canvas'); c.id = id; c.setAttribute('aria-hidden', 'true');
+    c.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:' + z;
+    D.body.appendChild(c); return c;
+  }
+  function div(id, z) {
+    var d = D.createElement('div'); d.id = id; d.setAttribute('aria-hidden', 'true');
+    d.style.zIndex = z; D.body.appendChild(d); return d;
+  }
+
+  /* ----------------------------------------------- sprites pré-rendus */
+  var sprites = {};
+  function sprite(couleur, taille, dur) {
+    var k = couleur + '|' + taille + '|' + dur; if (sprites[k]) return sprites[k];
+    var c = D.createElement('canvas'), s = taille * 2; c.width = c.height = s;
+    var g = c.getContext('2d'), r = g.createRadialGradient(taille, taille, 0, taille, taille, taille);
+    r.addColorStop(0, couleur); r.addColorStop(dur, couleur); r.addColorStop(1, 'rgba(0,0,0,0)');
+    g.fillStyle = r; g.globalAlpha = 1; g.fillRect(0, 0, s, s);
+    return (sprites[k] = c);
+  }
+
+  /* -------------------------------------------------------- particules */
+  var parts = [], profil = null, cle = '', largeur = 0, hauteur = 0, dpr = 1;
+  function alea(a, b) { return a + Math.random() * (b - a); }
+  function choisir(c) { return Array.isArray(c) ? c[Math.floor(Math.random() * c.length)] : c; }
+  function naitre(type, couleur, initial) {
+    var z = Math.random() < .22 ? alea(.8, 1.15) : alea(.3, .75);   // 22 % au premier plan
+    var p = { t: type, c: choisir(couleur), z: z, x: Math.random() * largeur, y: initial ? Math.random() * hauteur : 0, a: 1, ph: Math.random() * 6.28, v: 0, w: 0, s: 1 };
+    switch (type) {
+      case 'braise': case 'etincelle':
+        p.y = initial ? Math.random() * hauteur : hauteur + 10; p.v = -alea(18, 46) * z * (type === 'etincelle' ? 1.8 : 1); p.s = alea(1.2, 2.6) * z; p.vie = alea(.5, 1); break;
+      case 'luciole': case 'pollen':
+        p.v = alea(-6, 6); p.w = alea(-8, 8); p.s = (type === 'pollen' ? alea(.8, 1.6) : alea(1.6, 3.2)) * z; break;
+      case 'neige':
+        p.y = initial ? Math.random() * hauteur : -10; p.v = alea(14, 34) * z; p.s = alea(1, 3.4) * z; break;
+      case 'pluie':
+        p.y = initial ? Math.random() * hauteur : -30; p.v = alea(560, 860) * z; p.s = alea(16, 34) * z; break;
+      case 'confetti':
+        p.y = initial ? Math.random() * hauteur : -10; p.v = alea(16, 34) * z; p.s = alea(3, 6) * z; p.r = Math.random() * 6.28; p.vr = alea(-2, 2); break;
+      case 'vapeur':
+        p.y = initial ? Math.random() * hauteur : hauteur + 80; p.v = -alea(8, 18); p.s = alea(60, 140) * z; break;
+      case 'sable':
+        p.x = initial ? Math.random() * largeur : -20; p.w = alea(120, 260) * z; p.v = alea(-6, 10); p.s = alea(.8, 1.8) * z; break;
+      case 'embrun':
+        p.x = initial ? Math.random() * largeur : -10; p.y = hauteur * alea(.45, 1); p.w = alea(24, 60) * z; p.v = alea(-10, 4); p.s = alea(1, 2.2) * z; break;
+      case 'etoile':
+        p.y = Math.random() * hauteur * .55; p.s = alea(.6, 1.6); p.z = alea(.2, .45); break;
+    }
+    return p;
+  }
+  function peupler() {
+    parts = []; if (!profil) return;
+    var t = tier(), facteur = t === 0 ? 1.15 : t === 1 ? .85 : .35;
+    if (largeur < 500) facteur *= .85;
+    profil.p.forEach(function (d) {
+      var n = Math.round(d[1] * facteur);
+      for (var i = 0; i < n; i++) { var p = naitre(d[0], d[2], true); p.d = d; parts.push(p); }
+    });
+  }
+
+  /* -------------------------------------------------------- parallaxe */
+  var cible = { x: 0, y: 0 }, off = { x: 0, y: 0 };
+  W.addEventListener('pointermove', function (e) {
+    if (e.pointerType === 'touch') return;
+    cible.x = (e.clientX / (W.innerWidth || 1) - .5) * 2; cible.y = (e.clientY / (W.innerHeight || 1) - .5) * 2;
+  }, { passive: true });
+  W.addEventListener('deviceorientation', function (e) {
+    if (e.gamma == null) return;
+    cible.x = Math.max(-1, Math.min(1, e.gamma / 25)); cible.y = Math.max(-1, Math.min(1, (e.beta - 45) / 30));
+  }, { passive: true });
+
+  /* ------------------------------------------------------------ boucle */
+  var dernier = 0, raf = 0, prochainEclair = 0, prochaineFilante = 0, filante = null;
+  function dessiner(ts) {
+    raf = 0;
+    if (D.hidden || !profil) return;
+    var t = tier();
+    if (t >= 3) { cf.clearRect(0, 0, fond.width, fond.height); ca.clearRect(0, 0, avant.width, avant.height); return; }
+    var pas = t >= 1 ? 33 : 16;
+    if (ts - dernier < pas - 2) { raf = W.requestAnimationFrame(dessiner); return; }
+    var dt = Math.min(.05, (ts - dernier) / 1000 || .016); dernier = ts;
+
+    off.x += (cible.x - off.x) * .05; off.y += (cible.y - off.y) * .05;
+    H.style.setProperty('--fd-px', (off.x * -10).toFixed(1) + 'px');
+    H.style.setProperty('--fd-py', (off.y * -6).toFixed(1) + 'px');
+
+    cf.setTransform(dpr, 0, 0, dpr, 0, 0); ca.setTransform(dpr, 0, 0, dpr, 0, 0);
+    cf.clearRect(0, 0, largeur, hauteur); ca.clearRect(0, 0, largeur, hauteur);
+    var avantOk = t < 2;
+
+    for (var i = 0; i < parts.length; i++) {
+      var p = parts[i], g = (p.z >= .8 ? (avantOk ? ca : null) : cf);
+      p.ph += dt;
+      switch (p.t) {
+        case 'braise': case 'etincelle':
+          p.y += p.v * dt; p.x += Math.sin(p.ph * 1.7) * 12 * dt * p.z; p.vie -= dt * .12;
+          if (p.y < -10 || p.vie <= 0) { parts[i] = naitre(p.t, p.d[2]); parts[i].d = p.d; continue; } break;
+        case 'luciole': case 'pollen':
+          p.x += (p.v + Math.sin(p.ph * .7) * 8) * dt; p.y += (p.w + Math.cos(p.ph * .5) * 6) * dt;
+          if (p.x < -20) p.x = largeur + 10; if (p.x > largeur + 20) p.x = -10; if (p.y < -20) p.y = hauteur + 10; if (p.y > hauteur + 20) p.y = -10; break;
+        case 'neige': case 'confetti':
+          p.y += p.v * dt; p.x += Math.sin(p.ph * (p.t === 'neige' ? .9 : 1.6)) * 14 * dt * p.z; if (p.r != null) p.r += p.vr * dt;
+          if (p.y > hauteur + 10) { parts[i] = naitre(p.t, p.d[2]); parts[i].d = p.d; continue; } break;
+        case 'pluie':
+          p.y += p.v * dt; p.x += p.v * .18 * dt;
+          if (p.y > hauteur + 20) { parts[i] = naitre(p.t, p.d[2]); parts[i].d = p.d; parts[i].x = Math.random() * (largeur + 200) - 200; continue; } break;
+        case 'vapeur':
+          p.y += p.v * dt; p.x += Math.sin(p.ph * .3) * 6 * dt;
+          if (p.y < -p.s * 2) { parts[i] = naitre(p.t, p.d[2]); parts[i].d = p.d; continue; } break;
+        case 'sable': case 'embrun':
+          p.x += p.w * dt; p.y += (p.v + Math.sin(p.ph * 2) * 6) * dt;
+          if (p.x > largeur + 20) { parts[i] = naitre(p.t, p.d[2]); parts[i].d = p.d; continue; } break;
+      }
+      if (!g) continue;
+      var px = p.x + off.x * -22 * p.z, py = p.y + off.y * -14 * p.z;
+      switch (p.t) {
+        case 'pluie':
+          g.strokeStyle = p.c; g.lineWidth = p.z > .8 ? 1.8 : 1.2; g.globalAlpha = p.z > .8 ? .6 : .9;
+          g.beginPath(); g.moveTo(px, py); g.lineTo(px - p.s * .18, py - p.s); g.stroke(); break;
+        case 'confetti':
+          g.save(); g.translate(px, py); g.rotate(p.r); g.globalAlpha = .75; g.fillStyle = p.c; g.fillRect(-p.s / 2, -p.s / 4, p.s, p.s / 2); g.restore(); break;
+        case 'vapeur':
+          g.globalAlpha = 1; var sv = sprite(p.c, 64, .1); g.drawImage(sv, px - p.s, py - p.s, p.s * 2, p.s * 2); break;
+        case 'etoile':
+          g.globalAlpha = .35 + .65 * Math.abs(Math.sin(p.ph * (1 + p.s))); g.fillStyle = p.c; g.fillRect(px, py, p.s, p.s); break;
+        default:
+          var lueur = p.t === 'luciole' ? .45 + .55 * Math.abs(Math.sin(p.ph * 1.3)) : p.t === 'braise' || p.t === 'etincelle' ? Math.max(0, Math.min(1, p.vie * 1.4)) : .8;
+          g.globalAlpha = lueur * (p.z > .8 ? .7 : 1);
+          var r = p.s * (p.t === 'luciole' || p.t === 'braise' || p.t === 'etincelle' ? 3.2 : 1.6);
+          g.drawImage(sprite(p.c, 16, p.t === 'neige' || p.t === 'sable' || p.t === 'embrun' ? .45 : .18), px - r, py - r, r * 2, r * 2);
+      }
+    }
+    cf.globalAlpha = 1; ca.globalAlpha = 1;
+
+    // étoiles filantes
+    if (profil.filantes && t < 2) {
+      if (!filante && ts > prochaineFilante) { filante = { x: alea(.2, .9) * largeur, y: alea(.05, .3) * hauteur, v: 0 }; prochaineFilante = ts + alea(6000, 14000); }
+      if (filante) {
+        filante.v += dt; var fx = filante.x - filante.v * 520, fy = filante.y + filante.v * 220;
+        var gr = cf.createLinearGradient(fx, fy, fx + 70, fy - 30); gr.addColorStop(0, 'rgba(255,255,255,.9)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
+        cf.strokeStyle = gr; cf.lineWidth = 1.5; cf.beginPath(); cf.moveTo(fx, fy); cf.lineTo(fx + 70, fy - 30); cf.stroke();
+        if (filante.v > .9) filante = null;
+      }
+    }
+    // éclairs
+    if (orage() && t < 2 && ts > prochainEclair) {
+      prochainEclair = ts + alea(9000, 22000);
+      if (dernier > 4000) { eclair.classList.remove('fd-flash'); void eclair.offsetWidth; eclair.classList.add('fd-flash'); }
+    }
+    raf = W.requestAnimationFrame(dessiner);
+  }
+  function orage() { return !!(profil && (profil.eclairs || (D.body.dataset.weather === 'pluvieux' && /nuit|soir/.test(D.body.dataset.timephase || '')))); }
+  function lancer() { if (!raf && !reduit && actif()) raf = W.requestAnimationFrame(dessiner); }
+
+  /* -------------------------------------------------------- choix du profil */
+  function universeCourant() {
+    var b = D.body.dataset || {}, ecr = ''; try { ecr = state.screen; } catch (e) {}
+    if (b.scene === 'menu' || /^(accueil|solo-setup|soiree-setup|plateau-setup|regles|histoire|intro|legendes|titres-gardien)$/.test(ecr)) return 'accueil';
+    return PROFILS[b.universe] ? b.universe : 'fort';
+  }
+  function majProfil(force) {
+    var b = D.body.dataset || {}, u = universeCourant();
+    var k = u + '|' + (b.weather || '') + '|' + (b.timephase || '') + '|' + tier() + '|' + largeur;
+    if (!force && k === cle) return; cle = k;
+    var base = PROFILS[u];
+    profil = { p: base.p.slice(), lum: base.lum, brume: base.brume, eclairs: base.eclairs, filantes: base.filantes };
+    if (b.weather === 'pluvieux' && u !== 'neon' && u !== 'pirate' && u !== 'nordique') profil.p.push(['pluie', 40, 'rgba(190,210,230,.4)']);
+    if (b.weather === 'nuageux' && !profil.brume) profil.brume = 'rgba(160,170,190,.2)';
+    if (/nuit/.test(b.timephase || '') && u !== 'nocturne') profil.p.push(['luciole', 6, '#fff3c4']);
+    H.setAttribute('data-fd-lum', profil.lum || '');
+    H.setAttribute('data-fd-univers', u);
+    if (brume) { brume.style.setProperty('--fd-brume', profil.brume || 'transparent'); brume.hidden = !profil.brume; }
+    peupler();
+  }
+  function redim() {
+    dpr = Math.min(W.devicePixelRatio || 1, tier() === 0 ? 1.5 : 1);
+    largeur = W.innerWidth; hauteur = W.innerHeight;
+    [fond, avant].forEach(function (c) { if (!c) return; c.width = Math.round(largeur * dpr); c.height = Math.round(hauteur * dpr); });
+    majProfil(true);
+  }
+
+  /* ------------------------------------------------------------- styles */
+  var css = '' +
+    '#fd-brume{position:fixed;left:-10%;right:-10%;bottom:-6%;height:46%;pointer-events:none;opacity:.9;' +
+      'background:radial-gradient(40% 55% at 20% 85%,var(--fd-brume),transparent 70%),radial-gradient(45% 50% at 70% 90%,var(--fd-brume),transparent 72%),radial-gradient(35% 45% at 45% 100%,var(--fd-brume),transparent 70%);' +
+      'filter:blur(6px);transform:translate3d(var(--fd-px,0),var(--fd-py,0),0);animation:fd-derive 38s ease-in-out infinite alternate}' +
+    '#fd-brume[hidden]{display:none}' +
+    '@keyframes fd-derive{from{translate:-4% 0}to{translate:4% -2%}}' +
+    '#fd-lumiere{position:fixed;inset:-4%;pointer-events:none;mix-blend-mode:screen;transform:translate3d(calc(var(--fd-px,0) * -1),calc(var(--fd-py,0) * -1),0)}' +
+    '[data-fd-lum=torche] #fd-lumiere{background:radial-gradient(38% 30% at 4% 96%,rgba(255,150,50,.26),transparent 70%),radial-gradient(38% 30% at 96% 96%,rgba(255,140,40,.24),transparent 70%);animation:fd-torche 2.6s steps(1) infinite}' +
+    '[data-fd-lum=bougie] #fd-lumiere{background:radial-gradient(34% 26% at 50% 100%,rgba(255,190,120,.2),transparent 70%),radial-gradient(60% 40% at 90% 0,rgba(160,130,230,.16),transparent 70%);animation:fd-torche 3.4s steps(1) infinite}' +
+    '[data-fd-lum=forge] #fd-lumiere{background:radial-gradient(50% 34% at 50% 108%,rgba(255,120,30,.28),transparent 72%);animation:fd-forge 1.8s ease-in-out infinite alternate}' +
+    '[data-fd-lum=lune] #fd-lumiere{background:radial-gradient(45% 32% at 88% 4%,rgba(200,220,255,.22),transparent 72%)}' +
+    '[data-fd-lum=aurore] #fd-lumiere{background:linear-gradient(170deg,rgba(80,255,190,.16),rgba(80,170,255,.12) 22%,transparent 42%);animation:fd-aurore 14s ease-in-out infinite alternate}' +
+    '[data-fd-lum=neon] #fd-lumiere{background:radial-gradient(40% 30% at 0 30%,rgba(255,46,196,.22),transparent 70%),radial-gradient(40% 30% at 100% 70%,rgba(60,220,255,.2),transparent 70%);animation:fd-neon 4s ease-in-out infinite}' +
+    '[data-fd-lum=guirlande] #fd-lumiere{background:radial-gradient(6% 4% at 12% 8%,rgba(255,90,140,.35),transparent),radial-gradient(6% 4% at 35% 5%,rgba(255,210,90,.35),transparent),radial-gradient(6% 4% at 62% 8%,rgba(90,200,255,.35),transparent),radial-gradient(6% 4% at 86% 5%,rgba(140,230,120,.35),transparent),radial-gradient(50% 30% at 50% 100%,rgba(255,180,90,.14),transparent 70%);animation:fd-neon 2.8s ease-in-out infinite}' +
+    '[data-fd-lum=rayons] #fd-lumiere,[data-fd-lum=soleil] #fd-lumiere{background:repeating-linear-gradient(105deg,transparent 0 7%,rgba(255,240,180,.07) 9% 12%,transparent 15% 22%);mask-image:linear-gradient(180deg,#000,transparent 75%);-webkit-mask-image:linear-gradient(180deg,#000,transparent 75%);animation:fd-rayons 12s ease-in-out infinite alternate}' +
+    '[data-fd-lum=soleil] #fd-lumiere{background-color:rgba(255,170,80,.05)}' +
+    '@keyframes fd-torche{0%{opacity:1}13%{opacity:.82}21%{opacity:.95}38%{opacity:.76}52%{opacity:1}67%{opacity:.86}81%{opacity:.97}}' +
+    '@keyframes fd-forge{to{opacity:.7}}@keyframes fd-neon{50%{opacity:.6}}' +
+    '@keyframes fd-aurore{to{filter:hue-rotate(50deg);translate:0 3%}}@keyframes fd-rayons{to{translate:4% 0;opacity:.7}}' +
+    /* le cadre devient une vitre : on voit le décor peint et la météo à travers */
+    'html.fp-depth body[data-universe]:not([data-universe=""]):not([data-active-kind]) .frame{background-image:linear-gradient(rgba(20,18,32,.46),rgba(12,12,22,.64))!important;backdrop-filter:blur(3px) saturate(1.2)!important;-webkit-backdrop-filter:blur(3px) saturate(1.2)!important}' +
+    'html.fp-depth body[data-active-kind] .frame{background-image:linear-gradient(rgba(20,18,32,.62),rgba(12,12,22,.78))!important}' +
+    '#fd-eclair{position:fixed;inset:0;pointer-events:none;background:rgba(225,235,255,.0)}' +
+    '#fd-eclair.fd-flash{animation:fd-flash .9s ease-out}' +
+    '@keyframes fd-flash{0%{background:rgba(225,235,255,0)}6%{background:rgba(225,235,255,.42)}12%{background:rgba(225,235,255,.05)}18%{background:rgba(225,235,255,.3)}100%{background:rgba(225,235,255,0)}}' +
+    'html.fp-calme #fd-lumiere,html.fp-calme #fd-brume{animation:none}' +
+    '@media (prefers-reduced-motion:reduce){#fd-lumiere,#fd-brume,#fd-eclair{animation:none!important}#fd-fond,#fd-avant{display:none}}';
+
+  function demarrer() {
+    try {
+      var st = D.createElement('style'); st.id = 'fort-decor-css'; st.textContent = css; D.head.appendChild(st);
+      brume = div('fd-brume', 1);
+      fond = calque('fd-fond', 1); cf = fond.getContext('2d');
+      lum = div('fd-lumiere', 71);
+      avant = calque('fd-avant', 72); ca = avant.getContext('2d');
+      eclair = div('fd-eclair', 73);
+      redim();
+      W.addEventListener('resize', function () { clearTimeout(redim.t); redim.t = setTimeout(redim, 150); });
+      if (W.MutationObserver) new MutationObserver(function () { majProfil(false); }).observe(D.body, { attributes: true, attributeFilter: ['data-universe', 'data-weather', 'data-timephase', 'data-scene', 'data-screen'] });
+      D.addEventListener('visibilitychange', function () { if (!D.hidden) { dernier = 0; lancer(); } });
+      setInterval(function () { majProfil(false); if (!actif()) { cf.clearRect(0, 0, fond.width, fond.height); ca.clearRect(0, 0, avant.width, avant.height); } else lancer(); }, 1500);
+      lancer();
+    } catch (e) { try { console.warn('FortDecor :', e); } catch (x) {} }
+  }
+  W.FortDecor = { version: '1.0', profils: PROFILS, profil: function () { return profil; }, particules: function () { return parts.length; }, _maj: majProfil };
+  if (D.readyState === 'loading') D.addEventListener('DOMContentLoaded', demarrer); else demarrer();
+})();
+
+</script>
+<script id="fort-horsligne">
+/* Fort Énigma — hors connexion : enregistre le service worker (sur un vrai
+   site uniquement) et prévient le joueur quand le réseau disparaît. */
+(function () {
+  'use strict';
+  var W = window, D = document;
+  try {
+    if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol) && !/claude\.ai|claudeusercontent/.test(location.hostname)) {
+      W.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); });
+    }
+  } catch (e) {}
+  var badge = null;
+  function maj() {
+    var hors = navigator.onLine === false;
+    D.documentElement.classList.toggle('fh-horsligne', hors);
+    if (!badge) {
+      badge = D.createElement('div'); badge.id = 'fh-badge'; badge.setAttribute('role', 'status');
+      var st = D.createElement('style');
+      st.textContent = '#fh-badge{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 56px);translate:-50% 0;z-index:100020;padding:.4rem .9rem;border-radius:999px;background:#17132a;border:1px solid rgba(170,180,247,.55);color:#d9e0ff;font:600 .78rem Georgia,serif;box-shadow:0 8px 20px rgba(0,0,0,.5);opacity:0;transition:opacity .4s;pointer-events:none;white-space:nowrap}#fh-badge.fh-vu{opacity:1}';
+      D.head.appendChild(st); D.body.appendChild(badge);
+    }
+    badge.textContent = hors ? '📴 Hors connexion — le Fort reste ouvert' : '📶 Connexion retrouvée';
+    badge.classList.add('fh-vu'); clearTimeout(maj.t);
+    maj.t = setTimeout(function () { badge.classList.remove('fh-vu'); }, hors ? 5000 : 2500);
+  }
+  W.addEventListener('offline', maj);
+  W.addEventListener('online', maj);
+  function depart() { if (navigator.onLine === false) maj(); }
+  if (D.readyState === 'loading') D.addEventListener('DOMContentLoaded', depart); else depart();
 })();
 
 </script>
