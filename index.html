@@ -3620,7 +3620,7 @@ html body .carte-col:not(.locked) .carte-nom{color:var(--cp-gold)}
     '.fp-toast-txt{display:flex;flex-direction:column;line-height:1.15;min-width:0}.fp-toast-txt small{white-space:nowrap;font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;color:#d9b441}.fp-toast-txt b{font-size:1rem;font-family:Georgia,serif;color:#fff3cf}' +
     '@keyframes fp-glisse{from{translate:-50% -90px;opacity:0}}' +
     '.fp-avis{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 12px);translate:-50% 0;z-index:100040;padding:.5rem 1rem;border-radius:999px;background:#17132a;border:1px solid rgba(244,208,63,.5);color:#f3e4bd;font:600 .85rem Georgia,serif;animation:fp-glisse .4s ease-out backwards}' +
-    '.fp-bouton{position:fixed;left:max(12px,env(safe-area-inset-left,0px));bottom:calc(env(safe-area-inset-bottom,0px) + 12px);z-index:9000;display:flex;align-items:center;gap:.3rem;height:42px;padding:0 .8rem 0 .65rem;border-radius:999px;background:rgba(23,19,42,.92);border:1px solid rgba(244,208,63,.5);color:#f3e4bd;font:700 .85rem Georgia,serif;box-shadow:0 6px 18px rgba(0,0,0,.5);cursor:pointer}' +
+    '.fp-bouton{position:fixed;left:0;top:46%;z-index:9000;display:flex;flex-direction:column;align-items:center;gap:.1rem;width:30px;padding:.45rem 0;border-radius:0 14px 14px 0;border-left:0!important;font-size:.95rem;background:rgba(23,19,42,.92);border:1px solid rgba(244,208,63,.5);color:#f3e4bd;font:700 .85rem Georgia,serif;box-shadow:0 6px 18px rgba(0,0,0,.5);cursor:pointer}' +
     '.fp-bouton[hidden]{display:none}.fp-bouton:active{scale:.94}.fp-bouton .fp-n{min-width:1.2rem;text-align:center;color:#f4d03f}' +
     '.fp-feuille{position:fixed;inset:0;z-index:100000;display:none}.fp-feuille.fp-ouverte{display:block}' +
     '.fp-fond{position:absolute;inset:0;background:rgba(6,5,14,.72);backdrop-filter:blur(3px)}' +
@@ -3636,7 +3636,7 @@ html body .carte-col:not(.locked) .carte-nom{color:var(--cp-gold)}
     '.fp-ligne input{flex:none;width:44px;height:26px;accent-color:#d9b441}' +
     '.fp-plein{margin-top:.6rem;width:100%;padding:.7rem;border-radius:14px;border:1px solid rgba(212,175,55,.45);background:#242038;color:#f4d03f;font:700 .9rem Georgia,serif;cursor:pointer}' +
     '.fp-aide{margin:1rem 0 0;font-size:.74rem;line-height:1.45;color:#a89a7c}' +
-    '@media (max-height:520px){.fp-bouton{bottom:calc(env(safe-area-inset-bottom,0px) + 10px)}}' +
+    '@media (max-height:520px){.fp-bouton{top:30%}}' +
     '@media (prefers-reduced-motion:reduce){.fp-toast,.fp-corps,.fp-avis{animation:none!important}#app.fp-entree,#app .choice-card,#app .event-choice{animation:none!important}}';
 
   /* ------------------------------------------------------------- départ */
@@ -3659,6 +3659,275 @@ html body .carte-col:not(.locked) .carte-nom{color:var(--cp-gold)}
     ouvrir: function () { basculerFeuille(true); }, fermer: function () { basculerFeuille(false); },
     _deplacer: deplacer, _verifier: verifier
   };
+  if (D.readyState === 'loading') D.addEventListener('DOMContentLoaded', demarrer); else demarrer();
+})();
+
+</script>
+<script id="fort-veillee">
+/* ==========================================================================
+   Fort Énigma — « La Veillée » (refonte, v1)
+   Garde l'âme du jeu (le Fort, le Gardien, les clés, les univers) et ajoute :
+   - Ferveur : une flamme qui grandit avec les réussites et paie en pièces ;
+   - Défi de la veillée : un objectif par partie, avec récompense ;
+   - Maîtrise : chaque carte dit si l'épreuve est inédite, maîtrisée ou redoutable ;
+   - Bilan de la veillée : un récapitulatif en fin de partie, avec records ;
+   - Accent d'univers : la lumière du décor suit la couleur de l'univers joué.
+   Module autonome, tout en try/catch. Désactivation : ?veillee=0
+   ========================================================================== */
+(function () {
+  'use strict';
+  var W = window, D = document;
+  try { if (/[?&]veillee=0/.test(W.location.search) || W.FortVeillee) return; } catch (e) {}
+
+  function lire(c, d) { try { var v = W.localStorage.getItem(c); return v ? JSON.parse(v) : d; } catch (e) { return d; } }
+  function ecrire(c, v) { try { W.localStorage.setItem(c, JSON.stringify(v)); } catch (e) {} }
+  var reduit = false; try { reduit = !!W.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+  function ecran() { try { return state.screen; } catch (e) { return ''; } }
+  function plat(m, a) { try { if (W.FortPlateforme && W.FortPlateforme.haptique) W.FortPlateforme.haptique[m](a); } catch (e) {} }
+
+  /* ------------------------------------------------------------- pièces */
+  function pieces(n) {
+    try { if (n > 0 && typeof W.bank === 'function' && typeof W.setBank === 'function') { W.setBank((+W.bank() || 0) + n); if (typeof W.renderHud === 'function') W.renderHud(); return true; } } catch (e) {}
+    return false;
+  }
+
+  /* ----------------------------------------------------------- défis */
+  var DEFIS = [
+    { id: 'serie', ico: '⚡', txt: 'Enchaîne 4 réussites', but: 4, val: function (r) { return r.serieMax; }, gain: 30 },
+    { id: 'genres', ico: '🎲', txt: 'Joue 3 épreuves différentes', but: 3, val: function (r) { return r.genres.length; }, gain: 20 },
+    { id: 'braise', ico: '🔥', txt: 'Atteins la Ferveur ×2', but: 2, val: function (r) { return r.niveauMax; }, gain: 30 },
+    { id: 'sage', ico: '🧠', txt: 'Cumule 6 réussites', but: 6, val: function (r) { return r.reussites; }, gain: 25 },
+    { id: 'intact', ico: '🛡️', txt: 'Trois épreuves sans échec', but: 3, val: function (r) { return r.echecs === 0 ? Math.min(3, r.faites) : 0; }, gain: 40 }
+  ];
+  var REC = Object.assign({ serie: 0, ferveur: 0, defis: 0, parties: 0 }, lire('fort-veillee-records', {}));
+
+  var R = null;
+  function neuf(ref) {
+    return { ref: ref, serie: 0, serieMax: 0, niveau: 0, niveauMax: 0, reussites: 0, echecs: 0, genres: [], faites: 0, gainPieces: 0,
+      defi: DEFIS[Math.floor(Math.random() * DEFIS.length)], defiOk: false, bilanVu: false };
+  }
+  function suivre() {
+    var r = null; try { r = activeRun(); } catch (e) {}
+    if (!r) return null;
+    if (!R || R.ref !== r) R = neuf(r);
+    try { R.faites = r.doneCount || 0; } catch (e) {}
+    return R;
+  }
+  function niveauDe(s) { return Math.min(4, Math.floor(s / 2)); }
+
+  /* ------------------------------------------------------------ avis */
+  function avis(txt, cls) {
+    var t = D.createElement('div'); t.className = 'fv-avis ' + (cls || ''); t.textContent = txt; D.body.appendChild(t);
+    setTimeout(function () { t.classList.add('fv-sort'); }, 2000);
+    setTimeout(function () { try { t.remove(); } catch (e) {} }, 2500);
+  }
+  function gagner(n, raison) {
+    if (!n) return; if (pieces(n)) { if (R) R.gainPieces += n; avis('+' + n + ' 💰 ' + raison); }
+  }
+
+  /* --------------------------------------------------------- événements */
+  function reussite() {
+    var r = suivre(); if (!r) return;
+    var avant = r.niveau;
+    r.reussites++; r.serie++; if (r.serie > r.serieMax) r.serieMax = r.serie;
+    r.niveau = niveauDe(r.serie); if (r.niveau > r.niveauMax) r.niveauMax = r.niveau;
+    if (r.niveau > avant) { avis('🔥 Ferveur ×' + r.niveau + ' !', 'fv-feu'); plat('grand'); }
+    if (r.niveau >= 1) pieces(r.niveau) && (r.gainPieces += r.niveau);
+    verifierDefi(); majHud(); pulse();
+  }
+  function echec() {
+    var r = suivre(); if (!r) return;
+    r.echecs++;
+    var avant = r.niveau;
+    r.serie = Math.floor(r.serie / 2); r.niveau = niveauDe(r.serie);
+    if (avant > r.niveau) avis('La flamme vacille… ×' + Math.max(1, r.niveau) + (r.niveau ? '' : ' (éteinte)'), 'fv-froid');
+    majHud();
+  }
+  function verifierDefi() {
+    var r = R; if (!r || r.defiOk) return;
+    if (r.defi.val(r) >= r.defi.but) {
+      r.defiOk = true; REC.defis++; ecrire('fort-veillee-records', REC);
+      gagner(r.defi.gain, 'Défi de la veillée réussi !'); plat('grand');
+    }
+    majHud();
+  }
+
+  function brancher() {
+    var A; try { A = Audio; } catch (e) { return; }
+    if (A && !A.__fv) {
+      A.__fv = true;
+      [['success', reussite], ['fail', echec], ['defeat', echec]].forEach(function (p) {
+        var o = A[p[0]]; if (typeof o !== 'function') return;
+        A[p[0]] = function () { try { p[1](); } catch (e) {} return o.apply(this, arguments); };
+      });
+    }
+    if (typeof W.go === 'function' && !W.go.__fv) {
+      var g0 = W.go, g1 = function (e) { var r = g0.apply(this, arguments); try { surEcran(e); } catch (x) {} return r; };
+      g1.__fv = true; W.go = g1;
+    }
+    if (typeof W.commitChoice === 'function' && !W.commitChoice.__fv) {
+      var c0 = W.commitChoice, c1 = function (k) {
+        try { avantEpreuve(k); } catch (x) {}
+        return c0.apply(this, arguments);
+      };
+      c1.__fv = true; W.commitChoice = c1;
+    }
+  }
+  function statKind(k) {
+    try { var p = getPlayerProfile().kindStats || {}; return p[k] || null; } catch (e) { return null; }
+  }
+  function avantEpreuve(k) {
+    var r = suivre(); if (!r) return;
+    var s = statKind(k);
+    if (!s || !s.plays) gagner(5, 'Découverte !');
+    if (r.genres.indexOf(k) < 0) r.genres.push(k);
+    verifierDefi();
+  }
+  function surEcran(e) {
+    suivre();
+    var u = null; try { u = UNIVERSES[state._universe]; } catch (x) {}
+    D.documentElement.style.setProperty('--fv-accent', (u && u.color) || '#f4d03f');
+    if (R) { try { R.faites = R.ref.doneCount || 0; } catch (x) {} verifierDefi(); }
+    majHud(e);
+    if (e === 'accueil') R = null;
+    if (e === 'resultat' && R && !R.bilanVu) { R.bilanVu = true; setTimeout(function () { if (ecran() === 'resultat') ouvrirBilan(); }, 1400); }
+  }
+
+  /* -------------------------------------------------------------- HUD */
+  var hud = null;
+  var VISIBLE = { 'epreuve': 1, 'choix-epreuve': 1, 'transition': 1, 'resultat-epreuve': 1, 'evenement': 1, 'salle-tresor': 1, 'duel-alert': 1, 'bonus-chiffre': 1 };
+  function construireHud() {
+    hud = D.createElement('div'); hud.id = 'fv-hud'; hud.hidden = true; hud.setAttribute('aria-hidden', 'true');
+    hud.innerHTML = '<div class="fv-flamme"><span class="fv-feu">🔥</span><b class="fv-x"></b><span class="fv-pips"><i></i><i></i></span></div><div class="fv-defi"><span class="fv-di"></span><span class="fv-dt"></span><em><i></i></em></div>';
+    D.body.appendChild(hud);
+  }
+  function majHud(e) {
+    if (!hud) return;
+    var ec = e || ecran(), r = R;
+    hud.hidden = !(r && VISIBLE[ec]);
+    if (hud.hidden) return;
+    hud.dataset.niveau = r.niveau;
+    hud.querySelector('.fv-x').textContent = r.niveau ? '×' + r.niveau : '—';
+    var pips = hud.querySelectorAll('.fv-pips i'), reste = r.serie % 2;
+    pips[0].className = (reste >= 1 || r.niveau >= 4) ? 'on' : ''; pips[1].className = r.niveau >= 4 ? 'on' : '';
+    var d = r.defi, v = Math.min(d.val(r), d.but);
+    hud.querySelector('.fv-di').textContent = r.defiOk ? '✅' : d.ico;
+    hud.querySelector('.fv-dt').textContent = r.defiOk ? 'Défi réussi · +' + d.gain : d.txt + ' · ' + v + '/' + d.but;
+    hud.querySelector('em i').style.width = Math.round(100 * v / d.but) + '%';
+    hud.classList.toggle('fv-ok', r.defiOk);
+  }
+  function pulse() {
+    if (!hud || reduit) return; hud.classList.remove('fv-bat'); void hud.offsetWidth; hud.classList.add('fv-bat');
+  }
+
+  /* ---------------------------------------------- maîtrise sur les cartes */
+  var plan = false;
+  function marquer() {
+    plan = false;
+    try {
+      D.querySelectorAll('#app .choice-card[data-kind]').forEach(function (c) {
+        if (c.querySelector('.fv-maitrise')) return;
+        var k = c.getAttribute('data-kind'), s = statKind(k), txt, cls;
+        if (!s || !s.plays) { txt = '✨ Inédit · +5 💰'; cls = 'fv-neuf'; }
+        else {
+          var tx = (s.fails || 0) / s.plays;
+          if (s.plays >= 3 && tx > .6) { txt = '⚔️ Redoutable'; cls = 'fv-dur'; }
+          else if (s.plays >= 3 && tx < .2) { txt = '🛡️ Maîtrisé'; cls = 'fv-sur'; }
+          else { txt = '🎯 En progrès'; cls = 'fv-moy'; }
+        }
+        var m = D.createElement('span'); m.className = 'fv-maitrise ' + cls; m.textContent = txt; c.appendChild(m);
+      });
+    } catch (e) {}
+  }
+  function planifier() { if (plan) return; plan = true; (W.requestAnimationFrame || setTimeout)(marquer); }
+
+  /* ------------------------------------------------------------- bilan */
+  var bilan = null;
+  function ouvrirBilan() {
+    var r = R; if (!r) return;
+    var nvSerie = r.serieMax > REC.serie, nvFerv = r.niveauMax > REC.ferveur;
+    if (nvSerie) REC.serie = r.serieMax; if (nvFerv) REC.ferveur = r.niveauMax; REC.parties++;
+    ecrire('fort-veillee-records', REC);
+    if (!bilan) {
+      bilan = D.createElement('div'); bilan.className = 'fv-bilan'; bilan.setAttribute('role', 'dialog'); bilan.setAttribute('aria-modal', 'true'); bilan.setAttribute('aria-label', 'Bilan de la veillée');
+      bilan.addEventListener('click', function (e) { if (e.target.classList.contains('fv-bilan') || e.target.closest('.fv-suite')) bilan.classList.remove('fv-ouvert'); });
+      D.body.appendChild(bilan);
+    }
+    function ligne(ico, nom, val, rec) { return '<li><span>' + ico + '</span><b>' + nom + '</b><em>' + val + (rec ? ' <u>record !</u>' : '') + '</em></li>'; }
+    bilan.innerHTML = '<div class="fv-carte"><small>La veillée est terminée</small><h2>Bilan du Gardien</h2><ul>' +
+      ligne('✅', 'Réussites', r.reussites) + ligne('💔', 'Échecs', r.echecs) + ligne('⚡', 'Meilleure série', r.serieMax, nvSerie && r.serieMax > 1) +
+      ligne('🔥', 'Ferveur max', r.niveauMax ? '×' + r.niveauMax : '—', nvFerv && r.niveauMax > 0) + ligne('🎲', 'Épreuves différentes', r.genres.length) +
+      ligne('💰', 'Pièces gagnées en bonus', r.gainPieces) + ligne(r.defiOk ? '🎯' : '⏳', 'Défi : ' + r.defi.txt, r.defiOk ? 'réussi' : 'manqué') +
+      '</ul><button type="button" class="fv-suite">Continuer</button></div>';
+    bilan.classList.add('fv-ouvert');
+    plat('grand');
+    var b = bilan.querySelector('.fv-suite'); if (b) b.focus({ preventScroll: true });
+  }
+
+  /* ------------------------------------------------------------- style */
+  var css = '' +
+    ':root{--fv-accent:#f4d03f}' +
+    /* lanternes (clés) */
+    'html body .key-chip{border-radius:9px 9px 13px 13px!important;overflow:visible!important;box-sizing:border-box}' +
+    'html body .key-chip.empty{background:radial-gradient(circle at 50% 35%,#2c2644,#14111f 72%)!important;border:1px solid rgba(217,180,65,.3)!important;box-shadow:inset 0 0 8px rgba(0,0,0,.7)!important}' +
+    'html body .key-chip.empty::after{display:none!important}' +
+    'html body .key-chip.empty .key-chip-icon{filter:grayscale(1) brightness(.75);opacity:.4;font-size:.78rem}' +
+    'html body .key-chip:not(.code-chip)::before{content:"";position:absolute;left:32%;right:32%;top:-4px;height:3px;border-radius:2px;background:rgba(217,180,65,.55)}' +
+    'html body .key-chip.filled:not(.code-chip){background:radial-gradient(circle at 50% 40%,rgba(255,226,140,.4),rgba(60,45,10,.55))!important;border:1px solid rgba(244,208,63,.85)!important;box-shadow:0 0 12px var(--fv-accent),inset 0 0 8px rgba(255,220,120,.4)!important}' +
+    'html:not(.fp-calme) body .key-chip.filled:not(.code-chip){animation:fv-braise 3.2s ease-in-out infinite}' +
+    '@keyframes fv-braise{50%{filter:drop-shadow(0 0 6px var(--fv-accent)) brightness(1.15)}}' +
+    /* accueil : le bouton principal est une lanterne, les autres des cartes */
+    'html body #app #goSolo{background:linear-gradient(180deg,#f7dc62,#d4a521)!important;color:#2a1c05!important;border:1px solid #fff0b0!important;border-radius:20px!important;box-shadow:0 0 0 1px rgba(0,0,0,.25),0 10px 26px rgba(0,0,0,.5),0 0 28px rgba(244,208,63,.35)!important;letter-spacing:.09em;text-shadow:0 1px 0 rgba(255,255,255,.35)}' +
+    'html:not(.fp-calme) body #app #goSolo{animation:fv-lanterne 3.4s ease-in-out infinite}' +
+    '@keyframes fv-lanterne{50%{box-shadow:0 0 0 1px rgba(0,0,0,.25),0 10px 26px rgba(0,0,0,.5),0 0 44px rgba(244,208,63,.6)}}' +
+    'html body #app #goSoiree,html body #app #goPlateau{background:linear-gradient(180deg,#26203a,#1a1628)!important;color:#f1dfae!important;border:1px solid rgba(212,175,55,.42)!important;border-radius:20px!important;box-shadow:0 8px 22px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.06)!important;letter-spacing:.08em;text-align:left;position:relative;text-shadow:none}' +
+    'html body #app #goSoiree::after,html body #app #goPlateau::after{content:"›";position:absolute;right:1.1rem;top:50%;translate:0 -52%;font-size:1.6rem;color:#d9b441}' +
+    'html body #app #goRegles{border-radius:20px!important;border-color:rgba(212,175,55,.25)!important;color:#cdbd9c!important}' +
+    /* cadre et atmosphère */
+    '.fp-depth #app .frame{backdrop-filter:blur(4px) saturate(1.12);-webkit-backdrop-filter:blur(4px) saturate(1.12)}' +
+    'body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:2;background:radial-gradient(120% 90% at 50% 42%,transparent 58%,rgba(5,4,12,.5) 100%)}' +
+    /* HUD veillée */
+    '#fv-hud{position:fixed;left:50%;translate:-50% 0;top:calc(var(--topbar-h,73px) - 2px);width:min(calc(100vw - 24px),420px);z-index:60;display:flex;align-items:center;justify-content:space-between;gap:.6rem;height:24px;pointer-events:none;font-family:Georgia,serif}' +
+    '#fv-hud[hidden]{display:none}' +
+    '.fv-flamme{display:flex;align-items:center;gap:.3rem;padding:0 .6rem 0 .4rem;height:24px;border-radius:999px;background:rgba(20,17,31,.88);border:1px solid rgba(217,180,65,.35);color:#cdbd9c;font-size:.74rem}' +
+    '.fv-flamme .fv-feu{font-size:.95rem;filter:grayscale(1) brightness(.8);opacity:.6;transition:all .3s}' +
+    '#fv-hud:not([data-niveau="0"]) .fv-feu{filter:none;opacity:1;scale:calc(1 + var(--n,1)*.07);text-shadow:0 0 10px #ff9a2e}' +
+    '#fv-hud[data-niveau="1"]{--n:1}#fv-hud[data-niveau="2"]{--n:2}#fv-hud[data-niveau="3"]{--n:3}#fv-hud[data-niveau="4"]{--n:4}' +
+    '.fv-x{min-width:1.3rem;color:#f4d03f;font-size:.8rem}' +
+    '.fv-pips{display:flex;gap:3px}.fv-pips i{width:7px;height:7px;border-radius:50%;background:#3a3550}.fv-pips i.on{background:#ff9a2e;box-shadow:0 0 6px #ff9a2e}' +
+    '.fv-defi{position:relative;display:flex;align-items:center;gap:.35rem;min-width:0;height:24px;padding:0 .7rem 0 .45rem;border-radius:999px;background:rgba(20,17,31,.88);border:1px solid rgba(217,180,65,.35);color:#e9d9ae;font-size:.7rem;overflow:hidden}' +
+    '.fv-dt{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.fv-defi em{position:absolute;left:0;right:0;bottom:0;height:2px;background:rgba(255,255,255,.08)}.fv-defi em i{display:block;height:100%;background:linear-gradient(90deg,#c79a1e,#f4d03f)}' +
+    '#fv-hud.fv-ok .fv-defi{border-color:#7fd18b;color:#c9f0d0}' +
+    '#fv-hud.fv-bat .fv-flamme{animation:fv-bat .5s ease-out}@keyframes fv-bat{40%{scale:1.12;box-shadow:0 0 16px rgba(255,154,46,.7)}}' +
+    '@media (max-height:520px){#fv-hud{display:none}}' +
+    /* maîtrise des cartes */
+    '#app .fv-maitrise{grid-column:1 / -1;justify-self:start;margin-top:.1rem;padding:.12rem .55rem;border-radius:999px;font:700 .68rem Georgia,serif;letter-spacing:.06em;border:1px solid rgba(217,180,65,.3);color:#cdbd9c;background:rgba(0,0,0,.25)}' +
+    '#app .fv-maitrise.fv-neuf{color:#ffe28a;border-color:rgba(244,208,63,.7);background:rgba(244,208,63,.12)}' +
+    '#app .fv-maitrise.fv-dur{color:#ff9d8a;border-color:rgba(255,120,100,.55)}#app .fv-maitrise.fv-sur{color:#9fe0ad;border-color:rgba(127,209,139,.55)}' +
+    /* avis & bilan */
+    '.fv-avis{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 100px);translate:-50% 0;z-index:100030;padding:.45rem 1rem;border-radius:999px;background:#17132a;border:1px solid rgba(244,208,63,.55);color:#f3e4bd;font:700 .85rem Georgia,serif;box-shadow:0 8px 22px rgba(0,0,0,.5);animation:fv-monte .35s ease-out backwards;white-space:nowrap}' +
+    '.fv-avis.fv-feu{border-color:#ff9a2e;box-shadow:0 0 22px rgba(255,154,46,.45)}.fv-avis.fv-froid{border-color:#7a8aa8;color:#b9c4d8}.fv-avis.fv-sort{opacity:0;translate:-50% -12px;transition:opacity .45s,translate .45s}' +
+    '@keyframes fv-monte{from{opacity:0;translate:-50% 14px}}' +
+    '.fv-bilan{position:fixed;inset:0;z-index:100010;display:none;align-items:center;justify-content:center;padding:16px;background:rgba(6,5,14,.78);backdrop-filter:blur(3px)}.fv-bilan.fv-ouvert{display:flex}' +
+    '.fv-carte{width:min(100%,420px);max-height:92vh;overflow:auto;padding:1.4rem 1.3rem 1.3rem;border-radius:24px;background:radial-gradient(120% 60% at 50% 0,rgba(244,208,63,.14),transparent 60%),#1d1a2b;border:1px solid rgba(212,175,55,.5);box-shadow:0 24px 70px rgba(0,0,0,.7);color:#cdbd9c;font-family:Georgia,serif;text-align:center;animation:fv-carte .5s cubic-bezier(.2,.9,.3,1.1)}' +
+    '@keyframes fv-carte{from{opacity:0;scale:.92}}' +
+    '.fv-carte small{letter-spacing:.2em;text-transform:uppercase;font-size:.7rem;color:#d9b441}.fv-carte h2{margin:.3rem 0 1rem;font:700 1.6rem Georgia,serif;color:#f4d03f;letter-spacing:.05em;text-transform:uppercase;text-shadow:0 0 18px rgba(244,208,63,.35)}' +
+    '.fv-carte ul{list-style:none;margin:0 0 1.2rem;padding:0;display:grid;gap:.4rem;text-align:left}.fv-carte li{display:flex;align-items:center;gap:.6rem;padding:.55rem .8rem;border-radius:14px;background:#242038;border:1px solid rgba(212,175,55,.16)}' +
+    '.fv-carte li span{width:1.5rem;text-align:center}.fv-carte li b{flex:1;font-size:.86rem;color:#e9d9ae;font-weight:600}.fv-carte li em{font-style:normal;color:#f4d03f;font-weight:700}.fv-carte li u{text-decoration:none;font-size:.68rem;color:#2a1c05;background:#f4d03f;border-radius:999px;padding:.05rem .4rem;margin-left:.3rem}' +
+    '.fv-suite{width:100%;padding:.85rem;border-radius:16px;border:1px solid #fff0b0;background:linear-gradient(180deg,#f7dc62,#d4a521);color:#2a1c05;font:700 1rem Georgia,serif;letter-spacing:.08em;text-transform:uppercase;cursor:pointer}' +
+    '@media (prefers-reduced-motion:reduce){*{--fv-r:1}.fv-avis,.fv-carte{animation:none!important}html body .key-chip.filled,html body #app #goSolo{animation:none!important}}';
+
+  function demarrer() {
+    try {
+      var st = D.createElement('style'); st.id = 'fort-veillee-css'; st.textContent = css; D.head.appendChild(st);
+      construireHud(); brancher();
+      var app = D.getElementById('app');
+      if (app && W.MutationObserver) new MutationObserver(planifier).observe(app, { childList: true, subtree: true });
+      marquer(); suivre(); majHud();
+      var u = null; try { u = UNIVERSES[state._universe]; } catch (x) {} if (u) D.documentElement.style.setProperty('--fv-accent', u.color);
+    } catch (e) { try { console.warn('FortVeillee :', e); } catch (x) {} }
+  }
+  W.FortVeillee = { version: '1.0', records: REC, defis: DEFIS, etat: function () { return R; }, bilan: ouvrirBilan, _reussite: reussite, _echec: echec };
   if (D.readyState === 'loading') D.addEventListener('DOMContentLoaded', demarrer); else demarrer();
 })();
 
