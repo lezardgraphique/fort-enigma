@@ -83,6 +83,13 @@ CE QUE TU SAIS DU JEU (faits exacts, à utiliser tels quels)
   Lueurs du Jour (matin), Marché du Fort (après-midi), Veillée des Astres
   (soir/nuit), Fil d'Argent, Poids du Passé, Tir à l'Arbalète, Rituel du
   Gardien, Pari du Panda, Écho du Fort, Équilibre du Passeur.
+- La Forge du Gardien : quand le joueur accepte une salle que tu proposes, tu y
+  forges de vrais jeux inédits (Runes à éteindre, Mosaïque brisée, Conduits,
+  Dédale, Trois Piliers, Rayon des Miroirs, Tableau caché, Carré des Sceaux),
+  jamais d'anciennes épreuves rebaptisées. Ils apparaissent comme « Atelier du
+  Gardien » parmi les choix d'épreuve.
+- Tu peux mettre le Fort à jour : quand une nouvelle version est publiée, tu
+  la proposes au joueur avec ses nouveautés.
 - Niveaux NOVICE, GARDIEN puis MAÎTRE (à partir de la 7e épreuve) ; le Fort
   s'adoucit sur les épreuves souvent ratées.
 - Ferveur : flamme ×1 à ×4 qui grandit avec les réussites enchaînées et verse
@@ -204,6 +211,55 @@ function contexteSur(c) {
     : "";
 }
 
+
+// ------------------------------------------------------------
+// Mode « forge » : le Gardien écrit le récit d'une salle qu'il propose.
+// Les JEUX restent choisis par le Fort parmi une liste blanche de
+// mécaniques déjà codées et sûres ; l'IA n'écrit que du texte (pitch et
+// noms), renvoyé en JSON strict puis nettoyé ici et dans le navigateur.
+// ------------------------------------------------------------
+const MECAS_FORGE = {
+  runes: "Runes à éteindre : toucher une rune bascule aussi ses voisines, il faut toutes les éteindre",
+  taquin: "Mosaïque à reconstituer : faire glisser des pièces vers la case vide",
+  tuyaux: "Conduits à orienter pour relier une entrée à une sortie",
+  dedale: "Dédale à traverser jusqu'à une clé",
+  piliers: "Trois piliers : déplacer une pile de disques sans poser un grand sur un petit",
+  miroirs: "Rayon de lumière à guider jusqu'à un cristal en faisant pivoter des miroirs",
+  tableau: "Tableau caché : remplir une grille d'après les nombres des lignes et colonnes",
+  sceaux: "Carré des sceaux : chaque symbole une seule fois par ligne, colonne et carré",
+};
+const PROMPT_FORGE = `Tu es le Gardien de Fort Énigma. Tu proposes au joueur une nouvelle salle du Fort.
+Écris en français, ton mystérieux et chaleureux, sans violence ni contenu choquant, sans marque ni personnage existant.
+Réponds UNIQUEMENT avec un objet JSON valide, sans texte autour :
+{"pitch": "une phrase de 12 à 30 mots qui décrit la salle", "jeux": [{"nom": "nom évocateur de 2 à 6 mots"}]}
+Il y a exactement un nom par jeu, dans le même ordre que la liste fournie. Chaque nom doit refléter ce qu'on fait vraiment dans le jeu ET l'ambiance de la salle.`;
+
+function nettoyer(t, max) { return String(t || "").replace(/[\u0000-\u001f<>`{}\[\]]/g, "").replace(/\s+/g, " ").trim().slice(0, max); }
+
+async function forge(apiKey, payload) {
+  const salle = nettoyer(payload.salle, 60);
+  const jeux = (Array.isArray(payload.jeux) ? payload.jeux : []).filter((j) => typeof j === "string" && MECAS_FORGE[j]).slice(0, 3);
+  if (!salle || !jeux.length) return jsonResponse(400, { error: "Requête invalide" });
+  const demande = `Salle : ${salle}\nJeux, dans l'ordre :\n` + jeux.map((j, i) => `${i + 1}. ${MECAS_FORGE[j]}`).join("\n");
+  let statusCode = 0, raw = "";
+  for (const modele of MODELES) {
+    ({ statusCode, raw } = await appellerClaude(apiKey, [{ role: "user", content: demande }], PROMPT_FORGE, modele));
+    if (!(statusCode === 404 || (statusCode === 400 && /model/i.test(raw)))) break;
+  }
+  if (statusCode < 200 || statusCode >= 300) return jsonResponse(502, { error: "Le Gardien n'a pas pu répondre." });
+  try {
+    const data = JSON.parse(raw);
+    const texte = Array.isArray(data.content) && data.content[0] ? String(data.content[0].text || "") : "";
+    const m = texte.match(/\{[\s\S]*\}/);
+    const j = m ? JSON.parse(m[0]) : null;
+    if (!j || typeof j !== "object") return jsonResponse(502, { error: "Réponse illisible du Gardien." });
+    const sortie = { pitch: nettoyer(j.pitch, 220), jeux: (Array.isArray(j.jeux) ? j.jeux : []).slice(0, jeux.length).map((g) => ({ nom: nettoyer(g && g.nom, 48) })) };
+    return jsonResponse(200, { forge: sortie });
+  } catch (e) {
+    return jsonResponse(502, { error: "Réponse illisible du Gardien." });
+  }
+}
+
 export default async (req) => {
   if (req.method !== "POST") {
     return jsonResponse(405, { error: "Méthode non autorisée" });
@@ -236,6 +292,11 @@ export default async (req) => {
   const apiKey = Netlify.env.get("ANTHROPIC_API_KEY");
   if (!apiKey) {
     return jsonResponse(503, { error: "Le Gardien est muet pour le moment." });
+  }
+
+  if (payload.mode === "forge") {
+    try { return await forge(apiKey, payload); }
+    catch (e) { console.error("gardien-chat forge :", (e && e.message) || e); return jsonResponse(500, { error: "Erreur inattendue en contactant le Gardien." }); }
   }
 
   const messages = Array.isArray(payload.messages) ? payload.messages : [];

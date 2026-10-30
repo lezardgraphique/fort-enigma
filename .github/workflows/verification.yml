@@ -42,6 +42,8 @@ jobs:
 
       - name: Tests de sécurité de la fonction du Gardien
         run: node outils/test-securite.mjs
+      - name: Vérifier que les jeux de la Forge sont toujours solubles
+        run: node outils/test-forge.mjs index.html
 
       - name: Chercher une clé API oubliée dans le dépôt
         run: |

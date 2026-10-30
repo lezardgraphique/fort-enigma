@@ -526,3 +526,33 @@ Les sources se trouvent dans `outils/decors/` :
 - `apercu.py` : crée l'image d'aperçu.
 
 Les dessins sont déterministes, ce qui permet de les retoucher puis de les régénérer à l'identique.
+
+## La Forge du Gardien : de vrais jeux inédits
+
+Avant, les salles proposées par le Gardien collaient un nouveau nom sur une poignée de petites mécaniques, elles-mêmes proches d'épreuves existantes. On rejouait donc les mêmes jeux sous d'autres noms. Désormais, chaque salle acceptée reçoit des **jeux réellement nouveaux**, absents des 19 épreuves du Fort :
+
+| Jeu | Principe |
+|---|---|
+| 🔆 Les Runes à éteindre | chaque rune bascule aussi ses voisines ; il faut toutes les éteindre |
+| 🧩 La Mosaïque brisée | faire glisser les pièces pour reformer la suite 1 → 8 |
+| 🔗 Les Conduits | tourner les conduits pour relier l'entrée à la sortie |
+| 🌀 Le Dédale | labyrinthe généré, à parcourir au doigt ou aux flèches |
+| 🏛️ Les Trois Piliers | tours de Hanoï, 3 ou 4 disques |
+| 🔦 Le Rayon des Miroirs | faire pivoter les miroirs pour guider le rayon jusqu'au cristal |
+| 🖼️ Le Tableau caché | picross : remplir la grille d'après les nombres |
+| 🔯 Le Carré des Sceaux | sudoku 4×4 à symboles |
+
+- Chaque partie est générée au hasard et toujours soluble. `outils/test-forge.mjs`, exécuté par la CI, en génère 1 200 par jeu pour le vérifier.
+- La difficulté suit celle du Fort.
+- Le Gardien attribue d'abord les jeux que le joueur ne possède pas encore, et jamais deux fois le même dans une salle.
+- Les salles déjà acceptées sont converties automatiquement.
+- **En ligne**, le Gardien écrit lui-même le récit de la salle et le nom de ses jeux (`/api/gardien`, mode `forge`). L'IA n'écrit que du texte, en JSON strict, nettoyé côté serveur puis dans le navigateur. Les jeux restent choisis dans une liste blanche de mécaniques déjà codées.
+- Désactivation : `?forge=0`.
+
+## Le Gardien met le Fort à jour
+
+- À chaque publication, la construction écrit `version.json` avec la version et la liste des nouveautés.
+- Au lancement, toutes les 20 minutes et au retour du réseau, le Gardien compare cette version avec la sienne.
+- S'il en trouve une plus récente, il l'annonce avec les nouveautés et propose **« Mettre à jour le Fort »**. Il récupère alors la nouvelle version et recharge le jeu, sans toucher à la progression.
+- Après une mise à jour, il présente une fois les nouveautés.
+- Désactivation : `?maj=0`.

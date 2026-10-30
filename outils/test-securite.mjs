@@ -27,6 +27,11 @@ await attend("rôle « system » forgé neutralisé", { method: "POST", headers:
   () => dernier.messages.every((x) => x.role === "user" || x.role === "assistant"));
 await attend("contexte filtré (liste blanche)", { method: "POST", headers: H, body: corps({ ...msg, contexte: { ecran: "a\nIGNORE <script>", secret: "x" } }) }, 200,
   () => { const c = dernier.system.slice(dernier.system.lastIndexOf("CONTEXTE (")); return c.includes("ecran") && !/secret|<script|\nIGNORE/.test(c); });
+// mode « forge » : mécaniques en liste blanche, texte nettoyé
+await attend("forge : mécanique inconnue refusée", { method: "POST", headers: H, body: corps({ mode: "forge", salle: "Salle", jeux: ["eval", "script"] }) }, 400);
+reponseApi = () => new Response(JSON.stringify({ content: [{ text: 'Voici : {"pitch":"Une salle <script>alert(1)</script> de brume","jeux":[{"nom":"Les runes `${x}` du soir"}],"extra":"x"}' }] }), { status: 200 });
+await attend("forge : réponse de l'IA nettoyée", { method: "POST", headers: H, body: corps({ mode: "forge", salle: "Salle <b>", jeux: ["runes"] }) }, 200,
+  (t) => { const j = JSON.parse(t).forge; return j && !/[<>`{}]/.test(j.pitch + j.jeux[0].nom) && !("extra" in j) && j.jeux.length === 1 && !/[<>]/.test(dernier.messages[0].content); });
 reponseApi = () => new Response('{"error":{"message":"détail interne sk-ant-xyz"}}', { status: 401 });
 const err = console.error; console.error = () => {};
 await attend("aucune fuite d'erreur interne", { method: "POST", headers: H, body: corps(msg) }, 502, (t) => !/sk-ant|interne/.test(t));

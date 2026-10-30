@@ -192,7 +192,8 @@ async function controlerFormat(navigateur, vp) {
     const mechs = w.flatMap((p) => (p.trials || []).map((t) => t.mech)).filter(Boolean);
     /* et chaque mecanique inedite doit produire une interface jouable */
     const jouables = {};
-    for (const m of ['sequence', 'tri', 'pression']) {
+    const nouvelles = ['runes', 'taquin', 'tuyaux', 'dedale', 'piliers', 'miroirs', 'tableau', 'sceaux'];
+    for (const m of nouvelles) {
       localStorage.setItem('fort-propositions-acceptees', JSON.stringify([{
         date: 't', universe: 'Test', emoji: '🧪', compiled: true,
         trials: [{ icon: '⚙️', name: 'E', mech: m }],
@@ -202,19 +203,20 @@ async function controlerFormat(navigateur, vp) {
       c.difficulty = getDiffLevel(2);
       launchChallenge(c);
       await new Promise((r) => setTimeout(r, 450));
-      jouables[m] = m === 'sequence' ? document.querySelectorAll('.atl-seq-btn').length > 0
-        : m === 'tri' ? document.querySelectorAll('.atl-tri-piece').length > 0
-        : !!document.getElementById('atlCurseur');
+      jouables[m] = !!document.querySelector('#fgZone .fg-c, #fgZone .fg-mur, #fgZone .fg-pilier');
     }
     try { go('accueil'); } catch (_) {}
-    return { total: mechs.length, distinctes: new Set(mechs).size, jouables };
+    return { total: mechs.length, distinctes: new Set(mechs).size, jouables,
+             rebaptises: mechs.filter((x) => nouvelles.indexOf(x) < 0) };
   });
   if (meca.distinctes < meca.total)
     ko(`jeux forges : ${meca.distinctes} mecaniques pour ${meca.total} epreuves (doublons)`);
   else ok(`jeux forges : ${meca.total} epreuves, ${meca.distinctes} mecaniques differentes`);
   const muettes = Object.entries(meca.jouables).filter(([, v]) => !v).map(([k]) => k);
   if (muettes.length) ko('mecaniques sans interface : ' + muettes.join(', '));
-  else ok('les 3 mecaniques inedites sont jouables');
+  else ok('les ' + Object.keys(meca.jouables).length + ' jeux de la Forge sont jouables');
+  if (meca.rebaptises.length) ko('jeux forges : anciens jeux rebaptises (' + meca.rebaptises.join(', ') + ')');
+  else ok('jeux forges : uniquement des jeux inedits, aucun ancien jeu rebaptise');
 
   await page.close();
 }
