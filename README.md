@@ -470,3 +470,13 @@ Aux dates clés, le Fort change de couleurs (cadre, titre, bouton « Jouer en so
 Animations en `transform` uniquement (aucun flash de lumière), coupées avec « réduire les animations » ou le mode calme. Tester une fête : `?fete=noel` (ou `halloween`, `nouvelan`, `valentin`, `paques`, `muguet`, `musique`, `quatorze`) ; désactiver : `?fete=0`.
 
 L'accueil répartit aussi ses blocs sur toute la hauteur de la carte (plus de vide en bas, la pastille « Offre-moi un café » n'est plus coupée).
+
+## Décors Néon et Nocturne redessinés (images originales)
+
+Les décors du **Quartier Néon** et de la **Veillée Nocturne** n'existaient qu'en petite taille agrandie artificiellement : ils étaient flous et pixellisés. Ils ont été entièrement redessinés pour le jeu. Ce sont des illustrations vectorielles originales, rendues en haute définition (1290×2048 en vertical, 2048×1152 en horizontal). Ils n'utilisent aucune image extérieure et ne sont soumis à aucun droit d'auteur tiers.
+
+- **Néon** : ruelle sous la pluie, enseignes lumineuses (« ÉNIGMES », « FORT », « CLÉS »…), graffitis, câbles, sol mouillé et reflets.
+- **Nocturne** : terrasse crénelée du Fort sous la pleine lune, Voie lactée, étoile filante, montagnes enneigées, tourelle, lanterne et lunette en laiton.
+- Les textures des cases (pierre, bois, parchemin, laiton) sont régénérées à partir de bruit, en 512 px au lieu de 128 px.
+
+Les scripts qui génèrent ces images se trouvent dans `outils/decors/` (`neon.py`, `nocturne.py`, `textures.py`, `rendu.py`). Ils produisent toujours le même résultat, ce qui permet de les retoucher puis de les régénérer.
