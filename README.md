@@ -467,6 +467,21 @@ Aux dates clés, le Fort change de couleurs (cadre, titre, bouton « Jouer en so
 | Fête de la musique | 21 juin | notes qui montent |
 | 14 Juillet | 13 → 14 juil. | bouquets bleu-blanc-rouge |
 
+**Décorations de fête.** Des objets dessinés dans le style des décors sont posés sur le bord haut de la carte, à l'accueil comme dans les univers. À l'horizontale, ils se posent au sol, à gauche de l'écran.
+
+| Fête | Décorations |
+|---|---|
+| Noël | sapin illuminé avec son étoile, cadeaux, liseré de neige sur la carte |
+| Halloween | citrouilles sculptées et lumineuses, guirlande orange et violette |
+| Nouvel An | ballons dorés, guirlande d'étoiles |
+| Saint-Valentin | ballons-cœurs, guirlande de cœurs |
+| Pâques | paniers d'œufs, fanions pastel |
+| 1er Mai | pots de muguet |
+| Fête de la musique | guitare, lampion, guirlande de notes |
+| 14 Juillet | lampions bleu-blanc-rouge, fanions tricolores |
+
+Ces décorations sont statiques : elles ne clignotent pas et ne coûtent rien pendant le jeu.
+
 Animations en `transform` uniquement (aucun flash de lumière), coupées avec « réduire les animations » ou le mode calme. Tester une fête : `?fete=noel` (ou `halloween`, `nouvelan`, `valentin`, `paques`, `muguet`, `musique`, `quatorze`) ; désactiver : `?fete=0`.
 
 L'accueil répartit aussi ses blocs sur toute la hauteur de la carte (plus de vide en bas, la pastille « Offre-moi un café » n'est plus coupée).
