@@ -601,7 +601,259 @@ def accueil(S, phase):
         S.poly([(bx, by - U * t * 1.6), (bx, by - U * t * .1), (bx + U * t * .9, by - U * t * .3)], '#e8dcc8' if phase == 'jour' else '#b8a8a0')
     if phase == 'nuit': S.lucioles(10, 0, W, H * .02, hz, '#ffe8a0')
 
-MONDES = dict(accueil_jour=lambda S: accueil(S, 'jour'), accueil_soir=lambda S: accueil(S, 'soir'), accueil_nuit=lambda S: accueil(S, 'nuit'), fort=fort, foraine=foraine, steampunk=steampunk, nordique=nordique, pirate=pirate, manoir=manoir, jungle=jungle, desert=desert)
+# ============================================================== INTRO : le hall des portes
+PORTES = [('#f4d03f', 'tour'), ('#ff6f9f', 'roue'), ('#e0a050', 'engrenage'), ('#7fd6ea', 'flocon'), ('#4fc49a', 'ancre'),
+          ('#b9a0f0', 'masque'), ('#46d17f', 'feuille'), ('#f39c3c', 'soleil'), ('#ff2ec4', 'eclair'), ('#9aa6ff', 'lune')]
+def embleme(S, x, y, t, kind, col):
+    st = 'stroke="%s" stroke-width="%.1f" fill="none" stroke-linecap="round" stroke-linejoin="round"' % (col, t * .12)
+    if kind == 'tour': S.path('M%.1f %.1fv%.1fh%.1fv%.1fh%.1fv%.1fh%.1fv%.1fh%.1fv%.1f' % (x - t * .4, y + t * .5, -t * .8, t * .2, t * .2, t * .2, -t * .2, t * .2, t * .2, t * .2, -t * .2) + 'v%.1fZ' % (t * .8), 'none', st)
+    elif kind == 'roue':
+        S.circ(x, y, t * .45, 'none', st)
+        for k in range(4): a = k * math.pi / 4; S.a('<line x1="%.1f" y1="%.1f" x2="%.1f" y2="%.1f" %s/>' % (x - t * .45 * math.cos(a), y - t * .45 * math.sin(a), x + t * .45 * math.cos(a), y + t * .45 * math.sin(a), st))
+    elif kind == 'engrenage':
+        S.circ(x, y, t * .3, 'none', st)
+        for k in range(8): a = k * math.pi / 4; S.a('<line x1="%.1f" y1="%.1f" x2="%.1f" y2="%.1f" %s/>' % (x + t * .3 * math.cos(a), y + t * .3 * math.sin(a), x + t * .48 * math.cos(a), y + t * .48 * math.sin(a), st))
+    elif kind == 'flocon':
+        for k in range(3): a = k * math.pi / 3; S.a('<line x1="%.1f" y1="%.1f" x2="%.1f" y2="%.1f" %s/>' % (x - t * .5 * math.cos(a), y - t * .5 * math.sin(a), x + t * .5 * math.cos(a), y + t * .5 * math.sin(a), st))
+    elif kind == 'ancre': S.path('M%.1f %.1fv%.1fM%.1f %.1fh%.1fM%.1f %.1fq0 %.1f %.1f %.1fq%.1f 0 %.1f %.1f' % (x, y - t * .5, t * .95, x - t * .22, y - t * .25, t * .44, x - t * .4, y + t * .15, t * .3, t * .4, t * .3, t * .4, t * .4, -t * .3), "none", st)
+    elif kind == 'masque': S.path('M%.1f %.1fq%.1f %.1f %.1f 0q0 %.1f %.1f %.1fq%.1f 0 %.1f %.1fZ' % (x - t * .45, y - t * .2, t * .45, -t * .15, t * .9, t * .5, -t * .45, t * .6, -t * .45, -t * .45, -t * .6), 'none', st)
+    elif kind == 'feuille': S.path('M%.1f %.1fQ%.1f %.1f %.1f %.1fQ%.1f %.1f %.1f %.1fM%.1f %.1fL%.1f %.1f' % (x - t * .4, y + t * .4, x - t * .4, y - t * .4, x + t * .4, y - t * .4, x + t * .4, y + t * .4, x - t * .4, y + t * .4, x - t * .4, y + t * .4, x + t * .2, y - t * .2), 'none', st)
+    elif kind == 'soleil':
+        S.circ(x, y, t * .22, 'none', st)
+        for k in range(8): a = k * math.pi / 4; S.a('<line x1="%.1f" y1="%.1f" x2="%.1f" y2="%.1f" %s/>' % (x + t * .32 * math.cos(a), y + t * .32 * math.sin(a), x + t * .5 * math.cos(a), y + t * .5 * math.sin(a), st))
+    elif kind == 'eclair': S.path('M%.1f %.1fL%.1f %.1fL%.1f %.1fL%.1f %.1f' % (x + t * .15, y - t * .5, x - t * .2, y + t * .05, x + t * .15, y + t * .05, x - t * .15, y + t * .5), 'none', st)
+    elif kind == 'lune': S.path('M%.1f %.1fA%.1f %.1f 0 1 0 %.1f %.1fA%.1f %.1f 0 1 1 %.1f %.1fZ' % (x + t * .1, y - t * .45, t * .45, t * .45, x + t * .1, y + t * .45, t * .32, t * .32, x + t * .1, y - t * .45), 'none', st)
+
+def intro(S):
+    W, H, U, P = S.W, S.H, S.U, S.P
+    vx, vy = W / 2, H * (.3 if P else .46)
+    f = W * (.55 if P else .42)
+    XL, XR, EYE, HV = -2.2, 2.2, 1.6, 4.2           # largeur du hall, hauteur des yeux et de la voûte
+    def Pj(X, Y, Z): return (vx + f * X / Z, vy - f * (Y - EYE) / Z)
+    pts = lambda L: ' '.join('%.1f,%.1f' % q for q in L)
+    S.rect(0, 0, W, H, '#0a0a14')
+    ZF = 11
+    # fond : la grande porte entrouverte sur le ciel des mondes
+    a0, a1 = Pj(-1.5, 0, ZF), Pj(1.5, 3.5, ZF)
+    dw, dh = a1[0] - a0[0], a0[1] - a1[1]
+    d_ouv = 'M%.1f %.1fV%.1fA%.1f %.1f 0 0 1 %.1f %.1fV%.1fZ' % (a0[0], a0[1], a1[1] + dw / 2, dw / 2, dw / 2, a1[0], a1[1] + dw / 2, a0[1])
+    S.path(d_ouv, S.lin([(0, '#1a1050'), (.5, '#3a2a80'), (1, '#6a3a8a')]))
+    S.a('<clipPath id="clipPorte"><path d="%s"/></clipPath><g clip-path="url(#clipPorte)">' % d_ouv)
+    for _ in range(160):
+        S.circ(S.R.uniform(a0[0], a1[0]), S.R.uniform(a1[1], a0[1]), S.R.uniform(.4, 1.4) * U / 1100, '#fff', 'opacity="%.2f"' % S.R.uniform(.4, 1))
+    S.ell(vx - dw * .1, a1[1] + dh * .5, dw * .5, dh * .25, '#ff6fd0', 'opacity=".35" filter="url(#b3)" transform="rotate(-35 %.1f %.1f)"' % (vx, a1[1] + dh * .5))
+    S.ell(vx + dw * .1, a1[1] + dh * .4, dw * .35, dh * .15, '#7fd6ea', 'opacity=".3" filter="url(#b3)"')
+    mx, my, mr = vx + dw * .15, a1[1] + dh * .45, dw * .16
+    S.circ(mx, my, mr * 2.4, S.rad([(0, '#e8ecff', .5), (1, '#e8ecff', 0)]))
+    S.path('M%.1f %.1fA%.1f %.1f 0 1 0 %.1f %.1fA%.1f %.1f 0 1 1 %.1f %.1fZ' % (mx, my - mr, mr, mr, mx, my + mr, mr * .78, mr * .78, mx, my - mr), '#f4f1e3')
+    S.a('</g>')
+    # battants de la porte entrouverts
+    for side in (-1, 1):
+        bx = a0[0] if side < 0 else a1[0]
+        S.poly([(bx, a0[1]), (bx, a1[1] + dw * .3), (bx - side * dw * .22, a1[1] + dw * .2), (bx - side * dw * .22, a0[1] + dh * .03)], S.lin([(0, '#5a3a20'), (1, '#2a1a10')], 0, 0, 1, 0))
+    S.path(d_ouv, 'none', 'stroke="#c8d4ff" stroke-width="%.1f" opacity=".7" filter="url(#b1)"' % (U * .004))
+    S.halo(vx, a0[1] - dh * .4, dw * .9, '#9aa6ff', .35, 'b4')
+    # mur du fond autour de la porte
+    fb = [Pj(XL, 0, ZF), Pj(XL, HV, ZF), Pj(XR, HV, ZF), Pj(XR, 0, ZF)]
+    S.a('<path d="M%s Z %s" fill="#2a2838" fill-rule="evenodd"/>' % ('M' + ' L'.join('%.1f %.1f' % q for q in fb), d_ouv))
+    S.runes(a0[0] - dw * .1, a1[1] - U * .015, dw * 1.2, 7, U * .006, '#ffd36b')
+    # murs latéraux, voûte et sol (perspective)
+    for side, X in ((-1, XL), (1, XR)):
+        S.poly([Pj(X, 0, 1.0), Pj(X, HV, 1.0), Pj(X, HV, ZF), Pj(X, 0, ZF)], S.lin([(0, '#1a1824'), (1, '#2e2c3e')], 0 if side < 0 else 1, 0, 1 if side < 0 else 0, 0))
+    S.poly([Pj(XL, 0, 1.0), Pj(XR, 0, 1.0), Pj(XR, 0, ZF), Pj(XL, 0, ZF)], S.lin([(0, '#3a3448'), (1, '#121018')]))
+    # voûte en berceau : courbes successives + ciel de constellations peint
+    vault = []
+    for k in range(0, 41):
+        a = math.pi * k / 40
+        vault.append((2.2 * math.cos(a), HV + 1.6 * math.sin(a)))
+    for z in (1.0, ZF):
+        pass
+    contour = [Pj(x, y, 1.0) for x, y in vault] + [Pj(x, y, ZF) for x, y in reversed(vault)]
+    S.poly(contour, '#151a34')
+    for _ in range(200):
+        x, y = S.R.uniform(0, W), S.R.uniform(0, min(Pj(0, HV, ZF)[1], H))
+        S.circ(x, y, S.R.uniform(.5, 1.5) * U / 1100, '#dfe6ff', 'opacity="%.2f"' % S.R.uniform(.3, .9))
+    for _ in range(7):   # constellations
+        cx, cy = S.R.uniform(.1, .9) * W, S.R.uniform(.02, .9) * Pj(0, HV, 3)[1]
+        q = [(cx + S.R.uniform(-1, 1) * U * .08, cy + S.R.uniform(-1, 1) * U * .05) for _ in range(5)]
+        S.a('<polyline points="%s" fill="none" stroke="#c8d4ff" stroke-width="%.1f" opacity=".35"/>' % (pts(q), U * .0015))
+        for (x, y) in q: S.circ(x, y, U * .003, '#fff')
+    for z in (1.6, 2.4, 3.6, 5.4, 8, 12):
+        arc = [Pj(x, y, z) for x, y in vault]
+        S.a('<polyline points="%s" fill="none" stroke="#3a3850" stroke-width="%.1f"/>' % (pts(arc), max(2, f / z * .12)))
+        S.a('<polyline points="%s" fill="none" stroke="#8a86b0" stroke-width="%.1f" opacity=".35"/>' % (pts(arc), max(1, f / z * .02)))
+    # assises de pierre sur les murs
+    for side, X in ((-1, XL), (1, XR)):
+        for y in [k * .35 for k in range(1, 13)]:
+            S.a('<polyline points="%s" fill="none" stroke="#0a0810" stroke-width="%.1f" opacity=".45"/>' % (pts([Pj(X, y, 1.0), Pj(X, y, ZF)]), U * .0018))
+        for z in [1.2 + k * .5 for k in range(20)]:
+            for y0 in [k * .7 for k in range(6)]:
+                yy = y0 + (.35 if int(z * 2) % 2 else 0)
+                S.a('<polyline points="%s" fill="none" stroke="#0a0810" stroke-width="%.1f" opacity=".35"/>' % (pts([Pj(X, yy, z), Pj(X, yy + .35, z)]), max(1, f / z * .006)))
+        S.a('<polygon points="%s" fill="#000" opacity=".3" filter="url(#texture)"/>' % pts([Pj(X, 0, 1.0), Pj(X, HV, 1.0), Pj(X, HV, ZF), Pj(X, 0, ZF)]))
+    # dalles du sol
+    for z in (1.3, 1.7, 2.2, 2.9, 3.8, 5, 6.6, 8.8, 11.6):
+        S.a('<polyline points="%s" fill="none" stroke="#0a0810" stroke-width="%.1f" opacity=".7"/>' % (pts([Pj(XL, 0, z), Pj(XR, 0, z)]), max(1, f / z * .015)))
+    for x in (-1.5, -.75, 0, .75, 1.5):
+        S.a('<polyline points="%s" fill="none" stroke="#0a0810" stroke-width="%.1f" opacity=".6"/>' % (pts([Pj(x, 0, 1.0), Pj(x, 0, ZF)]), U * .002))
+    S.poly([Pj(-.9, 0, ZF), Pj(.9, 0, ZF), Pj(1.6, 0, 1.2), Pj(-1.6, 0, 1.2)], '#9aa6ff', 'opacity=".1" filter="url(#b3)"')
+    # les portes des mondes, 5 de chaque côté, avec torches entre elles
+    for i, z in enumerate((3.0, 4.4, 6.0, 7.8, 9.8)):
+        for side, X in ((-1, XL), (1, XR)):
+            col, kind = PORTES[i * 2 + (0 if side < 0 else 1)]
+            za, zb = z - .55, z + .55
+            q = [Pj(X, 0, za), Pj(X, 2.4, za), Pj(X, 2.4, zb), Pj(X, 0, zb)]
+            top = Pj(X, 3.0, z)
+            d = 'M%.1f %.1fL%.1f %.1fQ%.1f %.1f %.1f %.1fL%.1f %.1fZ' % (q[0][0], q[0][1], q[1][0], q[1][1], top[0], top[1] - (q[1][1] - top[1]) * .2, q[2][0], q[2][1], q[3][0], q[3][1])
+            S.path(d, '#0e0c14')
+            S.path(d, col, 'opacity=".2"')
+            S.path(d, 'none', 'stroke="%s" stroke-width="%.1f" opacity=".5" filter="url(#b1)"' % (col, max(2, f / z * .06)))
+            S.path(d, 'none', 'stroke="%s" stroke-width="%.1f"' % (col, max(1, f / z * .015)))
+            c = Pj(X, 1.5, z)
+            S.halo(c[0], c[1], f / z * .5, col, .35, 'b3')
+            embleme(S, c[0], c[1], f / z * .55, kind, col)
+            if i < 4:
+                t = Pj(X, 2.1, z + .9)
+                S.torche(t[0], t[1], f / (z + .9) * .35)
+    # le Gardien à la lanterne, de dos, au milieu du hall
+    gz = 5.2; gx, gy = Pj(.35, 0, gz); s = f / gz
+    S.ell(gx, gy, s * .4, s * .06, '#000', 'opacity=".55" filter="url(#b1)"')
+    cape = 'M%.1f %.1fQ%.1f %.1f %.1f %.1fQ%.1f %.1f %.1f %.1fQ%.1f %.1f %.1f %.1fQ%.1f %.1f %.1f %.1fZ' % (
+        gx - s * .32, gy, gx - s * .3, gy - s * .9, gx - s * .14, gy - s * 1.45, gx, gy - s * 1.78, gx + s * .14, gy - s * 1.45, gx + s * .3, gy - s * .9, gx + s * .32, gy, gx, gy + s * .03, gx - s * .32, gy)
+    S.path(cape, S.lin([(0, '#14121c'), (.5, '#26222e'), (1, '#0a0910')], 0, 0, 1, 0))
+    S.path('M%.1f %.1fQ%.1f %.1f %.1f %.1f' % (gx + s * .14, gy - s * 1.45, gx + s * .3, gy - s * .9, gx + s * .32, gy), 'none', 'stroke="#9aa6ff" stroke-width="%.1f" opacity=".45"' % (s * .012))
+    S.a('<line x1="%.1f" y1="%.1f" x2="%.1f" y2="%.1f" stroke="#3a2614" stroke-width="%.1f" stroke-linecap="round"/>' % (gx - s * .38, gy, gx - s * .42, gy - s * 1.6, s * .03))
+    lx, ly = gx + s * .36, gy - s * .7
+    S.a('<line x1="%.1f" y1="%.1f" x2="%.1f" y2="%.1f" stroke="#14121c" stroke-width="%.1f"/>' % (gx + s * .22, gy - s * 1.0, lx, ly - s * .1, s * .04))
+    S.lueur(lx, ly + s * .05, s * 1.3, '#ffb347', 1.0)
+    S.rect(lx - s * .06, ly - s * .05, s * .12, s * .17, '#ffd27a', 'stroke="#2a1d10" stroke-width="%.1f" rx="%.1f"' % (s * .015, s * .015))
+    S.ell(lx, ly + s * .03, s * .025, s * .05, '#fff6d0', 'filter="url(#b1)"')
+    S.lucioles(16, W * .2, W * .8, vy - U * .2, vy + U * .25, '#ffe8a0')
+
+# ============================================================== ACCUEIL v2 : le château, la ville et le marché du port
+def maison(S, x, base, w, h, mur, toit, nuit, lum):
+    S.rect(x - w / 2, base - h, w, h, mur)
+    S.texture((x - w / 2, base - h, w, h), .25)
+    for k in range(1, 3):   # colombages
+        S.a('<line x1="%.1f" y1="%.1f" x2="%.1f" y2="%.1f" stroke="#3a2418" stroke-width="%.1f"/>' % (x - w / 2, base - h * k / 3, x + w / 2, base - h * k / 3, w * .035))
+    S.a('<line x1="%.1f" y1="%.1f" x2="%.1f" y2="%.1f" stroke="#3a2418" stroke-width="%.1f"/>' % (x - w / 2 + w * .08, base - h, x + w / 2 - w * .08, base - h / 3, w * .03))
+    S.poly([(x - w * .62, base - h), (x, base - h - w * .62), (x + w * .62, base - h)], toit)
+    S.poly([(x, base - h - w * .62), (x + w * .62, base - h), (x + w * .15, base - h)], lum, 'opacity=".15"')
+    for j in range(2):
+        for k in range(2):
+            fx, fy = x - w * .28 + k * w * .38, base - h + h * (.12 + j * .36)
+            allume = nuit and S.R.random() < .75
+            S.rect(fx, fy, w * .18, h * .16, '#ffc46b' if allume else '#2a3040')
+            if allume: S.rect(fx - w * .05, fy - h * .04, w * .28, h * .24, '#ffb347', 'opacity=".3" filter="url(#b1)"')
+
+def etal(S, x, base, w, c1, c2, nuit):
+    S.rect(x - w / 2, base - w * .35, w, w * .35, '#4a3020')
+    S.rect(x - w * .45, base - w * .33, w * .9, w * .1, '#7a5030')
+    for k in range(5):   # marchandises
+        S.circ(x - w * .35 + k * w * .17, base - w * .36, w * .05, S.R.choice(['#e04a3a', '#f4c430', '#7ab04a', '#e08a3a', '#c8a0e0']))
+    for side in (-1, 1):
+        S.a('<line x1="%.1f" y1="%.1f" x2="%.1f" y2="%.1f" stroke="#2a1a10" stroke-width="%.1f"/>' % (x + side * w * .47, base, x + side * w * .47, base - w * .7, w * .03))
+    n = 6
+    for k in range(n):
+        x0 = x - w * .55 + w * 1.1 * k / n
+        S.path('M%.1f %.1fL%.1f %.1fL%.1f %.1fL%.1f %.1fA%.1f %.1f 0 0 1 %.1f %.1fZ' % (
+            x0 + w * .55 / n * 0, base - w * .62, x - w * .3 + w * .6 * k / n, base - w * .82, x - w * .3 + w * .6 * (k + 1) / n, base - w * .82,
+            x0 + w * 1.1 / n, base - w * .62, w * .55 / n, w * .35 / n, x0, base - w * .62), c1 if k % 2 else c2)
+    if nuit:
+        S.circ(x, base - w * .55, w * .05, '#ffd27a'); S.lueur(x, base - w * .45, w * .9, '#ffb347', .8)
+
+def foule(S, x0, x1, base, t, n, col):
+    for _ in range(n):
+        x = S.R.uniform(x0, x1); h = t * S.R.uniform(.85, 1.15)
+        S.path('M%.1f %.1fL%.1f %.1fQ%.1f %.1f %.1f %.1fL%.1f %.1fZ' % (x - h * .2, base, x - h * .14, base - h * .75, x, base - h * .85, x + h * .14, base - h * .75, x + h * .2, base), col)
+        S.circ(x, base - h * .93, h * .11, col)
+
+def accueil2(S, phase):
+    W, H, P = S.W, S.H, S.P
+    c = PHASES[phase]; nuit = phase != 'jour'
+    U = S.U * (.46 if P else .66)
+    hz = H * (.205 if P else .5)
+    S.ciel(c['ciel'], hz)
+    if nuit: S.etoiles(int(W * H / (2400 if phase == 'nuit' else 9000)), hz, 1 if phase == 'nuit' else .5)
+    if c['astre'] == 'soleil': S.soleil(W * .14, H * (.04 if P else .12), U * .06)
+    elif c['astre'] == 'couchant': S.soleil(W * .1, hz - U * .02, U * .07, '#ffd8a0', '#ff7a3c')
+    else: S.lune(W * .16, H * (.035 if P else .1), U * .05)
+    S.nuages([(.25, .03 if P else .08, .3, .006 if P else .012, .6), (.7, .06 if P else .16, .35, .006 if P else .012, .5)], c['nuage'][0], c['nuage'][1])
+    # mer et port
+    S.rect(0, hz, W, H - hz, S.lin([(0, c['mer'][0]), (1, c['mer'][1])]))
+    for _ in range(120):
+        y = S.R.uniform(hz, H); t = (y - hz) / (H - hz)
+        S.rect(S.R.uniform(0, W * .5), y, U * S.R.uniform(.01, .05) * (.3 + t), U * .002 * (1 + 2 * t), c['lum'], 'opacity="%.2f"' % S.R.uniform(.1, .45))
+    for (x, y, t) in ((.06, .02, .11), (.2, .05, .08), (.3, .015, .06)):
+        galion(S, W * x, hz + U * y, U * t, '#2a1a20' if nuit else '#4a3020')
+    # colline, château et sa grande porte des mondes
+    cx = W * (.58 if P else .4)
+    colline = 'M%.1f %.1fQ%.1f %.1f %.1f %.1fQ%.1f %.1f %.1f %.1fL%.1f %.1fL%.1f %.1fZ' % (
+        cx - U * .55, hz + U * .05, cx - U * .3, hz - U * .1, cx, hz - U * .12, cx + U * .35, hz - U * .1, W + U * .1, hz + U * .02, W, H, cx - U * .55, H)
+    S.path(colline, S.lin([(0, c['roc'][0]), (1, c['roc'][1])])); S.texture(colline, .4)
+    base = hz - U * .11; mur = c['mur']
+    S.rect(cx - U * .26, base - U * .12, U * .52, U * .12, mur); S.appareil(cx - U * .26, base - U * .12, U * .52, U * .12, U * .04)
+    merlons(S, cx - U * .26, cx + U * .26, base - U * .12, U * .016, U * .02, mur, c['lum'], .3)
+    S.rect(cx - U * .07, base - U * .3, U * .14, U * .3, mur); S.appareil(cx - U * .07, base - U * .3, U * .14, U * .3, U * .035)
+    S.rect(cx - U * .07, base - U * .3, U * .14, U * .3, S.lin([(0, '#000', .35), (.6, c['lum'], .12), (1, '#000', .4)], 0, 0, 1, 0))
+    S.poly([(cx - U * .085, base - U * .3), (cx, base - U * .43), (cx + U * .085, base - U * .3)], S.lin([(0, '#3a2a48'), (1, '#1a1428')], 0, 0, 1, 0))
+    for (dx, h, r) in ((-.26, .2, .04), (-.13, .25, .045), (.13, .25, .045), (.26, .2, .04)):
+        tour(S, cx + dx * U, base, base - h * U, r * U, mur, c['lum'], '#f4d03f')
+    gw = U * .07; gt = base - U * .09
+    S.halo(cx, base - gw * .5, gw * 1.6, '#ffd36b', .5 if nuit else .3, 'b4')
+    arche = 'M%.1f %.1fV%.1fA%.1f %.1f 0 0 1 %.1f %.1fV%.1fZ' % (cx - gw / 2, base, gt + gw / 2, gw / 2, gw / 2, cx + gw / 2, gt + gw / 2, base)
+    S.path(arche, S.lin([(0, '#fffbe0'), (.4, '#ffe08a'), (.75, '#b9a0f0'), (1, '#7fd6ea')]))
+    S.path(arche, 'none', 'stroke="#2a2232" stroke-width="%.1f"' % (U * .007))
+    S.runes(cx - gw * .7, gt - U * .018, gw * 1.4, 5, U * .005, '#ffd36b')
+    for _ in range(14):
+        x, y = cx + S.R.gauss(0, gw * .8), base - S.R.uniform(0, U * .18)
+        S.circ(x, y, U * .0025, S.R.choice(['#ffd36b', '#b9a0f0', '#7fd6ea', '#ff6f9f']))
+    # la ville qui descend vers le quai
+    quai = hz + U * (.2 if P else .26)
+    rangs = [(hz - U * .03, .055, .35), (hz + U * .07, .07, .15), (hz + U * .17, .085, 0)]
+    for (yb, t, voile) in rangs:
+        x = cx - U * .45 + S.R.uniform(0, U * .05)
+        while x < W + U * .1:
+            w = U * t * S.R.uniform(.8, 1.2); h = U * t * S.R.uniform(.9, 1.7)
+            if abs(x - cx) < U * .12 and yb < hz: x += w * 1.6; continue   # la porte du château reste visible
+            maison(S, x, yb - S.R.uniform(0, U * .02), w, h, S.R.choice(['#d8c0a0', '#c8a888', '#e0d0b0', '#b89878']) if not nuit else S.R.choice(['#6a5a68', '#5a4a5a', '#7a6a70']),
+                   S.R.choice(['#8a3a2a', '#6a3a2a', '#4a3a4a', '#7a4a3a']), nuit, c['lum'])
+            x += w * S.R.uniform(1.25, 1.9)
+        if voile: S.ell(cx + U * .3, yb - U * .06, W * .7, U * .09, c['nuage'][0], 'opacity="%.2f" filter="url(#b4)"' % (voile * .7))
+    # le quai et le marché
+    S.path('M%.1f %.1fL%d %.1fL%d %dL%.1f %dZ' % (cx - U * .62, quai - U * .03, W, quai - U * .05, W, H, cx - U * .75, H), S.lin([(0, '#8a7a6a' if not nuit else '#4a4050'), (1, '#2a2230')]))
+    S.texture('M%.1f %.1fL%d %.1fL%d %dL%.1f %dZ' % (cx - U * .62, quai - U * .03, W, quai - U * .05, W, H, cx - U * .75, H), .35)
+    for k in range(14):
+        y = quai + (H - quai) * (k / 14) ** 1.4
+        S.a('<line x1="%.1f" y1="%.1f" x2="%d" y2="%.1f" stroke="#000" stroke-width="%.1f" opacity=".25"/>' % (cx - U * .7, y, W, y, max(1, U * .002 * (1 + k * .3))))
+    # guirlande de lanternes
+    gx0, gx1, gy = cx - U * .55, W, quai - U * .1
+    for k in range(22):
+        t = k / 21; x = gx0 + (gx1 - gx0) * t; y = gy + math.sin(t * math.pi * 3) * U * .015 + U * .02 * t
+        S.circ(x, y, U * .004, ['#ffd36b', '#ff6f9f', '#7fd6ea'][k % 3])
+        if nuit: S.circ(x, y, U * .012, '#ffd36b', 'opacity=".35" filter="url(#b1)"')
+    rayures = [('#e9dcc8', '#b23a52'), ('#e9dcc8', '#3a6a8a'), ('#e9dcc8', '#5a8a4a'), ('#f4d03f', '#a0522d'), ('#e9dcc8', '#7a4a9a')]
+    x = cx - U * .5; k = 0
+    while x < W + U * .05:
+        w = U * S.R.uniform(.09, .12)
+        etal(S, x, quai + U * .05, w, *rayures[k % len(rayures)], nuit)
+        x += w * 1.35; k += 1
+    foule(S, cx - U * .55, W, quai + U * .09, U * .045, 26, '#1a1420' if nuit else '#3a2a30')
+    # second rang d'étals au premier plan
+    q2 = quai + U * .32; x = cx - U * .62; k = 2
+    while x < W + U * .1:
+        w = U * S.R.uniform(.16, .2)
+        etal(S, x, q2, w, *rayures[k % len(rayures)], nuit)
+        x += w * 1.5; k += 1
+    foule(S, cx - U * .7, W, q2 + U * .06, U * .08, 14, '#120e18' if nuit else '#2a2028')
+    # le Gardien, lanterne en main, au bord du quai
+    gx, gy, s = cx - U * .58, quai + U * .12, U * .12
+    S.path('M%.1f %.1fQ%.1f %.1f %.1f %.1fQ%.1f %.1f %.1f %.1fZ' % (gx - s * .3, gy, gx - s * .2, gy - s * 1.2, gx, gy - s * 1.5, gx + s * .2, gy - s * 1.2, gx + s * .3, gy), '#14121c')
+    S.lueur(gx + s * .35, gy - s * .6, s * 1.2, '#ffb347', 1.0 if nuit else .6)
+    S.rect(gx + s * .3, gy - s * .68, s * .1, s * .14, '#ffd27a')
+    if phase == 'nuit': S.lucioles(10, 0, W, H * .02, hz, '#ffe8a0')
+
+MONDES = dict(intro=intro, accueil_jour=lambda S: accueil2(S, 'jour'), accueil_soir=lambda S: accueil2(S, 'soir'), accueil_nuit=lambda S: accueil2(S, 'nuit'), fort=fort, foraine=foraine, steampunk=steampunk, nordique=nordique, pirate=pirate, manoir=manoir, jungle=jungle, desert=desert)
 if __name__ == '__main__':
     nom, W, H, out = sys.argv[1], int(sys.argv[2]), int(sys.argv[3]), sys.argv[4]
     S = Scene(W, H, graine=sum(map(ord, nom)))
