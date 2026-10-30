@@ -434,3 +434,9 @@ Le décor vivant remplace les systèmes de particules DOM du jeu (fées, braises
 
 `apercu.jpg` (1200×630) + balises Open Graph / Twitter dans `index.html` : le lien partagé affiche la miniature du jeu.
 
+## Décors haute définition et nettoyage de l'affichage
+
+- **Décors nets sur téléphone** : les décors d'univers (900×491) n'étaient vus que par une bande centrale agrandie ~5× sur un écran vertical. Chaque décor a maintenant une version verticale recadrée, débruitée puis agrandie ×4 par super-résolution (EDSR, OpenCV), utilisée automatiquement sur écran vertical (`<script id="fort-decors-hd">`). Les trois portraits de l'accueil sont agrandis ×2 de la même façon. Fichier : ~4,8 Mo.
+- **Plus de chevauchements** : un seul bouton ☰ en haut à droite regroupe Succès, Gardien et Registre ; message du Gardien sous la barre du haut, entièrement à l'écran ; rangée Marché / Contrat / Gardien de l'accueil calculée pour ne jamais toucher le panneau ; bandeaux de succès et de récompense empilés sans se recouvrir.
+- **Plus de textes coupés** : accueil compacté (titre sur une ligne, horloge, météo et réglage graphique retirés de l'accueil, boutons secondaires en trois colonnes), en-tête du choix d'épreuve resserré, clé de défilement décorative retirée.
+
