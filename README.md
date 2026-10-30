@@ -440,3 +440,7 @@ Le décor vivant remplace les systèmes de particules DOM du jeu (fées, braises
 - **Plus de chevauchements** : un seul bouton ☰ en haut à droite regroupe Succès, Gardien et Registre ; message du Gardien sous la barre du haut, entièrement à l'écran ; rangée Marché / Contrat / Gardien de l'accueil calculée pour ne jamais toucher le panneau ; bandeaux de succès et de récompense empilés sans se recouvrir.
 - **Plus de textes coupés** : accueil compacté (titre sur une ligne, horloge, météo et réglage graphique retirés de l'accueil, boutons secondaires en trois colonnes), en-tête du choix d'épreuve resserré, clé de défilement décorative retirée.
 
+## Décors HD (originaux) et travelling
+
+Les décors de 8 univers (Fort, Fête foraine, Atelier, Nordique, Pirates, Manoir, Jungle, Désert) et le port de l'accueil reprennent les **images originales** (1376–1408 × 768) au lieu des versions 900 px compressées : en paysage, l'original propre ; à la verticale, un recadrage agrandi ×2 par super-résolution (1074×1536). Néon et Veillée nocturne gardent la version agrandie précédente faute d'original. Un **travelling très lent** (zoom 6 % + léger glissement sur 48 s, sans variation de lumière) anime le fond ; il se coupe avec « réduire les animations » ou les effets de profondeur. Fichier : ~7,4 Mo, gardé sur l'appareil après le premier chargement.
+
