@@ -5159,6 +5159,12 @@ html body .carte-col:not(.locked) .carte-nom{color:var(--cp-gold)}
       'body[data-screen=choix-epreuve] #app .frame .choice-header{transform:scale(.75);transform-origin:50% 0;margin-bottom:-14px!important}' +
       'body[data-screen=choix-epreuve] #app .frame .universe-label{display:none!important}' +
       'body[data-screen=choix-epreuve] #app .frame .challenge-title{font-size:1.12rem!important;margin:.15rem 0 .5rem!important}' +
+      /* accueil : le panneau occupe une hauteur fixe et les blocs s’y répartissent régulièrement
+         (marges automatiques : si la place manque, on fait défiler sans rien couper) */
+      'html body[data-screen=accueil] #app > .frame.frame:has(#goSolo){height:min(76dvh,800px)!important;padding-bottom:14px!important}' +
+      'body[data-screen=accueil] #app .frame > .frame-scroll{display:flex!important;flex-direction:column!important;justify-content:flex-start!important;gap:0!important;height:100%;min-height:0}' +
+      'body[data-screen=accueil] #app .frame > .frame-scroll > *{margin-top:auto!important;margin-bottom:auto!important;flex:0 0 auto}' +
+      'body[data-screen=accueil] #app .frame > .frame-scroll > .soutien-jeu{padding-bottom:4px}' +
       /* accueil : tout tient dans le panneau, sans texte coupé */
       'body[data-screen=accueil] #app .frame .title-xl .title-break{display:none!important}' +
       'body[data-screen=accueil] #app .frame .title-xl{font-size:clamp(1.9rem,9.6vw,2.7rem)!important;white-space:nowrap}' +
@@ -5247,6 +5253,119 @@ html body .carte-col:not(.locked) .carte-nom{color:var(--cp-gold)}
     }).observe(D.body, { attributes: true, attributeFilter: ['data-screen'] }); }
     window.addEventListener('resize', hautBarre);
     setInterval(hautBarre, 1500); setTimeout(hautBarre, 400);
+  }
+  if (D.readyState === 'loading') D.addEventListener('DOMContentLoaded', demarrer); else demarrer();
+})();
+
+</script>
+<script id="fort-fetes">
+/* ==========================================================================
+   Fort Énigma — Fêtes et saisons (v1)
+   Aux dates clés, le Fort change de couleurs et s'anime : Halloween, Noël,
+   Nouvel An, Saint-Valentin, Pâques, 1er Mai, Fête de la musique, 14 Juillet.
+   Animations lentes et sans flash (transform uniquement), derrière le panneau.
+   Coupées si « réduire les animations » ou « effets de profondeur » désactivés.
+   Test : ?fete=halloween | noel | nouvelan | valentin | paques | muguet |
+          musique | quatorze ; désactivation : ?fete=0
+   ========================================================================== */
+(function () {
+  'use strict';
+  var W = window, D = document, H = D.documentElement;
+  if (W.FortFetes) return;
+
+  function paques(an) { // algorithme de Meeus (calendrier grégorien)
+    var a = an % 19, b = Math.floor(an / 100), c = an % 100, d = Math.floor(b / 4), e = b % 4,
+        f = Math.floor((b + 8) / 25), g = Math.floor((b - f + 1) / 3), h = (19 * a + b - d - g + 15) % 30,
+        i = Math.floor(c / 4), k = c % 4, l = (32 + 2 * e + 2 * i - h - k) % 7, m = Math.floor((a + 11 * h + 22 * l) / 451),
+        mois = Math.floor((h + l - 7 * m + 114) / 31), jour = ((h + l - 7 * m + 114) % 31) + 1;
+    return new Date(an, mois - 1, jour);
+  }
+  function feteDuJour(dt) {
+    var m = dt.getMonth() + 1, j = dt.getDate(), md = m * 100 + j;
+    if (md >= 1231 || md <= 102) return 'nouvelan';
+    if (md >= 1201 && md <= 1230) return 'noel';
+    if (md >= 210 && md <= 215) return 'valentin';
+    var p = paques(dt.getFullYear()), ecart = Math.round((dt - p) / 864e5);
+    if (ecart >= -3 && ecart <= 1) return 'paques';
+    if (md >= 430 && md <= 501) return 'muguet';
+    if (md === 621) return 'musique';
+    if (md >= 713 && md <= 714) return 'quatorze';
+    if (md >= 1020 && md <= 1102) return 'halloween';
+    return '';
+  }
+
+  /* couleurs : a = accent, b = second ton, t = titre, g = dégradé du bouton principal */
+  var FETES = {
+    halloween: { nom: 'Halloween au Fort', ico: '🎃', a: '#ff7a1a', b: '#9b59d0', t: '#ffb347', g: ['#ff9a3c', '#d4570f'], p: ['🦇', '🦇', '🦇', '🎃', '👻'], mode: 'vol', n: 9, brume: 'rgba(155,89,208,.18)' },
+    noel: { nom: 'Noël au Fort', ico: '🎄', a: '#e74c3c', b: '#2ecc71', t: '#ffe7a0', g: ['#f05a4a', '#b8231a'], p: ['❄', '❅', '❆', '❄', '✦'], mode: 'chute', n: 22, brume: 'rgba(220,240,255,.14)' },
+    nouvelan: { nom: 'Bonne année !', ico: '🥂', a: '#f4d03f', b: '#c0c8d8', t: '#fff1b8', g: ['#f9e27a', '#c9a227'], p: ['✦', '✧', '✦', '•'], mode: 'chute', n: 20, brume: 'rgba(244,208,63,.10)' },
+    valentin: { nom: 'Saint-Valentin', ico: '💘', a: '#ff5c8a', b: '#ffb3c7', t: '#ffc2d4', g: ['#ff7aa2', '#d6336c'], p: ['❤', '💗', '❤', '💕'], mode: 'montee', n: 14, brume: 'rgba(255,92,138,.12)' },
+    paques: { nom: 'Pâques au Fort', ico: '🥚', a: '#8fd18f', b: '#f7c6e0', t: '#fff2a8', g: ['#b6e6a0', '#6fbf73'], p: ['🌸', '🥚', '🌼', '🐣'], mode: 'chute', n: 12, brume: 'rgba(247,198,224,.12)' },
+    muguet: { nom: 'Premier Mai', ico: '🌿', a: '#7ed37e', b: '#f4fff4', t: '#e9ffe9', g: ['#9be39b', '#4fae4f'], p: ['🌿', '🤍', '🌿'], mode: 'chute', n: 10, brume: 'rgba(126,211,126,.10)' },
+    musique: { nom: 'Fête de la musique', ico: '🎶', a: '#5ec8e5', b: '#f4d03f', t: '#bff0ff', g: ['#7fd7ee', '#2e9fc0'], p: ['♪', '♫', '♬', '♩'], mode: 'montee', n: 14, brume: 'rgba(94,200,229,.10)' },
+    quatorze: { nom: '14 Juillet', ico: '🇫🇷', a: '#5b8def', b: '#ef4b4b', t: '#ffffff', g: ['#6f9cf2', '#2f5fcf'], p: ['✦', '✦', '✦'], mode: 'feux', n: 10, brume: 'rgba(91,141,239,.10)' }
+  };
+
+  var q = ''; try { q = (W.location.search.match(/[?&]fete=([a-z0-9]+)/) || [])[1] || ''; } catch (e) {}
+  if (q === '0') return;
+  var cle = FETES[q] ? q : feteDuJour(new Date());
+  var F = FETES[cle];
+  W.FortFetes = { fete: cle || null, liste: Object.keys(FETES), dateFete: feteDuJour };
+  if (!F) return;
+
+  var reduit = false; try { reduit = W.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+
+  function rnd(a, b) { return a + Math.random() * (b - a); }
+  function couche() {
+    var c = D.createElement('div'); c.id = 'fs-couche'; c.setAttribute('aria-hidden', 'true');
+    for (var i = 0; i < F.n; i++) {
+      var s = D.createElement('span'); s.className = 'fs-p'; s.textContent = F.p[i % F.p.length];
+      var dur = F.mode === 'vol' ? rnd(16, 28) : F.mode === 'feux' ? rnd(5, 8) : rnd(12, 24);
+      s.style.cssText = 'left:' + rnd(0, 100).toFixed(1) + '%;top:' + (F.mode === 'vol' ? rnd(5, 45) : F.mode === 'feux' ? rnd(8, 40) : 0).toFixed(1) + '%;' +
+        'font-size:' + (F.mode === 'chute' ? rnd(10, 20) : rnd(16, 28)).toFixed(0) + 'px;' +
+        'animation-duration:' + dur.toFixed(1) + 's;animation-delay:-' + rnd(0, dur).toFixed(1) + 's;' +
+        (F.mode === 'feux' ? 'color:' + [F.a, '#ffffff', F.b][i % 3] + ';' : '');
+      c.appendChild(s);
+    }
+    D.body.insertBefore(c, D.body.firstChild ? D.body.firstChild.nextSibling : null);
+  }
+
+  var css = '' +
+    ':root{--fs-a:' + F.a + ';--fs-b:' + F.b + ';--fs-t:' + F.t + '}' +
+    /* couleurs du Fort */
+    'html body #app .frame.frame{border-color:color-mix(in srgb,var(--fs-a) 55%,transparent)!important;box-shadow:0 -10px 40px rgba(0,0,0,.45),0 0 28px color-mix(in srgb,var(--fs-a) 22%,transparent)!important}' +
+    'html body #app .title-xl{color:var(--fs-t)!important;text-shadow:0 0 22px color-mix(in srgb,var(--fs-a) 60%,transparent),0 2px 6px rgba(0,0,0,.6)!important}' +
+    'html body #app .code-project-tag,html body #app .eyebrow,html body #app #accueilGreeting{color:var(--fs-a)!important}' +
+    'html body #app #goSolo{background:linear-gradient(180deg,' + F.g[0] + ',' + F.g[1] + ')!important;border-color:color-mix(in srgb,var(--fs-t) 70%,#fff)!important;color:#1d1206!important}' +
+    'html body #app .choice-card.choice-card{border-color:color-mix(in srgb,var(--fs-a) 50%,transparent)!important}' +
+    'html body #app .choice-card .choice-card-title,html body #app .challenge-title{color:var(--fs-t)!important}' +
+    'html body .key-chip.filled:not(.code-chip){box-shadow:0 0 12px var(--fs-a),inset 0 0 8px rgba(255,255,255,.25)!important;border-color:var(--fs-a)!important}' +
+    '#ff-voile{background:linear-gradient(180deg,rgba(8,8,16,.30),' + F.brume + ' 40%,rgba(8,8,16,.45))!important}' +
+    /* bannière de fête dans l’accueil */
+    '.fs-banniere{display:inline-flex;align-items:center;gap:.4rem;margin:0 auto;padding:.2rem .75rem;border-radius:999px;border:1px solid color-mix(in srgb,var(--fs-a) 60%,transparent);background:color-mix(in srgb,var(--fs-a) 14%,rgba(10,10,20,.6));color:var(--fs-t);font:700 .72rem Georgia,serif;letter-spacing:.1em;text-transform:uppercase}' +
+    /* particules (transform uniquement, aucune variation de lumière) */
+    '#fs-couche{position:fixed;inset:0;z-index:1;pointer-events:none;overflow:hidden}' +
+    '.fs-p{position:absolute;display:block;line-height:1;will-change:transform;opacity:.85;color:var(--fs-t);text-shadow:0 0 8px color-mix(in srgb,var(--fs-a) 60%,transparent);animation-timing-function:linear;animation-iteration-count:infinite}' +
+    (F.mode === 'chute' ? '.fs-p{animation-name:fs-chute}@keyframes fs-chute{from{transform:translate3d(0,-6vh,0) rotate(0)}50%{transform:translate3d(4vw,50vh,0) rotate(180deg)}to{transform:translate3d(-2vw,106vh,0) rotate(360deg)}}' : '') +
+    (F.mode === 'montee' ? '.fs-p{top:auto!important;bottom:-6vh;animation-name:fs-montee}@keyframes fs-montee{from{transform:translate3d(0,0,0) scale(.8)}50%{transform:translate3d(-4vw,-55vh,0) scale(1)}to{transform:translate3d(3vw,-112vh,0) scale(.9)}}' : '') +
+    (F.mode === 'vol' ? '.fs-p{left:-10%!important;animation-name:fs-vol}@keyframes fs-vol{from{transform:translate3d(0,0,0)}25%{transform:translate3d(32vw,-4vh,0)}50%{transform:translate3d(60vw,3vh,0)}75%{transform:translate3d(88vw,-3vh,0)}to{transform:translate3d(125vw,0,0)}}' : '') +
+    (F.mode === 'feux' ? '.fs-p{animation-name:fs-feux;animation-timing-function:ease-out}@keyframes fs-feux{from{transform:translate3d(0,40vh,0) scale(.4)}40%{transform:translate3d(0,0,0) scale(1)}to{transform:translate3d(0,-4vh,0) scale(2.2)}}' : '') +
+    'html.fp-calme #fs-couche{display:none}' +
+    '@media (prefers-reduced-motion:reduce){#fs-couche{display:none}}';
+
+  function banniere() {
+    var app = D.getElementById('app'); if (!app) return;
+    var t = app.querySelector('.frame .title-xl'); if (!t || app.querySelector('.fs-banniere')) return;
+    var b = D.createElement('div'); b.className = 'fs-banniere'; b.textContent = F.ico + ' ' + F.nom;
+    var tag = app.querySelector('.frame .code-project-tag');
+    (tag || t).insertAdjacentElement('afterend', b);
+  }
+  function demarrer() {
+    H.setAttribute('data-fete', cle);
+    var s = D.createElement('style'); s.id = 'fort-fetes-css'; s.textContent = css; D.head.appendChild(s);
+    if (!reduit) couche();
+    banniere();
+    if (W.MutationObserver) { var t = 0; new MutationObserver(function () { clearTimeout(t); t = setTimeout(banniere, 60); }).observe(D.getElementById('app') || D.body, { childList: true, subtree: true }); }
   }
   if (D.readyState === 'loading') D.addEventListener('DOMContentLoaded', demarrer); else demarrer();
 })();

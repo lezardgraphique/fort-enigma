@@ -451,3 +451,22 @@ Les décors de 8 univers (Fort, Fête foraine, Atelier, Nordique, Pirates, Manoi
 
 Voir [SECURITY.md](SECURITY.md). En bref : saisies et réponses externes échappées, CSP et en-têtes durcis, fonction du Gardien protégée (route `/api/gardien`, limite de 20 requêtes/minute/IP, origines autorisées, validation stricte, aucune fuite d'erreur), Salle des machines réservée à `?machines=1`, tests automatiques (`node outils/test-securite.mjs`).
 
+
+## Fêtes et saisons
+
+Aux dates clés, le Fort change de couleurs (cadre, titre, bouton « Jouer en solo », clés) et s'anime discrètement derrière le panneau, avec une petite bannière sur l'accueil :
+
+| Fête | Période | Animation |
+|---|---|---|
+| Halloween | 20 oct. → 2 nov. | chauves-souris, citrouilles, fantômes qui traversent le ciel |
+| Noël | 1er → 30 déc. | neige lente |
+| Nouvel An | 31 déc. → 2 janv. | paillettes dorées |
+| Saint-Valentin | 10 → 15 févr. | cœurs qui montent |
+| Pâques | 3 jours avant → lundi de Pâques (date calculée) | fleurs et œufs |
+| 1er Mai | 30 avr. → 1er mai | brins de muguet |
+| Fête de la musique | 21 juin | notes qui montent |
+| 14 Juillet | 13 → 14 juil. | bouquets bleu-blanc-rouge |
+
+Animations en `transform` uniquement (aucun flash de lumière), coupées avec « réduire les animations » ou le mode calme. Tester une fête : `?fete=noel` (ou `halloween`, `nouvelan`, `valentin`, `paques`, `muguet`, `musique`, `quatorze`) ; désactiver : `?fete=0`.
+
+L'accueil répartit aussi ses blocs sur toute la hauteur de la carte (plus de vide en bas, la pastille « Offre-moi un café » n'est plus coupée).
