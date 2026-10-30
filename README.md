@@ -365,8 +365,11 @@ absentes du code). Pour le contrôler :
 2. Comparer avec `git rev-parse HEAD` (ou le dernier commit de `main` sur
    GitHub). Les deux doivent être identiques.
 
-`main--fort-enigma.netlify.app` n'est pas un second site : c'est l'adresse
-du déploiement de la branche `main` du même projet.
+**Adresse du jeu : https://fort-enigma.netlify.app** — c'est la seule à
+utiliser et à partager. Les adresses de type `main--fort-enigma.netlify.app`
+(branche) ou `<id>--fort-enigma.netlify.app` (déploiement) affichées par
+Netlify répondent « Site not found » pour ce projet ; elles sont redirigées
+vers l'adresse principale (voir `netlify.toml`).
 
 ---
 

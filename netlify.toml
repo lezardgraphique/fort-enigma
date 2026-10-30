@@ -57,3 +57,17 @@
   [headers.values]
     Content-Type = "application/manifest+json"
 
+# Les adresses de branche et de déploiement (main--…, <id>--…) répondent
+# « Site not found » pour ce projet : on renvoie vers l'adresse principale.
+[[redirects]]
+  from = "https://main--fort-enigma.netlify.app/*"
+  to = "https://fort-enigma.netlify.app/:splat"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "http://main--fort-enigma.netlify.app/*"
+  to = "https://fort-enigma.netlify.app/:splat"
+  status = 301
+  force = true
+
