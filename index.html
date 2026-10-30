@@ -5397,7 +5397,9 @@ html body .carte-col:not(.locked) .carte-nom{color:var(--cp-gold)}
     // plus d'air entre les textes et les bords des cartes
     css += 'html body #app > .frame.frame{padding-left:clamp(24px,7vw,40px)!important;padding-right:clamp(24px,7vw,40px)!important}' +
       'html body #app > .frame.frame .frame-scroll{padding-left:4px!important;padding-right:4px!important}' +
-      'html body #app .frame .subtitle,html body #app .frame p{padding-left:.4rem;padding-right:.4rem}';
+      'html body #app .frame .subtitle,html body #app .frame p{padding-left:.4rem;padding-right:.4rem}' +
+      /* de l'air entre la petite phrase d'accroche et le titre */
+      'html body #app .frame .title-xl{padding-top:clamp(.7rem,2.4vh,1.4rem)!important}';
     var s = D.createElement('style'); s.id = 'fort-format-css'; s.textContent = css; D.head.appendChild(s);
     hautBarre();
     var ecranAvant = D.body.dataset.screen;
