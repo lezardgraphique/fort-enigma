@@ -7,8 +7,8 @@ W, H, OUT = int(sys.argv[1]), int(sys.argv[2]), sys.argv[3]
 R = random.Random(21)
 PORTRAIT = H > W
 U = min(W, H)
-HZ = H * (0.50 if PORTRAIT else 0.60)       # ligne des montagnes
-PAR = H * (0.66 if PORTRAIT else 0.74)      # haut du parapet
+HZ = H * (0.38 if PORTRAIT else 0.60)       # ligne des montagnes
+PAR = H * (0.52 if PORTRAIT else 0.74)      # haut du parapet
 o = []; A = o.append
 A('<svg xmlns="http://www.w3.org/2000/svg" width="%d" height="%d" viewBox="0 0 %d %d">' % (W, H, W, H))
 A('''<defs>
@@ -100,10 +100,10 @@ def chaine(pts_, fond_y, grad, liseré, op_lis):
     for (x0, y0), (x1, y1) in zip(pts_, pts_[1:]):
         if y1 < y0: seg.append('M%.1f %.1fL%.1f %.1f' % (x0, y0, x1, y1))
     A('<path d="%s" stroke="%s" stroke-width="%.1f" opacity="%.2f" fill="none" stroke-linecap="round"/>' % (' '.join(seg), liseré, U * .0025, op_lis))
-c1 = crete(HZ - U * .05, U * .14, .55, 5, sommets=5)
+c1 = crete(HZ - U * .05, U * .14, .35, 5, n=6, sommets=5)
 chaine(c1, H, 'm1', '#f4f7ff', .7)
 A('<rect x="0" y="%.1f" width="%d" height="%.1f" fill="url(#brume)"/>' % (HZ - U * .06, W, U * .14))
-c2 = crete(HZ + U * .02, U * .09, .52, 8, sommets=4)
+c2 = crete(HZ + U * .02, U * .09, .42, 8, sommets=4)
 chaine(c2, H, 'm2', '#e3e9ff', .55)
 A('<rect x="0" y="%.1f" width="%d" height="%.1f" fill="url(#brume)" opacity=".8"/>' % (HZ + U * .01, W, U * .12))
 c3 = crete(HZ + U * .09, U * .05, .5, 13, sommets=5)

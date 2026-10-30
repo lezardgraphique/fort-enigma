@@ -13,6 +13,7 @@ class Scene:
         s.o = []
         s.defs = []
         s._id = 0
+        s.lumiere = (W * .3, H * .2, '#ffb347')
         U = s.U
         s.defs.append(
             '<filter id="b1" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="{:.1f}"/></filter>'
@@ -54,7 +55,7 @@ class Scene:
         s.a('<ellipse cx="%.1f" cy="%.1f" rx="%.1f" ry="%.1f" fill="%s" %s/>' % (cx, cy, rx, ry, fill, extra))
     def circ(s, cx, cy, r, fill, extra=''):
         s.a('<circle cx="%.1f" cy="%.1f" r="%.1f" fill="%s" %s/>' % (cx, cy, r, fill, extra))
-    def texture(s, d_ou_rect, op=.35):
+    def texture(s, d_ou_rect, op=.2):
         """grain de matière (pierre, bois…) posé sur une forme"""
         if isinstance(d_ou_rect, tuple):
             x, y, w, h = d_ou_rect
@@ -141,8 +142,6 @@ class Scene:
             seg = ['M%.1f %.1fL%.1f %.1f' % (x0, y0, x1, y1) for (x0, y0), (x1, y1) in zip(pts, pts[1:]) if y1 < y0]
             s.path(' '.join(seg), 'none', 'stroke="%s" stroke-width="%.1f" opacity="%.2f" stroke-linecap="round"' % (liseré, s.U * .0025, op_lis))
         return d
-    def brume(s, y, h, col, op=.35):
-        s.rect(0, y, s.W, h, s.lin([(0, col, 0), (.55, col, op), (1, col, 0)]))
 
     # ---------- maçonnerie ----------
     def appareil(s, x, y, w, h, bloc, joint='#0e0d16', op=.55, variations=('#8b90b0', '#2a2d44', '#5d6284', '#3b3f5c')):
@@ -177,13 +176,79 @@ class Scene:
 
     def lucioles(s, n, x0, x1, y0, y1, col='#cfe4ff'):
         R = s.R
-        for _ in range(n):
-            x, y, r = R.uniform(x0, x1), R.uniform(y0, y1), s.U * R.uniform(.003, .007)
-            s.circ(x, y, r * 4, col, 'opacity=".5" filter="url(#b2)"')
+        for _ in range(min(n, 10)):
+            x, y, r = R.uniform(x0, x1), R.uniform(y0, y1), s.U * R.uniform(.002, .004)
+            s.circ(x, y, r * 2.5, col, 'opacity=".3" filter="url(#b1)"')
             s.circ(x, y, r * .5, '#fff')
 
+    # ---------- outils communs de la charte ----------
+    def sol(s, y0, haut, bas, motif=None, vp=None, lum=None, brume=None, mouille=False):
+        """sol commun : dégradé brume->sol->encre, motif en perspective, flaque de lumière, repoussoir"""
+        W, H, U = s.W, s.H, s.U; vx = W / 2 if vp is None else vp; h = H - y0
+        s.rect(0, y0, W, h, s.lin([(0, brume or haut), (.18, haut), (1, bas)]))
+        rangs = [y0 + h * (k / 16) ** 1.8 for k in range(1, 17)]
+        R = s.R; d = []
+        if motif in ('dalles', 'planches', 'pave'):
+            for y in rangs: d.append('M0 %.1fH%d' % (y, W))
+            n = 14 if motif == 'planches' else 9
+            for i in range(-n, n + 1):
+                d.append('M%.1f %.1fL%.1f %d' % (vx + i * W / n * .18, y0, vx + i * W / n * 1.6, H))
+        elif motif in ('sable', 'terre'):
+            for k, y in enumerate(rangs):
+                a = U * (.004 + .012 * (y - y0) / h); ph = R.uniform(0, W * .2)
+                d.append('M%.1f %.1f' % (-ph, y) + ''.join('q%.1f %.1f %.1f 0' % (U * .06, -a, U * .12) for _ in range(int(W / (U * .12)) + 3)))
+        elif motif == 'glace':
+            for _ in range(22):
+                x, y = R.uniform(0, W), R.uniform(y0, H); L = []
+                for _ in range(4): x += R.uniform(-1, 1) * U * .08; y += R.uniform(0, 1) * U * .03; L.append('%.1f %.1f' % (x, y))
+                d.append('M' + ' L'.join(L))
+        if d:
+            s.path(' '.join(d), 'none', 'stroke="#0e0b18" stroke-width="%.1f" opacity=".32"' % max(1, U * .0018))
+        if motif == 'pave':
+            for _ in range(70):
+                y = R.uniform(y0, H); t = (y - y0) / h
+                s.ell(R.uniform(0, W), y, U * (.01 + .04 * t), U * (.004 + .016 * t), '#ffffff', 'opacity=".05"')
+        if lum:
+            x, col = lum
+            if s.P: s.ell(x, y0 + h * .06, U * .22, h * .12, col, 'opacity=".2" filter="url(#b4)"')
+            else: s.ell(x, y0 + h * .18, U * .35, h * .26, col, 'opacity=".26" filter="url(#b4)"')
+            if mouille: s.rect(x - U * .04, y0, U * .08, h * .7, s.lin([(0, col, .3), (1, col, 0)]), 'filter="url(#b2)"')
+        s.texture((0, y0, W, h), .15)
+        s.rect(0, H - h * .3, W, h * .3, s.lin([(0, '#0e0b18', 0), (1, '#0e0b18', .65)]))
+    def ombre(s, x, y, w, op=.45):
+        """ombre de contact sous un objet posé"""
+        s.ell(x, y, w * .6, w * .08, '#1a1430', 'opacity="%.2f" filter="url(#b1)"' % op)
+    def ombre_portee(s, x, y, w, long, op=.35):
+        """ombre qui s'étire à l'opposé de la lumière principale"""
+        lx, ly, _ = s.lumiere
+        n = math.hypot(x - lx, y - ly) or 1; ux, uy = (x - lx) / n, max(.25, (y - ly) / n)
+        s.poly([(x - w / 2, y), (x + w / 2, y), (x + w * .9 + ux * long, y + uy * long), (x - w * .9 + ux * long, y + uy * long)], '#1a1430', 'opacity="%.2f" filter="url(#b1)"' % op)
+    def modele(s, x, y, w, h, op_l=.45, op_o=.4):
+        """modelé d'un volume rectangulaire : liseré côté lumière, ombre propre côté opposé"""
+        lx, ly, col = s.lumiere
+        cote = -1 if lx < x + w / 2 else 1
+        e = max(2, s.U * .003)
+        xl = x if cote < 0 else x + w - e
+        s.rect(xl, y, e, h, col, 'opacity="%.2f"' % op_l)
+        g = s.lin([(0, '#1a1430', op_o), (1, '#1a1430', 0)], 1 if cote < 0 else 0, 0, 0 if cote < 0 else 1, 0)
+        s.rect(x + (w * .55 if cote < 0 else 0), y, w * .45, h, g)
+    def voile(s, y_bas, col, op):
+        """perspective atmosphérique : à poser après chaque plan lointain"""
+        s.rect(0, 0, s.W, y_bas, s.lin([(0, col, op * .4), (1, col, op)]))
+    def brume(s, y, h, col, op=.35):
+        s.rect(0, y, s.W, h, s.lin([(0, col, 0), (.55, col, op), (1, col, 0)]))
+        s.rect(-s.W * .1, y + h * .3, s.W * 1.2, h * .4, col, 'opacity="%.2f" filter="url(#nuage)"' % (op * .5))
+    def eclairage(s):
+        lx, ly, col = s.lumiere
+        g = s.rad([(0, col, .28), (.5, col, .06), (1, col, 0)], round(lx / s.W, 3), round(ly / s.H, 3), .9)
+        s.rect(0, 0, s.W, s.H, g, 'style="mix-blend-mode:screen"')
+
     def fin(s):
-        s.rect(0, 0, s.W, s.H, 'url(#vignette)')
+        s.eclairage()
+        cx, cy, r = (.5, .26, .85) if s.P else (.32, .45, .9)   # centrée sur la zone visible au-dessus des cartes
+        s.defs.append('<radialGradient id="vig2" cx="%s" cy="%s" r="%s"><stop offset=".5" stop-color="#0e0b18" stop-opacity="0"/>'
+                      '<stop offset="1" stop-color="#0e0b18" stop-opacity=".6"/></radialGradient>' % (cx, cy, r))
+        s.rect(0, 0, s.W, s.H, 'url(#vig2)')
     def ecrire(s, chemin):
         out = ['<svg xmlns="http://www.w3.org/2000/svg" width="%d" height="%d" viewBox="0 0 %d %d"><defs>%s</defs>' % (s.W, s.H, s.W, s.H, ''.join(s.defs))]
         out += s.o

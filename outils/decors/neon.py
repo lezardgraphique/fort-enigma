@@ -229,7 +229,7 @@ for side in (-1, 1):
     z = R.uniform(30, 38)
     while z > (3.4 if PORTRAIT else 5.5):
         ens.append((z, side))
-        z -= R.uniform(3.2, 6.5)
+        z -= R.uniform(5, 8)
 ens.sort(key=lambda e: -e[0])
 for k, (z, side) in enumerate(ens):
     vert = R.random() < .6
@@ -268,7 +268,7 @@ for (X, z, coul) in ((-.9, 17, '#ff2ec4'), (1.1, 23, '#29e7ff')):
     A('<rect x="%.1f" y="%.1f" width="%.1f" height="%.1f" fill="%s" opacity=".3" filter="url(#refl)"/>' % (bx - s * .2, by, s * .4, s * 1.2, '#07040d'))
 
 # pluie
-for _ in range(int(W * H / 2600)):
+for _ in range(int(W * H / 5000)):
     x = R.uniform(-W * .1, W * 1.1); y = R.uniform(-H * .05, H); l = R.uniform(.012, .035) * H
     A('<line x1="%.1f" y1="%.1f" x2="%.1f" y2="%.1f" stroke="#d8ccff" stroke-width="%.2f" opacity="%.2f"/>' % (x, y, x - l * .18, y + l, R.uniform(.6, 1.6) * W / 1300, R.uniform(.08, .28)))
 A('<rect width="%d" height="%d" fill="url(#vignette)"/>' % (W, H))

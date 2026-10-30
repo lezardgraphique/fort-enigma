@@ -53,11 +53,11 @@ def pave(S, y0, y1, col1, col2, lumiere=None):
 # ============================================================== FORT
 def fort(S):
     W, H, U, P = S.W, S.H, S.U, S.P
-    sol = H * (.56 if P else .7)
+    sol = H * (.5 if P else .7)
     S.ciel([(0, '#1a1236'), (.35, '#3b2154'), (.62, '#8a3f63'), (.85, '#e0774f'), (1, '#f7b267')], sol - U * .05)
     S.etoiles(int(W * H / 9000), H * .3, .6)
-    S.soleil(W * .72, sol - U * (.5 if P else .38), U * .05, '#ffd8a0', '#ff8a4c')
-    S.nuages([(.25, .12, .3, .018, .7), (.75, .16, .28, .015, .6), (.5, .26, .45, .02, .55), (.15, .32, .25, .012, .5)], '#4a2650', '#ffb08a')
+    S.soleil(W * (.5 if P else .36), sol - U * (.56 if P else .34), U * .05, '#ffd8a0', '#ff8a4c')
+    S.nuages([(.22, .08, .3, .014, .6), (.78, .12, .28, .012, .5)], '#4a2650', '#ffb08a')
     # mer et horizon
     S.rect(0, sol - U * .07, W, U * .07, S.lin([(0, '#6a4a7a'), (1, '#2a2040')]))
     for i in range(30):
@@ -70,6 +70,12 @@ def fort(S):
     S.appareil(mx0, mtop, mx1 - mx0, sol - mtop, U * .07)
     S.texture((mx0, mtop, mx1 - mx0, sol - mtop), .35)
     S.rect(mx0, mtop, mx1 - mx0, sol - mtop, S.lin([(0, '#ffb08a', .18), (.4, '#000', 0), (1, '#000', .45)]))
+    S.rect(mx0, sol - (sol - mtop) * .25, mx1 - mx0, (sol - mtop) * .25, S.lin([(0, '#0e0b18', 0), (1, '#0e0b18', .5)]))
+    for k in range(4):   # contreforts
+        bx = mx0 + (mx1 - mx0) * (k + .5) / 4 + (U * .12 if k in (1, 2) and False else 0)
+        if abs(bx - W / 2) < U * .16: bx += U * .2 * (1 if bx > W / 2 else -1)
+        S.rect(bx - U * .015, mtop + U * .05, U * .03, sol - mtop - U * .05, '#3a3048')
+        S.rect(bx - U * .015, mtop + U * .05, U * .004, sol - mtop - U * .05, '#ffb08a', 'opacity=".3"')
     merlons(S, mx0, mx1, mtop, U * .035, U * .045, '#4a4058', '#ffb08a', .3)
     # grande porte : arche, lumière dorée, herse levée, frise de runes
     gx, gw = W / 2, U * (.2 if P else .17); gt = sol - U * (.22 if P else .19)
@@ -82,6 +88,10 @@ def fort(S):
     S.a('<line x1="%.1f" y1="%.1f" x2="%.1f" y2="%.1f" stroke="#2a1a10" stroke-width="%.1f"/>' % (gx - gw / 2, gt + gw * .3, gx + gw / 2, gt + gw * .3, U * .006))
     S.path(arche, 'none', 'stroke="#2a2232" stroke-width="%.1f"' % (U * .018))
     S.runes(gx - gw * .6, gt - U * .03, gw * 1.2, 7, U * .009, '#ffd36b')
+    for dx in (-1, 1):   # bannières runiques
+        bx = gx + dx * gw * 1.25
+        S.path('M%.1f %.1fh%.1fv%.1fl%.1f %.1fl%.1f %.1fZ' % (bx - U * .025, gt - U * .02, U * .05, U * .15, -U * .025, -U * .02, -U * .025, U * .02), '#a33a4a')
+        S.runes(bx - U * .01, gt + U * .05, U * .02, 1, U * .01, '#ffd36b')
     # tours
     tr = U * (.085 if P else .075)
     for cx in (mx0, mx1):
@@ -90,7 +100,8 @@ def fort(S):
     for dx in (-1, 1):
         S.torche(gx + dx * gw * .78, sol - U * .13, U * .05)
     # cour pavée
-    pave(S, sol, H, '#3a3046', '#15121c', (gx, U * .25, '#ffb347'))
+    S.sol(sol, '#4a3e52', '#0e0b18', 'pave', lum=(gx, '#ffb347'), brume='#6a4a6a')
+    S.lumiere = (gx, sol - gw * .4, '#ffb347')
     # mouettes
     for (x, y, t) in ((.3, .18, .018), (.36, .15, .012), (.68, .1, .014)):
         S.path('M%.1f %.1fq%.1f %.1f %.1f %.1fq%.1f %.1f %.1f %.1f' % (x * W - U * t, y * H, U * t * .5, -U * t * .6, U * t, 0, U * t * .5, -U * t * .6, U * t, 0), 'none', 'stroke="#1a1020" stroke-width="%.1f" stroke-linecap="round"' % (U * .003))
@@ -98,11 +109,23 @@ def fort(S):
 # ============================================================== FÊTE FORAINE
 def foraine(S):
     W, H, U, P = S.W, S.H, S.U, S.P
-    sol = H * (.6 if P else .72)
+    sol = H * (.52 if P else .72)
     S.ciel([(0, '#0b0820'), (.5, '#231a4a'), (.85, '#4a2a5e'), (1, '#6a3a62')], sol)
     S.etoiles(int(W * H / 2600), sol, .9)
-    S.lune(W * .82, H * (.1 if P else .14), U * .045)
+    S.lune(W * (.8 if P else .55), H * (.08 if P else .12), U * .045)
     S.nuages([(.3, .2, .3, .015, .5), (.7, .3, .3, .015, .4)], '#1a1438', '#8a86c8')
+    # plan intermédiaire : baraques et carrousel en silhouette dans la brume
+    x = -U * .05
+    while x < W:
+        bw = U * S.R.uniform(.05, .12); bh = U * .075 * S.R.uniform(.7, 1.4)
+        pic = bw * (.6 if S.R.random() < .33 else .25)
+        S.poly([(x, sol), (x, sol - bh), (x + bw / 2, sol - bh - pic), (x + bw, sol - bh), (x + bw, sol)], '#2a1f44')
+        if S.R.random() < .4: S.path('M%.1f %.1fl%.1f %.1fl0 %.1fZ' % (x + bw / 2, sol - bh - pic, U * .02, U * .006, U * .012), '#e0457b', 'opacity=".7"')
+        if S.R.random() < .5: S.circ(x + bw / 2, sol - bh * .5, U * .004, '#ffd36b', 'opacity=".7"')
+        x += bw * S.R.uniform(1.1, 2.2)
+    S.path('M%.1f %.1fQ%.1f %.1f %.1f %.1fZ' % (W * .52, sol - U * .08, W * .58, sol - U * .16, W * .64, sol - U * .08), '#2a1f44')
+    S.rect(W * .52, sol - U * .08, W * .12, U * .08, '#2a1f44')
+    S.brume(sol - U * .14, U * .16, '#6a3a62', .3)
     # grande roue
     cx, cy, r = W * (.36 if P else .32), sol - U * (.36 if P else .3), U * (.3 if P else .26)
     S.lueur(cx, cy, r * 1.4, '#ff6f9f', .35)
@@ -118,11 +141,11 @@ def foraine(S):
         col = '#ffd36b' if k % 3 else '#ff6f9f'
         if k % 7 == 3: col = '#5a4a40'          # ampoules grillées : manège rouillé
         S.circ(x, y, U * .005, col)
-        if col != '#5a4a40': S.circ(x, y, U * .012, col, 'opacity=".45" filter="url(#b1)"')
+        if col != '#5a4a40' and k % 4 == 0: S.circ(x, y, U * .012, col, 'opacity=".45" filter="url(#b1)"')
     for k in range(8):
         a = k * math.pi / 4 + .2; x, y = cx + r * math.cos(a), cy + r * math.sin(a)
         S.a('<line x1="%.1f" y1="%.1f" x2="%.1f" y2="%.1f" stroke="#2a2036" stroke-width="%.1f"/>' % (x, y, x, y + U * .02, U * .003))
-        S.rect(x - U * .02, y + U * .02, U * .04, U * .03, ['#a33a4a', '#3a6a8a', '#c9a227', '#5a8a4a'][k % 4], 'rx="%.1f"' % (U * .006))
+        S.rect(x - U * .0275, y + U * .02, U * .055, U * .04, ['#a33a4a', '#3a6a8a', '#c9a227', '#5a8a4a'][k % 4], 'rx="%.1f"' % (U * .006))
     S.circ(cx, cy, U * .015, '#c9a227')
     # chapiteau rayé
     tx, tw = W * (.72 if P else .7), U * (.36 if P else .34); tt = sol - U * .3
@@ -146,20 +169,19 @@ def foraine(S):
         col = ['#ffd36b', '#ff6f9f', '#7fd6ea'][k % 3]
         S.circ(x, y + U * .008, U * .006, col); S.circ(x, y + U * .008, U * .016, col, 'opacity=".35" filter="url(#b1)"')
     # stands
-    for (x, c) in ((.08, '#3a6a8a'), (.9, '#5a8a4a')):
-        sx, sw = x * W, U * .14
+    for (x, c) in (((.18, '#3a6a8a'), (.84, '#5a8a4a')) if P else ((.12, '#3a6a8a'), (.56, '#5a8a4a'))):
+        sx, sw = x * W, U * .2
         S.rect(sx - sw / 2, sol - U * .1, sw, U * .1, '#2a2036')
         for k in range(6):
             S.path('M%.1f %.1fh%.1fv%.1fa%.1f %.1f 0 0 1 %.1f 0Z' % (sx - sw / 2 + sw * k / 6, sol - U * .14, sw / 6, U * .03, sw / 12, sw / 12, -sw / 6), c if k % 2 else '#e9dcc8')
         S.rect(sx - sw * .4, sol - U * .09, sw * .8, U * .04, '#ffcf7a', 'opacity=".7"')
-    # sol de terre battue + tickets éparpillés
-    S.rect(0, sol, W, H - sol, S.lin([(0, '#3a2a3a'), (1, '#120c16')]))
-    S.texture((0, sol, W, H - sol), .35)
-    S.ell(W * .5, sol + U * .05, W * .5, U * .06, '#ffb347', 'opacity=".18" filter="url(#b4)"')
-    for _ in range(40):
-        x, y = S.R.uniform(0, W), S.R.uniform(sol + U * .01, H)
-        t = U * (.006 + .02 * (y - sol) / (H - sol))
-        S.a('<rect x="%.1f" y="%.1f" width="%.1f" height="%.1f" fill="%s" opacity=".75" transform="rotate(%d %.1f %.1f)"/>' % (x, y, t * 1.8, t, S.R.choice(['#e9dcc8', '#e0457b', '#f4d03f']), S.R.randint(-40, 40), x, y))
+    # sol de terre battue + tickets concentrés devant le chapiteau
+    S.sol(sol, '#4a3048', '#0e0b18', 'terre', lum=(tx, '#ffb347'), brume='#6a3a62')
+    for _ in range(22):
+        x, y = S.R.gauss(tx, U * .25), S.R.uniform(sol + U * .01, sol + (H - sol) * .5)
+        t = U * (.003 + .008 * (y - sol) / (H - sol))
+        S.a('<rect x="%.1f" y="%.1f" width="%.1f" height="%.1f" fill="%s" opacity=".55" transform="rotate(%d %.1f %.1f)"/>' % (x, y, t * 1.8, t, S.R.choice(['#e9dcc8', '#e0457b', '#f4d03f']), S.R.randint(-40, 40), x, y))
+    S.lumiere = (tx, sol - U * .1, '#ffb347')
 
 # ============================================================== ATELIER À VAPEUR
 def engrenage(S, cx, cy, r, dents, col, rot=0):
@@ -168,7 +190,10 @@ def engrenage(S, cx, cy, r, dents, col, rot=0):
         a = rot + k * math.pi * 2 / (dents * 4)
         rr = r * (1.0 if (k % 4) in (1, 2) else .86)
         pts.append((cx + rr * math.cos(a), cy + rr * math.sin(a)))
-    S.poly(pts, col)
+    d = 'M' + ' L'.join('%.1f %.1f' % q for q in pts) + 'Z'
+    S.a('<path d="%s" fill="#0a0604" opacity=".5" filter="url(#b2)" transform="translate(%.1f %.1f)"/>' % (d, r * .06, r * .08))
+    S.path(d, S.rad([(0, '#f0c878'), (.6, col), (1, '#3a240c')], .4, .35, .7))
+    S.path(d, 'none', 'stroke="#ffe0a0" stroke-width="%.1f" opacity=".35"' % (r * .015))
     S.circ(cx, cy, r * .72, '#000', 'opacity=".25"')
     for k in range(6):
         a = rot + k * math.pi / 3
@@ -180,11 +205,12 @@ def engrenage(S, cx, cy, r, dents, col, rot=0):
 
 def steampunk(S):
     W, H, U, P = S.W, S.H, S.U, S.P
-    sol = H * (.62 if P else .74)
+    sol = H * (.52 if P else .74)
     # mur de briques sombre
     S.rect(0, 0, W, H, S.lin([(0, '#1c120c'), (.6, '#2e1d12'), (1, '#140c08')]))
     S.appareil(0, 0, W, sol, U * .09, '#0a0604', .7, ('#8a4a2a', '#3a1e10', '#6a3a20', '#4a2614'))
-    S.texture((0, 0, W, sol), .4)
+    S.texture((0, 0, W, sol), .25)
+    S.lueur(W / 2, sol - U * .15, U * .9, '#ff8a2a', .45)
     # grands engrenages
     for (x, y, r, d, c) in ((.22, .2, .17, 14, '#b88a3c'), (.5, .12, .09, 10, '#8a6a30'), (.78, .26, .14, 12, '#c99a4c'), (.42, .34, .07, 8, '#9a7438')):
         engrenage(S, x * W, y * H * (1 if P else 1.25), r * U * (1.25 if P else 1), d, c, S.R.uniform(0, 1))
@@ -219,11 +245,17 @@ def steampunk(S):
     for k in range(9):
         x = W * S.R.uniform(.05, .95); y = H * S.R.uniform(.05, .45)
         S.ell(x, y, U * S.R.uniform(.08, .18), U * S.R.uniform(.03, .06), '#f4e6d0', 'opacity="%.2f" filter="url(#b3)"' % S.R.uniform(.08, .2))
-    # établi et sol
-    S.rect(0, sol, W, H - sol, S.lin([(0, '#3a2414'), (1, '#120a06')]))
-    S.texture((0, sol, W, H - sol), .4)
-    for k in range(int(W / (U * .12)) + 1):
-        S.a('<line x1="%.1f" y1="%.1f" x2="%.1f" y2="%.1f" stroke="#0a0604" stroke-width="%.1f" opacity=".6"/>' % (k * U * .12, sol, k * U * .12 + (k * U * .12 - W / 2) * .6, H, U * .002))
+    # sol de planches, établi et chaudière en repoussoir
+    S.sol(sol, '#4a2c18', '#0e0805', 'planches', lum=(fx, '#ff8a2a'))
+    S.rect(0, sol - U * .02, W * .24, U * .14, '#140c06'); S.rect(0, sol - U * .03, W * .26, U * .02, '#2a1a0c')
+    for k in range(5):
+        tx_ = W * (.03 + k * .045); S.rect(tx_, sol - U * (.03 + .03 * (k % 3)), U * .008, U * (.03 * (1 + k % 3)), '#140c06')
+    S.ombre(W * .12, sol + U * .12, W * .24)
+    bx = W * .9
+    S.rect(bx - U * .08, sol - U * .2, U * .16, U * .3, S.lin([(0, '#140c06'), (.5, '#3a2410'), (1, '#140c06')], 0, 0, 1, 0))
+    S.ell(bx, sol - U * .2, U * .08, U * .025, '#2a1a0c')
+    S.ombre(bx, sol + U * .1, U * .2)
+    S.lumiere = (fx, sol - U * .12, '#ff8a2a')
     # étincelles
     for _ in range(26):
         x, y = fx + S.R.gauss(0, U * .12), sol - U * S.R.uniform(.05, .35)
@@ -232,7 +264,7 @@ def steampunk(S):
 # ============================================================== SALLE NORDIQUE GELÉE
 def nordique(S):
     W, H, U, P = S.W, S.H, S.U, S.P
-    sol = H * (.6 if P else .74)
+    sol = H * (.52 if P else .74)
     S.rect(0, 0, W, H, S.lin([(0, '#04121e'), (.5, '#0b2a40'), (1, '#06182a')]))
     # fond de la grotte : passage lumineux
     S.lueur(W / 2, sol - U * .2, U * .55, '#9fe8ff', 1.0)
@@ -259,10 +291,10 @@ def nordique(S):
             j = S.R.randint(2, 22); x, y = pts[j]
             S.poly([(x - U * .012, y), (x + U * .012, y), (x, y + U * S.R.uniform(.04, .1))], '#cff4ff', 'opacity=".7"')
     # stalactites de glace
-    for _ in range(46):
-        x = S.R.uniform(0, W); l = U * S.R.uniform(.04, .22); w = U * S.R.uniform(.01, .03)
+    for _ in range(18):
+        x = W * S.R.choice([S.R.uniform(0, .3), S.R.uniform(.7, 1)]); l = U * (.06 + .25 * abs(x - W / 2) / (W / 2)) * S.R.uniform(.7, 1.1); w = U * S.R.uniform(.012, .03)
         y0 = U * S.R.uniform(-.01, .06) + (abs(x - W / 2) / (W / 2)) ** 2 * U * .05
-        S.poly([(x - w, y0), (x + w, y0), (x + w * .1, y0 + l)], S.lin([(0, '#dff8ff', .9), (1, '#6fc3d6', .5)]))
+        S.path('M%.1f %.1fH%.1fQ%.1f %.1f %.1f %.1fQ%.1f %.1f %.1f %.1fZ' % (x - w, y0, x + w, x + w * .4, y0 + l * .6, x + w * .25, y0 + l, x - w * .2, y0 + l * .5, x - w, y0), S.lin([(0, '#dff8ff', .9), (1, '#6fc3d6', .2)]))
         S.a('<line x1="%.1f" y1="%.1f" x2="%.1f" y2="%.1f" stroke="#fff" stroke-width="%.1f" opacity=".6"/>' % (x - w * .5, y0, x - w * .05, y0 + l * .8, U * .0015))
     # pierres runiques et braseros bleus
     for dx in (-1, 1):
@@ -274,14 +306,11 @@ def nordique(S):
         bx = px + dx * U * .1
         S.poly([(bx - U * .03, sol - U * .07), (bx + U * .03, sol - U * .07), (bx + U * .015, sol - U * .04), (bx - U * .015, sol - U * .04)], '#2a3440')
         S.rect(bx - U * .006, sol - U * .04, U * .012, U * .04, '#2a3440')
-        S.flamme(bx, sol - U * .07, U * .07, '#e8fbff', '#3fb8e0')
-    # sol gelé, reflets
-    S.rect(0, sol, W, H - sol, S.lin([(0, '#3a7a9a'), (.2, '#123a56'), (1, '#04121e')]))
-    S.ell(W / 2, sol + U * .04, U * .25, U * .05, '#bfefff', 'opacity=".35" filter="url(#b3)"')
-    S.texture((0, sol, W, H - sol), .25)
-    for _ in range(30):
-        x, y = S.R.uniform(0, W), S.R.uniform(sol, H)
-        S.a('<line x1="%.1f" y1="%.1f" x2="%.1f" y2="%.1f" stroke="#bfefff" stroke-width="%.1f" opacity=".2"/>' % (x, y, x + S.R.uniform(-1, 1) * U * .08, y + S.R.uniform(0, 1) * U * .02, U * .0015))
+        if dx < 0: S.flamme(bx, sol - U * .07, U * .07, '#e8fbff', '#3fb8e0')
+        else: S.flamme(bx, sol - U * .07, U * .07)
+    # sol gelé, reflet de la cascade
+    S.sol(sol, '#2a6a8a', '#04121e', 'glace', lum=(W / 2, '#8fd8f0'))
+    S.lumiere = (W / 2, sol - U * .2, '#bfefff')
     # cristaux scintillants et brume
     S.brume(sol - U * .12, U * .2, '#bfefff', .3)
     S.lucioles(22, 0, W, U * .1, sol, '#bfefff')
@@ -301,15 +330,14 @@ def galion(S, x, y, t, col='#120e18'):
 
 def pirate(S):
     W, H, U, P = S.W, S.H, S.U, S.P
-    hz = H * (.4 if P else .5); sol = H * (.6 if P else .74)
+    hz = H * (.36 if P else .5); sol = H * (.52 if P else .74)
     S.ciel([(0, '#050a18'), (.5, '#0e2238'), (.9, '#1e4258'), (1, '#2a5468')], hz)
     S.etoiles(int(W * H / 3000), hz, .9)
-    mx, my = W * .7, H * (.12 if P else .16)
+    mx, my = W * (.7 if P else .52), H * (.1 if P else .16)
     S.lune(mx, my, U * .05)
     S.nuages([(.35, .14, .35, .016, .55), (.8, .24, .3, .014, .45), (.2, .3, .3, .014, .4)], '#0e1a2c', '#9ab8d0')
     # mer
     S.rect(0, hz, W, sol - hz, S.lin([(0, '#1e4a5e'), (1, '#0a1e2a')]))
-    S.a('<path d="M%.1f %.1fL%.1f %.1fL%.1f %.1fL%.1f %.1fZ" fill="#e8f4ff" opacity=".22" filter="url(#b2)"/>' % (mx - U * .02, hz, mx + U * .02, hz, mx + U * .2, sol, mx - U * .2, sol))
     for _ in range(140):
         y = S.R.uniform(hz, sol); t = (y - hz) / (sol - hz)
         x = S.R.gauss(mx, U * (.04 + .25 * t)) if S.R.random() < .6 else S.R.uniform(0, W)
@@ -320,7 +348,10 @@ def pirate(S):
     # falaise à gauche
     d = 'M0 %.1fL0 %.1fQ%.1f %.1f %.1f %.1fQ%.1f %.1f %.1f %.1fL%.1f %.1fZ' % (sol + U * .05, H * .08, W * .12, H * .1, W * .16, hz - U * .1, W * .2, hz + U * .05, W * .3, sol, W * .3, sol + U * .05)
     S.path(d, S.lin([(0, '#2a3440'), (1, '#0a1018')], 0, 0, 1, 0)); S.texture(d, .45)
-    S.path('M%.1f %.1fQ%.1f %.1f %.1f %.1f' % (W * .12, H * .1, W * .16, hz - U * .1, W * .2, hz + U * .05), 'none', 'stroke="#9ab8d0" stroke-width="%.1f" opacity=".35"' % (U * .003))
+    S.path('M0 %.1fQ%.1f %.1f %.1f %.1fQ%.1f %.1f %.1f %.1f' % (H * .08, W * .12, H * .1, W * .16, hz - U * .1, W * .2, hz + U * .05, W * .3, sol), 'none', 'stroke="#c8d4ff" stroke-width="%.1f" opacity=".35"' % (U * .003))
+    for k in range(4):
+        y = H * .15 + k * (sol - H * .15) / 4
+        S.a('<line x1="0" y1="%.1f" x2="%.1f" y2="%.1f" stroke="#0a1018" stroke-width="%.1f" opacity=".5"/>' % (y, W * (.1 + k * .04), y + U * .04, U * .003))
     # palmiers à droite
     for (x, h, a) in ((.86, .3, -8), (.94, .24, 6)):
         bx, by = x * W, sol
@@ -329,16 +360,17 @@ def pirate(S):
         for k in range(7):
             ang = math.pi * (1.05 + k * .16)
             ex, ey = tx + math.cos(ang) * U * .12, ty - math.sin(ang) * U * .06 + U * .05
-            S.path('M%.1f %.1fQ%.1f %.1f %.1f %.1fQ%.1f %.1f %.1f %.1fZ' % (tx, ty, (tx + ex) / 2, ty - U * .04, ex, ey, (tx + ex) / 2, ty - U * .01, tx, ty), '#0a1018')
-    # vagues sur la plage
-    for k in range(3):
-        y = sol - U * (.02 - k * .012)
-        S.path('M0 %.1f' % y + ''.join('Q%.1f %.1f %.1f %.1f' % (x + U * .05, y - U * .012, x + U * .1, y) for x in [i * U * .1 for i in range(int(W / (U * .1)) + 2)]), 'none', 'stroke="#e8f4ff" stroke-width="%.1f" opacity="%.2f"' % (U * .004, .5 - k * .12))
-    # plage
-    S.rect(0, sol, W, H - sol, S.lin([(0, '#6a6a6a'), (.1, '#3a3a40'), (1, '#121218')]))
-    S.texture((0, sol, W, H - sol), .35)
+            feuille(S, tx, ty, U * .13, math.atan2(ey - ty, ex - tx), '#0a1018', .22)
+    # plage de sable mouillé qui reflète la lune, écume
+    S.sol(sol, '#3a4a58', '#0a0c12', 'sable', lum=(mx, '#c8d4ff'), mouille=True, brume='#4a6a7a')
+    for _ in range(14):
+        S.ell(S.R.uniform(0, W), sol + S.R.uniform(-1, 1) * U * .015, U * S.R.uniform(.04, .14), U * .004, '#e8f4ff', 'opacity="%.2f" filter="url(#b1)"' % S.R.uniform(.25, .5))
+    for (x, r) in ((.08, .05), (.16, .03), (.94, .06)):   # rochers et barque
+        S.ell(W * x, H - U * .06, U * r * 1.6, U * r, '#0a0c12')
+    S.path('M%.1f %.1fq%.1f %.1f %.1f 0l%.1f %.1fh%.1fZ' % (W * .78, H - U * .1, U * .1, U * .06, U * .2, -U * .03, -U * .04, -U * .14), '#120e14')
     # coffre au trésor, tonneaux, canon
-    cx, cy, cw = W * (.3 if P else .24), sol + U * .1, U * .14
+    cx, cy, cw = W * (.3 if P else .24), sol + U * .1, U * .2
+    S.ombre(cx, cy, cw * 1.2)
     S.lueur(cx, cy - cw * .3, cw * 2, '#ffb347', .9)
     S.rect(cx - cw / 2, cy - cw * .45, cw, cw * .45, S.lin([(0, '#7a4a20'), (1, '#3a2010')]))
     S.path('M%.1f %.1fQ%.1f %.1f %.1f %.1fL%.1f %.1fZ' % (cx - cw / 2, cy - cw * .45, cx, cy - cw * .95, cx + cw / 2, cy - cw * .45, cx - cw / 2, cy - cw * .45), '#2a1608')
@@ -351,14 +383,17 @@ def pirate(S):
         S.circ(cx + S.R.uniform(-1, 1) * cw, cy + S.R.uniform(0, .2) * cw, cw * .035, '#f4c430')
     for (x, y, t) in ((.62, .03, .08), (.7, .06, .1)):
         bx, by, bt = W * (x + (.08 if P else 0)), sol + U * y, U * t
+        S.ombre(bx, by + bt * .55, bt)
         S.ell(bx, by, bt * .45, bt * .55, S.lin([(0, '#2a1608'), (.5, '#6a4020'), (1, '#2a1608')], 0, 0, 1, 0))
         for k in (-.3, .3):
             S.a('<line x1="%.1f" y1="%.1f" x2="%.1f" y2="%.1f" stroke="#1a1008" stroke-width="%.1f"/>' % (bx - bt * .44, by + k * bt, bx + bt * .44, by + k * bt, bt * .06))
+    S.lumiere = (mx, my, '#c8d4ff')
+
 
 # ============================================================== MANOIR HANTÉ
 def manoir(S):
     W, H, U, P = S.W, S.H, S.U, S.P
-    sol = H * (.62 if P else .76)
+    sol = H * (.52 if P else .76)
     # papier peint damassé
     S.rect(0, 0, W, sol, S.lin([(0, '#1a1024'), (1, '#2a1a32')]))
     st = U * .09
@@ -368,7 +403,7 @@ def manoir(S):
             S.path('M%.1f %.1fC%.1f %.1f %.1f %.1f %.1f %.1fC%.1f %.1f %.1f %.1f %.1f %.1fZ' % (x, y - st * .3, x + st * .25, y - st * .1, x + st * .2, y + st * .2, x, y + st * .3, x - st * .2, y + st * .2, x - st * .25, y - st * .1, x, y - st * .3), '#3a2848', 'opacity=".55"')
     S.texture((0, 0, W, sol), .4)
     # fenêtre et rayon de lune
-    wx, ww = W * (.78 if P else .8), U * .2; wt, wb = H * .08, sol - U * .05
+    wx, ww = W * (.72 if P else .52), U * .2; wt, wb = H * .08, sol - U * .05
     S.path('M%.1f %.1fV%.1fA%.1f %.1f 0 0 1 %.1f %.1fV%.1fZ' % (wx - ww / 2, wb, wt + ww / 2, ww / 2, ww / 2, wx + ww / 2, wt + ww / 2, wb), S.lin([(0, '#7a8ac8'), (1, '#2a3260')]))
     S.lune(wx + ww * .15, wt + ww * .55, U * .03)
     for k in (1, 2):
@@ -388,7 +423,7 @@ def manoir(S):
         '#d8e4ff', 'opacity=".35" filter="url(#b1)"')
     S.circ(gx - U * .015, gy + U * .05, U * .006, '#1a1030', 'opacity=".6"'); S.circ(gx + U * .015, gy + U * .05, U * .006, '#1a1030', 'opacity=".6"')
     # portrait aux yeux luisants
-    px, py, pw, ph = W * (.3 if P else .3), H * (.1 if P else .1), U * .2, U * .26
+    px, py, pw, ph = W * (.28 if P else .22), H * (.08 if P else .1), U * .2, U * .26
     S.rect(px - pw / 2 - U * .02, py - U * .02, pw + U * .04, ph + U * .04, S.lin([(0, '#e0b860'), (.5, '#8a6020'), (1, '#e0b860')], 0, 0, 1, 1))
     S.rect(px - pw / 2, py, pw, ph, S.lin([(0, '#3a2a30'), (1, '#1a1018')]))
     S.path('M%.1f %.1fQ%.1f %.1f %.1f %.1fL%.1f %.1fQ%.1f %.1f %.1f %.1fZ' % (px - pw * .35, py + ph, px - pw * .3, py + ph * .55, px, py + ph * .55, px, py + ph * .55, px + pw * .3, py + ph * .55, px + pw * .35, py + ph), '#2a1a24')
@@ -396,12 +431,13 @@ def manoir(S):
     for dx in (-1, 1):
         S.circ(px + dx * pw * .06, py + ph * .36, U * .004, '#b9a0f0'); S.circ(px + dx * pw * .06, py + ph * .36, U * .012, '#b9a0f0', 'opacity=".6" filter="url(#b1)"')
     # cheminée et chandelier
-    fx, fw = W * (.3 if P else .3), U * .3
+    fx, fw = W * (.3 if P else .24), U * .3
     ft = sol - U * .22
-    S.rect(fx - fw / 2, ft, fw, sol - ft, S.lin([(0, '#4a3a40'), (1, '#2a2028')])); S.texture((fx - fw / 2, ft, fw, sol - ft), .4)
+    S.rect(fx - fw / 2, ft, fw, sol - ft, S.lin([(0, '#3a2a30'), (1, '#1a1218')])); S.texture((fx - fw / 2, ft, fw, sol - ft), .3)
     S.rect(fx - fw * .58, ft - U * .02, fw * 1.16, U * .025, '#5a4850')
-    S.path('M%.1f %.1fV%.1fA%.1f %.1f 0 0 1 %.1f %.1fV%.1fZ' % (fx - fw * .3, sol, ft + U * .1, fw * .3, U * .06, fx + fw * .3, ft + U * .1, sol), '#0a0608')
-    for k in range(4): S.flamme(fx - fw * .15 + k * fw * .1, sol - U * .01, U * S.R.uniform(.03, .05))
+    S.path('M%.1f %.1fV%.1fA%.1f %.1f 0 0 1 %.1f %.1fV%.1fZ' % (fx - fw * .3, sol, ft + U * .1, fw * .3, U * .06, fx + fw * .3, ft + U * .1, sol), S.lin([(0, '#7a2a0a'), (1, '#ffb347')]))
+    S.lueur(fx, sol - U * .06, U * .5, '#ff8a2a', .8)
+    for k in range(4): S.flamme(fx - fw * .15 + k * fw * .1, sol - U * .01, U * S.R.uniform(.06, .1))
     cx, cy = fx + fw * .25, ft - U * .02
     S.rect(cx - U * .006, cy - U * .09, U * .012, U * .09, '#c9a227')
     S.path('M%.1f %.1fQ%.1f %.1f %.1f %.1fQ%.1f %.1f %.1f %.1f' % (cx - U * .05, cy - U * .1, cx, cy - U * .05, cx + U * .05, cy - U * .1, cx, cy - U * .07, cx - U * .05, cy - U * .1), 'none', 'stroke="#c9a227" stroke-width="%.1f"' % (U * .006))
@@ -410,15 +446,25 @@ def manoir(S):
         S.rect(bx - U * .005, by - U * .04, U * .01, U * .04, '#f4ead2')
         S.flamme(bx, by - U * .04, U * .025)
     # fauteuil
-    ax = W * (.62 if P else .58)
-    S.path('M%.1f %.1fV%.1fQ%.1f %.1f %.1f %.1fV%.1fZ' % (ax - U * .07, sol, sol - U * .2, ax, sol - U * .26, ax + U * .07, sol - U * .2, sol), S.lin([(0, '#4a2a3a'), (1, '#1a0a14')]))
-    S.rect(ax - U * .09, sol - U * .09, U * .18, U * .05, '#3a1a2a', 'rx="%.1f"' % (U * .015))
-    # parquet
-    S.rect(0, sol, W, H - sol, S.lin([(0, '#3a2418'), (1, '#0c0806')]))
-    for k in range(-20, 21):
-        S.a('<line x1="%.1f" y1="%.1f" x2="%.1f" y2="%.1f" stroke="#0a0604" stroke-width="%.1f" opacity=".6"/>' % (W / 2 + k * U * .05, sol, W / 2 + k * U * .22, H, U * .002))
-    S.texture((0, sol, W, H - sol), .35)
-    S.lucioles(14, 0, W, H * .05, sol, '#d8e4ff')
+    ax = W * (.6 if P else .38)
+    S.ombre(ax, sol + U * .01, U * .2)
+    S.path('M%.1f %.1fV%.1fQ%.1f %.1f %.1f %.1fQ%.1f %.1f %.1f %.1fV%.1fZ' % (ax - U * .07, sol - U * .04, sol - U * .26, ax - U * .09, sol - U * .32, ax, sol - U * .32, ax + U * .09, sol - U * .32, ax + U * .07, sol - U * .26, sol - U * .04), S.lin([(0, '#6a3a4a'), (1, '#2a0a18')]))
+    S.rect(ax - U * .1, sol - U * .13, U * .2, U * .07, '#4a1a2a', 'rx="%.1f"' % (U * .02))
+    for dx in (-.08, .08):
+        S.rect(ax + dx * U - U * .006, sol - U * .06, U * .012, U * .06, '#2a1408')
+    S.path('M%.1f %.1fV%.1f' % (ax - U * .07, sol - U * .04, sol - U * .26), 'none', 'stroke="#ffb347" stroke-width="%.1f" opacity=".5"' % (U * .003))
+    # lambris
+    S.rect(0, sol - U * .12, W, U * .12, '#1e1018'); S.rect(0, sol - U * .125, W, U * .008, '#3a2430')
+    for k in range(int(W / (U * .14)) + 1):
+        S.rect(k * U * .14 + U * .015, sol - U * .105, U * .11, U * .09, 'none', 'stroke="#2e1a26" stroke-width="%.1f"' % (U * .002))
+    # parquet, tapis, tache de lune
+    S.sol(sol, '#4a2e1e', '#0c0806', 'planches', lum=(fx, '#ff8a2a'))
+    S.poly([(fx - U * .25, sol + U * .03), (fx + U * .25, sol + U * .03), (fx + U * .4, sol + U * .2), (fx - U * .4, sol + U * .2)], '#4a1a2a', 'stroke="#c9a227" stroke-width="%.1f" stroke-opacity=".5"' % (U * .004))
+    S.ell(wx - ww * .9, sol + U * .12, U * .22, U * .05, '#c8d4ff', 'opacity=".12" filter="url(#b2)"')
+    for _ in range(8):
+        t = S.R.random(); x = wx - ww * .3 - t * W * .45; y = wt + ww * .3 + t * (sol - wt)
+        S.circ(x + S.R.uniform(-1, 1) * U * .05, y, U * S.R.uniform(.0015, .003), '#e8ecff', 'opacity=".4"')
+    S.lumiere = (fx, sol - U * .1, '#ff9a4c')
 
 # ============================================================== JUNGLE DE JADE
 def feuille(S, x, y, l, ang, col, larg=.35):
@@ -430,18 +476,19 @@ def feuille(S, x, y, l, ang, col, larg=.35):
 
 def jungle(S):
     W, H, U, P = S.W, S.H, S.U, S.P
-    sol = H * (.6 if P else .74)
+    sol = H * (.52 if P else .74)
     S.rect(0, 0, W, H, S.lin([(0, '#0a2018'), (.45, '#174a30'), (.75, '#0e3020'), (1, '#04120a')]))
     S.lueur(W * .55, H * .1, U * .7, '#c8ffb0', .7)
     # temple en ruine au fond
-    tx, tw = W / 2, U * (.5 if P else .44); tt = sol - U * .38
+    tx, tw = W * (.5 if P else .32), U * (.5 if P else .44)
+    S.rect(0, 0, W, sol, '#7fbf8f', 'opacity=".18"'); tt = sol - U * .38
     for k in range(4):
         w = tw * (1 - k * .18); h = U * .08
         y = sol - h * (k + 1)
         S.rect(tx - w / 2, y, w, h, S.lin([(0, '#5a7a60'), (1, '#2a4030')])); S.appareil(tx - w / 2, y, w, h, U * .06, '#0a1a10', .6, ('#7a9a70', '#2a4030', '#4a6a50'))
     S.texture((tx - tw / 2, sol - U * .32, tw, U * .32), .4)
     # tête de statue ancienne (visage stylisé)
-    hx, hy, hs = tx, sol - U * .42, U * .12
+    hx, hy, hs = tx, sol - U * .46, U * .16
     S.path('M%.1f %.1fL%.1f %.1fQ%.1f %.1f %.1f %.1fL%.1f %.1fQ%.1f %.1f %.1f %.1fZ' % (hx - hs * .7, hy + hs, hx - hs * .75, hy - hs * .4, hx, hy - hs * 1.05, hx + hs * .75, hy - hs * .4, hx + hs * .7, hy + hs, hx, hy + hs * 1.15, hx - hs * .7, hy + hs), S.lin([(0, '#7a9a78'), (1, '#33503a')]))
     S.texture('M%.1f %.1fL%.1f %.1fL%.1f %.1fL%.1f %.1fZ' % (hx - hs * .7, hy + hs, hx - hs * .75, hy - hs * .4, hx + hs * .75, hy - hs * .4, hx + hs * .7, hy + hs), .45)
     for dx in (-1, 1):
@@ -452,8 +499,8 @@ def jungle(S):
     S.runes(tx - tw * .35, sol - U * .05, tw * .7, 8, U * .01, '#46d17f', .8)
     # rais de lumière
     for k in range(5):
-        x = W * (.25 + k * .14)
-        S.poly([(x, 0), (x + U * .05, 0), (x + U * .2, sol), (x + U * .08, sol)], '#d8ffc0', 'opacity=".07" filter="url(#b2)"')
+        x0 = W * .55; xb = tx + (k - 2) * U * .16
+        S.poly([(x0 - U * .02, 0), (x0 + U * .02, 0), (xb + U * .07, sol), (xb - U * .03, sol)], '#d8ffc0', 'opacity=".12" filter="url(#b2)"')
     # lianes
     for _ in range(14):
         x = S.R.uniform(0, W); l = H * S.R.uniform(.15, .5)
@@ -461,7 +508,7 @@ def jungle(S):
         for k in range(6):
             feuille(S, x + S.R.uniform(-1, 1) * U * .02, l * (k + 1) / 7, U * .03, S.R.uniform(0, 6.3), '#1f6a3a')
     # feuillage en couches, du fond vers l'avant
-    for (cols, n, taille, y0, y1) in ((('#123a24', '#16442a'), 60, .09, 0, .35), (('#1a5a32', '#1f6a3a'), 40, .13, .0, .3), (('#0a2a16', '#0e3a1e', '#0c301a'), 46, .2, .5, 1.0)):
+    for (cols, n, taille, y0, y1) in ((('#123a24', '#16442a'), 60, .09, 0, .35), (('#1a5a32', '#1f6a3a'), 40, .13, .0, .3), (('#03100a', '#061a0e', '#04140b'), 46, .2, .5, 1.0)):
         for _ in range(n):
             bord = S.R.random() < .5
             x = S.R.uniform(-.05, .25) * W if bord else S.R.uniform(.75, 1.05) * W
@@ -469,12 +516,15 @@ def jungle(S):
             y = (S.R.uniform(y0, y1) * (sol if y0 < .5 else H)) if y0 < .5 else S.R.uniform(sol - U * .05, H)
             feuille(S, x, y, U * taille * S.R.uniform(.6, 1.2), S.R.uniform(0, 6.3), S.R.choice(cols))
     S.brume(sol - U * .15, U * .25, '#b0ffd0', .22)
+    for dx in (-1, 1):   # reflet des yeux dans la mare
+        S.ell(hx + dx * hs * .38, sol + U * .05, U * .01, U * .05, '#46d17f', 'opacity=".4" filter="url(#b1)"')
+    S.lumiere = (W * .55, 0, '#d8ffc0')
     S.lucioles(12, 0, W, H * .1, sol, '#d8ff9a')
 
 # ============================================================== TEMPLE DES SABLES
 def desert(S):
     W, H, U, P = S.W, S.H, S.U, S.P
-    sol = H * (.6 if P else .72)
+    sol = H * (.5 if P else .72)
     S.ciel([(0, '#2a1438'), (.35, '#7a2a40'), (.62, '#d8582a'), (.82, '#f4a03c'), (1, '#ffd27a')], sol)
     S.etoiles(int(W * H / 12000), H * .2, .5)
     S.soleil(W * .5, sol - U * .08, U * .09, '#fff0c0', '#ff9a3c')
@@ -488,26 +538,41 @@ def desert(S):
     for k in range(n):
         cx = x0 + (x1 - x0) * (k + .5) / n
         haut = ct + (U * .12 if k in (4, 6) else 0)
+        if k in (1, 4): haut = haut + U * .05
         S.rect(cx - cw / 2, haut, cw, sol - haut, S.lin([(0, '#3a1e10'), (.4, '#a06a40'), (.7, '#c08050'), (1, '#4a2614')], 0, 0, 1, 0))
+        if k in (1, 4):
+            S.path('M%.1f %.1fl%.1f %.1fl%.1f %.1fl%.1f %.1fl%.1f %.1fZ' % (cx - cw / 2, haut, cw * .25, -U * .03, cw * .25, U * .02, cw * .25, -U * .04, cw * .25, U * .05), '#a06a40')
         S.texture((cx - cw / 2, haut, cw, sol - haut), .4)
         for j in range(4):
             S.a('<line x1="%.1f" y1="%.1f" x2="%.1f" y2="%.1f" stroke="#2a140a" stroke-width="%.1f" opacity=".5"/>' % (cx - cw / 2, haut + (sol - haut) * (j + 1) / 5, cx + cw / 2, haut + (sol - haut) * (j + 1) / 5, U * .002))
         S.rect(cx - cw * .65, haut - U * .02, cw * 1.3, U * .025, '#8a5a3a')
         if k % 2 == 0:
             S.runes(cx - cw * .3, haut + (sol - haut) * .4, cw * .6, 1, U * .013, '#ffd36b', .9)
-    # statue de chat gardien (silhouette)
-    sx, sy, ss = W * (.86 if P else .82), sol, U * (.24 if P else .22)
-    S.path('M%.1f %.1fL%.1f %.1fQ%.1f %.1f %.1f %.1fL%.1f %.1fL%.1f %.1fL%.1f %.1fQ%.1f %.1f %.1f %.1fL%.1f %.1fZ' % (
-        sx - ss * .3, sy, sx - ss * .25, sy - ss * .55, sx - ss * .2, sy - ss * .85, sx - ss * .1, sy - ss * .9, sx - ss * .12, sy - ss * 1.08, sx, sy - ss * .95,
-        sx + ss * .1, sy - ss * 1.08, sx + ss * .1, sy - ss * .85, sx + ss * .22, sy - ss * .5, sx + ss * .32, sy), S.lin([(0, '#3a1e10'), (.7, '#7a4a28'), (1, '#c08050')], 0, 0, 1, 0))
-    S.texture('M%.1f %.1fL%.1f %.1fL%.1f %.1fL%.1f %.1fZ' % (sx - ss * .3, sy, sx - ss * .2, sy - ss, sx + ss * .1, sy - ss, sx + ss * .32, sy), .4)
-    S.circ(sx + ss * .03, sy - ss * .88, ss * .015, '#ffd36b')
-    # sable et grains soufflés
-    S.rect(0, sol, W, H - sol, S.lin([(0, '#d8904a'), (.3, '#8a4a24'), (1, '#2a140a')]))
-    S.texture((0, sol, W, H - sol), .3)
-    for k in range(6):
-        y = sol + (H - sol) * (k + .5) / 6
-        S.path('M0 %.1fQ%.1f %.1f %.1f %.1fT%.1f %.1f' % (y, W * .25, y - U * .02, W * .5, y, W, y), 'none', 'stroke="#ffd27a" stroke-width="%.1f" opacity=".18"' % (U * .003))
+    # statue de chat gardien (silhouette), posée après le sol
+    S.sol(sol, '#c07a40', '#2a140a', 'sable', lum=(W * .5, '#ffd27a'), brume='#e8a060')
+    S.lumiere = (W * .5, sol - U * .08, '#ffc070')
+    for k in range(n):   # ombres portées des colonnes vers le spectateur
+        cx = x0 + (x1 - x0) * (k + .5) / n
+        dx = (cx - W * .5) * 1.4
+        S.poly([(cx - cw / 2, sol), (cx + cw / 2, sol), (cx + cw * 1.1 + dx, H), (cx - cw * 1.1 + dx, H)], '#3a1a10', 'opacity=".35" filter="url(#b1)"')
+    sx, sy, ss = W * (.62 if P else .32), sol + U * .06, U * .28
+    S.ombre(sx, sy, ss * .8, .5)
+    # chat gardien assis : tête ronde, oreilles détachées, cou, poitrail, pattes avant, queue enroulée
+    g = S.lin([(0, '#2a140a'), (.55, '#7a4a28'), (1, '#c8885a')], 1, 0, 0, 0)
+    corps = ('M%.1f %.1fQ%.1f %.1f %.1f %.1fQ%.1f %.1f %.1f %.1fL%.1f %.1fL%.1f %.1fQ%.1f %.1f %.1f %.1fZ' % (
+        sx - ss * .32, sy, sx - ss * .36, sy - ss * .45, sx - ss * .12, sy - ss * .62, sx - ss * .02, sy - ss * .68, sx + ss * .06, sy - ss * .52,
+        sx + ss * .08, sy, sx + ss * .02, sy - ss * .02, sx - ss * .15, sy - ss * .03, sx - ss * .32, sy))
+    S.path(corps, g)
+    S.path('M%.1f %.1fq%.1f %.1f %.1f 0' % (sx - ss * .32, sy, ss * .25, ss * .08, ss * .45), 'none', 'stroke="#3a1e10" stroke-width="%.1f" stroke-linecap="round"' % (ss * .05))
+    for dx in (-.01, .07):
+        S.rect(sx + ss * dx - ss * .025, sy - ss * .5, ss * .05, ss * .5, '#8a5630')
+    S.path('M%.1f %.1fv%.1f' % (sx + ss * .1, sy - ss * .5, ss * .5), 'none', 'stroke="#e8a86a" stroke-width="%.1f" opacity=".6"' % (ss * .01))
+    S.circ(sx + ss * .02, sy - ss * .8, ss * .13, g)
+    for (ox, sg) in ((-.08, -1), (.09, 1)):
+        S.poly([(sx + ss * (ox - .05), sy - ss * .88), (sx + ss * (ox + .05 * sg * .2), sy - ss * 1.08), (sx + ss * (ox + .05), sy - ss * .9)], '#4a2814')
+    S.texture(corps, .3)
+    S.circ(sx + ss * .06, sy - ss * .82, ss * .018, '#ffd36b'); S.circ(sx + ss * .06, sy - ss * .82, ss * .05, '#ffd36b', 'opacity=".5" filter="url(#b1)"')
+    S.path('M%.1f %.1fq%.1f %.1f %.1f 0' % (sx - ss * .1, sy - ss * .66, ss * .1, ss * .05, ss * .22), 'none', 'stroke="#f4c430" stroke-width="%.1f"' % (ss * .025))
     for _ in range(9):
         y = S.R.uniform(sol - U * .25, sol + U * .1)
         S.ell(S.R.uniform(0, W), y, U * S.R.uniform(.2, .45), U * .015, '#ffd8a0', 'opacity="%.2f" filter="url(#b3)"' % S.R.uniform(.12, .25))
@@ -705,22 +770,31 @@ def intro(S):
             q = [Pj(X, 0, za), Pj(X, 2.4, za), Pj(X, 2.4, zb), Pj(X, 0, zb)]
             top = Pj(X, 3.0, z)
             d = 'M%.1f %.1fL%.1f %.1fQ%.1f %.1f %.1f %.1fL%.1f %.1fZ' % (q[0][0], q[0][1], q[1][0], q[1][1], top[0], top[1] - (q[1][1] - top[1]) * .2, q[2][0], q[2][1], q[3][0], q[3][1])
-            S.path(d, '#0e0c14')
-            S.path(d, col, 'opacity=".2"')
+            S.path(d, 'none', 'stroke="#4a4058" stroke-width="%.1f"' % max(3, f / z * .08))
+            S.path(d, S.lin([(0, '#0e0b18'), (1, col, .45)]))
+            S.poly([Pj(X * .95, 0, za), Pj(X * .95, 0, zb), Pj(X * .4, 0, zb), Pj(X * .4, 0, za)], col, 'opacity=".18" filter="url(#b3)"')
             S.path(d, 'none', 'stroke="%s" stroke-width="%.1f" opacity=".5" filter="url(#b1)"' % (col, max(2, f / z * .06)))
             S.path(d, 'none', 'stroke="%s" stroke-width="%.1f"' % (col, max(1, f / z * .015)))
             c = Pj(X, 1.5, z)
-            S.halo(c[0], c[1], f / z * .5, col, .35, 'b3')
-            embleme(S, c[0], c[1], f / z * .55, kind, col)
+            S.halo(c[0], c[1], f / z * .5, col, .2, 'b3')
+            embleme(S, c[0], c[1], f / z * .4, kind, col)
             if i < 4:
                 t = Pj(X, 2.1, z + .9)
+                S.lueur(t[0], t[1], f / (z + .9) * .9, '#ffb347', .5)
                 S.torche(t[0], t[1], f / (z + .9) * .35)
     # le Gardien à la lanterne, de dos, au milieu du hall
     gz = 5.2; gx, gy = Pj(.35, 0, gz); s = f / gz
     S.ell(gx, gy, s * .4, s * .06, '#000', 'opacity=".55" filter="url(#b1)"')
-    cape = 'M%.1f %.1fQ%.1f %.1f %.1f %.1fQ%.1f %.1f %.1f %.1fQ%.1f %.1f %.1f %.1fQ%.1f %.1f %.1f %.1fZ' % (
-        gx - s * .32, gy, gx - s * .3, gy - s * .9, gx - s * .14, gy - s * 1.45, gx, gy - s * 1.78, gx + s * .14, gy - s * 1.45, gx + s * .3, gy - s * .9, gx + s * .32, gy, gx, gy + s * .03, gx - s * .32, gy)
+    cape = ('M%.1f %.1fQ%.1f %.1f %.1f %.1fQ%.1f %.1f %.1f %.1fQ%.1f %.1f %.1f %.1fQ%.1f %.1f %.1f %.1fQ%.1f %.1f %.1f %.1fQ%.1f %.1f %.1f %.1fQ%.1f %.1f %.1f %.1fZ' % (
+        gx - s * .4, gy, gx - s * .3, gy - s * .7, gx - s * .26, gy - s * 1.22,
+        gx - s * .2, gy - s * 1.32, gx - s * .12, gy - s * 1.4,
+        gx - s * .16, gy - s * 1.75, gx + s * .06, gy - s * 1.72,
+        gx + s * .14, gy - s * 1.5, gx + s * .12, gy - s * 1.38,
+        gx + s * .24, gy - s * 1.3, gx + s * .27, gy - s * 1.2,
+        gx + s * .32, gy - s * .7, gx + s * .42, gy,
+        gx, gy + s * .04, gx - s * .4, gy))
     S.path(cape, S.lin([(0, '#14121c'), (.5, '#26222e'), (1, '#0a0910')], 0, 0, 1, 0))
+    S.a('<line x1="%.1f" y1="%.1f" x2="%.1f" y2="%.1f" stroke="#0a0910" stroke-width="%.1f"/><line x1="%.1f" y1="%.1f" x2="%.1f" y2="%.1f" stroke="#0a0910" stroke-width="%.1f"/>' % (gx - s * .1, gy - s * 1.1, gx - s * .18, gy, s * .015, gx + s * .1, gy - s * 1.0, gx + s * .16, gy, s * .015))
     S.path('M%.1f %.1fQ%.1f %.1f %.1f %.1f' % (gx + s * .14, gy - s * 1.45, gx + s * .3, gy - s * .9, gx + s * .32, gy), 'none', 'stroke="#9aa6ff" stroke-width="%.1f" opacity=".45"' % (s * .012))
     S.a('<line x1="%.1f" y1="%.1f" x2="%.1f" y2="%.1f" stroke="#3a2614" stroke-width="%.1f" stroke-linecap="round"/>' % (gx - s * .38, gy, gx - s * .42, gy - s * 1.6, s * .03))
     lx, ly = gx + s * .36, gy - s * .7
@@ -728,7 +802,9 @@ def intro(S):
     S.lueur(lx, ly + s * .05, s * 1.3, '#ffb347', 1.0)
     S.rect(lx - s * .06, ly - s * .05, s * .12, s * .17, '#ffd27a', 'stroke="#2a1d10" stroke-width="%.1f" rx="%.1f"' % (s * .015, s * .015))
     S.ell(lx, ly + s * .03, s * .025, s * .05, '#fff6d0', 'filter="url(#b1)"')
-    S.lucioles(16, W * .2, W * .8, vy - U * .2, vy + U * .25, '#ffe8a0')
+    S.lucioles(8, W * .2, W * .8, vy - U * .2, vy + U * .25, '#ffe8a0')
+    S.lumiere = (vx, a0[1] - dh * .5, '#9aa6ff')
+
 
 # ============================================================== ACCUEIL v2 : le château, la ville et le marché du port
 def maison(S, x, base, w, h, mur, toit, nuit, lum):
@@ -947,18 +1023,14 @@ def accueil3(S, phase):
     # la ville en trois plans (perspective atmosphérique)
     clair = c['nuage'][1]
     fen = '#ffc46b' if nuit else '#3a4058'
-    rangs = ((cb + k * 16, 7, c['ombre'], .35 if nuit else 0, 1, clair), (cb + k * 28, 9, c['roc'][0], .45 if nuit else 0, 2, None), (cb + k * 40, 11, c['roc'][1], .55 if nuit else 0, 3, None))
+    rangs = ((cb + k * 16, 7, c['ombre'], .15 if nuit else 0, 1, clair), (cb + k * 28, 9, c['roc'][0], .22 if nuit else 0, 2, None), (cb + k * 40, 11, c['roc'][1], .3 if nuit else 0, 3, None))
     for (base, t, col, of, g, haze) in rangs:
         S.brume(base - k * 18, k * 22, c['nuage'][1], .18)
         for (xa, xb) in ((cx - k * 120, cx - k * 30), (cx + k * 30, cx + k * 160)) if base < cb + k * 20 else ((cx - k * 140, cx + k * 180),):
             silhouette_ville(S, xa, xb, base, k * t, col, lum, fen, of if nuit else .5, g * 7 + int(xa), haze)
     # le marché du quai
     quai = cb + k * 42
-    S.rect(0, quai, W, H - quai, S.lin([(0, c['roc'][0]), (1, '#0a0810')]))
-    S.texture((0, quai, W, H - quai), .35)
-    for j in range(10):
-        y = quai + (H - quai) * (j / 10) ** 1.5
-        S.a('<line x1="0" y1="%.1f" x2="%d" y2="%.1f" stroke="#000" stroke-width="%.1f" opacity=".25"/>' % (y, W, y, max(1, k * .2 * (1 + j * .3))))
+    S.sol(quai, c['roc'][0], '#0e0b18', 'dalles', vp=cx, lum=(cx, '#ffb347') if nuit else None)
     gx0, gy = cx - k * 140, quai - k * 6
     for i in range(30):
         t = i / 29; x = gx0 + (W - gx0) * t; y = gy + math.sin(t * math.pi * 4) * k * 2
@@ -969,22 +1041,31 @@ def accueil3(S, phase):
     x = cx - k * 115; i = 0
     while x < W + k * 10:
         w = k * S.R.uniform(19, 23)
-        etal3(S, x, quai + k * 20, w, *rayures[i % 5], nuit)
-        x += w * 1.45; i += 1
+        if i % 5 == 3:   # une lanterne sur poteau à la place d'un étal
+            S.rect(x - k * .4, quai + k * 20 - k * 22, k * .8, k * 22, '#140e10'); S.circ(x, quai + k * 20 - k * 23, k * 1.4, '#ffd27a')
+            if nuit: S.lueur(x, quai - k * 3, k * 12, '#ffb347', .8)
+        else: etal3(S, x, quai + k * 20, w, *rayures[i % 5], nuit)
+        x += w * S.R.uniform(1.3, 2.0); i += 1
     foule(S, cx - k * 130, W, quai + k * 24, k * 9, 18, '#120e18' if nuit else '#2a2028')
     if not P:   # second rang d'étals au premier plan
-        q2 = quai + (H - quai) * .78; x = cx - k * 150; i = 2
-        while x < W + k * 20:
+        q2 = quai + (H - quai) * .82; i = 2
+        for x in (-k * 8, W * .42, W * .86):
             w = k * S.R.uniform(30, 36)
             etal3(S, x, q2, w, *rayures[i % 5], nuit)
-            x += w * 1.5; i += 1
+            i += 1
+        S.rect(0, q2 - k * 40, W, H - q2 + k * 40, S.lin([(0, '#0e0b18', 0), (.4, '#0e0b18', .45), (1, '#0e0b18', .55)]))
         foule(S, cx - k * 160, W, q2 + k * 6, k * 15, 10, '#0c0a10' if nuit else '#221a20')
     # le Gardien à la lanterne au bord du quai
-    gx, gb, s = cx - k * 128, quai + k * 26, k * 22
-    S.path('M%.1f %.1fQ%.1f %.1f %.1f %.1fQ%.1f %.1f %.1f %.1fZ' % (gx - s * .3, gb, gx - s * .2, gb - s * 1.2, gx, gb - s * 1.5, gx + s * .2, gb - s * 1.2, gx + s * .3, gb), '#100e16')
+    gx, gb, s = cx - k * 128, quai + k * 26, k * 26
+    S.path('M%.1f %.1fQ%.1f %.1f %.1f %.1fL%.1f %.1fQ%.1f %.1f %.1f %.1fL%.1f %.1fQ%.1f %.1f %.1f %.1fL%.1f %.1fZ' % (
+        gx - s * .32, gb, gx - s * .3, gb - s * .7, gx - s * .2, gb - s * 1.2, gx - s * .12, gb - s * 1.38, gx - s * .05, gb - s * 1.62, gx + s * .1, gb - s * 1.45,
+        gx + s * .16, gb - s * 1.4, gx + s * .22, gb - s * 1.2, gx + s * .3, gb - s * .7, gx + s * .32, gb), '#100e16')
+    S.ombre(gx, gb, s * .7)
     S.path('M%.1f %.1fQ%.1f %.1f %.1f %.1f' % (gx, gb - s * 1.5, gx + s * .2, gb - s * 1.2, gx + s * .3, gb), 'none', 'stroke="%s" stroke-width="%.1f" opacity=".4"' % (lum, s * .02))
     S.lueur(gx + s * .36, gb - s * .62, s * 1.3, '#ffb347', 1.0 if nuit else .6)
     S.rect(gx + s * .3, gb - s * .7, s * .12, s * .16, '#ffd27a', 'rx="%.1f"' % (s * .02))
+    S.lumiere = (cx, cb - k * 10, '#ffd36b' if nuit else '#fff4d8')
+
 
 MONDES = dict(intro=intro, accueil_jour=lambda S: accueil3(S, 'jour'), accueil_soir=lambda S: accueil3(S, 'soir'), accueil_nuit=lambda S: accueil3(S, 'nuit'), fort=fort, foraine=foraine, steampunk=steampunk, nordique=nordique, pirate=pirate, manoir=manoir, jungle=jungle, desert=desert)
 if __name__ == '__main__':

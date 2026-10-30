@@ -482,6 +482,26 @@ Tous les décors suivent la même ligne directrice et sont des illustrations ori
 - **Les 10 mondes** partagent la même facture : aplats dégradés, lumière du soir ou de nuit, liserés de lumière, halos doux, brume, grain de pierre et vignette. Ce sont le Fort de Pierre, la Fête Foraine, l'Atelier à Vapeur, la Salle Nordique, la Crique des Pirates, le Manoir Hanté, la Jungle de Jade, le Temple des Sables, le Quartier Néon et la Veillée Nocturne.
 - L'image d'aperçu du lien (`apercu.jpg`) et les textures des cases viennent du même atelier.
 
+### Revue de direction artistique
+
+Les décors ont été revus en deux passes avec une IA dédiée à la direction artistique. Elle a établi un diagnostic et une note par décor, une charte et des corrections précises. La charte appliquée est la suivante :
+
+- une seule source de lumière principale par scène (`S.lumiere`), placée dans la zone visible ;
+- trois plans de valeur : lointain clair, sujet le plus contrasté, premier plan sombre ;
+- un sol commun `S.sol()` (motif en perspective, flaque de lumière, premier plan assombri) ;
+- des ombres de contact et des ombres portées (`S.ombre`, `S.ombre_portee`) ;
+- une brume organique ;
+- un éclairage d'ambiance (`S.eclairage`) et une vignette commune, centrée sur la partie de l'image qui reste visible au-dessus des cartes et du panneau ;
+- des particules plafonnées, une texture discrète et le sujet placé au-dessus des cartes sur téléphone.
+
+Effet des corrections, d'après la revue :
+
+- le Pirate passe de 4,5 à 6/10 ;
+- la Foraine passe de 5 à 6,5/10 ;
+- le Désert passe de 5,5 à 7/10 ;
+- le Fort passe de 6,5 à 7,5/10 ;
+- les autres décors gagnent de 0,5 à 1 point.
+
 Les sources se trouvent dans `outils/decors/` :
 
 - `atelier.py` : la boîte à outils commune ;
