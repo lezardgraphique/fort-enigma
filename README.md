@@ -444,3 +444,7 @@ Le décor vivant remplace les systèmes de particules DOM du jeu (fées, braises
 
 Les décors de 8 univers (Fort, Fête foraine, Atelier, Nordique, Pirates, Manoir, Jungle, Désert) et le port de l'accueil reprennent les **images originales** (1376–1408 × 768) au lieu des versions 900 px compressées : en paysage, l'original propre ; à la verticale, un recadrage agrandi ×2 par super-résolution (1074×1536). Néon et Veillée nocturne gardent la version agrandie précédente faute d'original. Un **travelling très lent** (zoom 6 % + léger glissement sur 48 s, sans variation de lumière) anime le fond ; il se coupe avec « réduire les animations » ou les effets de profondeur. Fichier : ~7,4 Mo, gardé sur l'appareil après le premier chargement.
 
+## Sécurité
+
+Voir [SECURITY.md](SECURITY.md). En bref : saisies et réponses externes échappées, CSP et en-têtes durcis, fonction du Gardien protégée (route `/api/gardien`, limite de 20 requêtes/minute/IP, origines autorisées, validation stricte, aucune fuite d'erreur), Salle des machines réservée à `?machines=1`, tests automatiques (`node outils/test-securite.mjs`).
+

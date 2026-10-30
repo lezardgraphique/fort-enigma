@@ -40,6 +40,9 @@ jobs:
       - name: Vérifier la syntaxe de la fonction serverless du Gardien
         run: node --check netlify/functions/gardien-chat.mjs
 
+      - name: Tests de sécurité de la fonction du Gardien
+        run: node outils/test-securite.mjs
+
       - name: Chercher une clé API oubliée dans le dépôt
         run: |
           if grep -RIn --exclude-dir=.git --exclude-dir=node_modules --exclude=".env.example" -E "sk-ant-[A-Za-z0-9_-]{40,}" .; then
