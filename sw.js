@@ -4,7 +4,7 @@
    - Icônes et manifeste : cache d'abord, rafraîchis en arrière-plan.
    - Météo, géolocalisation et chat du Gardien : jamais mis en cache, le jeu
      a déjà ses solutions de repli hors connexion. */
-const VERSION = 'fort-enigma-v7';
+const VERSION = 'fort-enigma-v8';
 const NOYAU = ['./', './index.html', './manifest.webmanifest', './icone-192.png', './icone-512.png', './icone-masquable-512.png', './favicon.ico', './favicon-32.png'];
 
 self.addEventListener('install', (e) => {

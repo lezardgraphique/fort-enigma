@@ -471,12 +471,21 @@ Animations en `transform` uniquement (aucun flash de lumière), coupées avec «
 
 L'accueil répartit aussi ses blocs sur toute la hauteur de la carte (plus de vide en bas, la pastille « Offre-moi un café » n'est plus coupée).
 
-## Décors Néon et Nocturne redessinés (images originales)
+## Direction artistique : la Porte des Mondes
 
-Les décors du **Quartier Néon** et de la **Veillée Nocturne** n'existaient qu'en petite taille agrandie artificiellement : ils étaient flous et pixellisés. Ils ont été entièrement redessinés pour le jeu. Ce sont des illustrations vectorielles originales, rendues en haute définition (1290×2048 en vertical, 2048×1152 en horizontal). Ils n'utilisent aucune image extérieure et ne sont soumis à aucun droit d'auteur tiers.
+Tous les décors suivent la même ligne directrice et sont des illustrations originales, dessinées pour le jeu. Ils n'utilisent aucune image extérieure et ne sont soumis à aucun droit d'auteur tiers. Ils sont rendus en haute définition : 1290×2048 en vertical et 2048×1152 en horizontal.
 
-- **Néon** : ruelle sous la pluie, enseignes lumineuses (« ÉNIGMES », « FORT », « CLÉS »…), graffitis, câbles, sol mouillé et reflets.
-- **Nocturne** : terrasse crénelée du Fort sous la pleine lune, Voie lactée, étoile filante, montagnes enneigées, tourelle, lanterne et lunette en laiton.
-- Les textures des cases (pierre, bois, parchemin, laiton) sont régénérées à partir de bruit, en 512 px au lieu de 128 px.
+- **L'accueil** montre le Fort sur son rocher, au-dessus du port, avec sa **grande porte magique** à runes d'où s'échappent des étincelles. La scène existe de jour, au coucher du soleil et de nuit, selon l'heure.
+- **Dans le jeu**, chaque monde se voit **à travers la même porte du Fort** : une arche de pierre avec une clé de voûte en forme de clé et des runes gravées (`portail.js`). Les runes et le seuil prennent la couleur de l'univers. La porte est dessinée à la taille exacte de l'écran, et le décor qui glisse lentement derrière elle donne de la profondeur.
+- **Les 10 mondes** partagent la même facture : aplats dégradés, lumière du soir ou de nuit, liserés de lumière, halos doux, brume, grain de pierre et vignette. Ce sont le Fort de Pierre, la Fête Foraine, l'Atelier à Vapeur, la Salle Nordique, la Crique des Pirates, le Manoir Hanté, la Jungle de Jade, le Temple des Sables, le Quartier Néon et la Veillée Nocturne.
+- L'image d'aperçu du lien (`apercu.jpg`) et les textures des cases viennent du même atelier.
 
-Les scripts qui génèrent ces images se trouvent dans `outils/decors/` (`neon.py`, `nocturne.py`, `textures.py`, `rendu.py`). Ils produisent toujours le même résultat, ce qui permet de les retoucher puis de les régénérer.
+Les sources se trouvent dans `outils/decors/` :
+
+- `atelier.py` : la boîte à outils commune ;
+- `mondes.py` : les mondes et l'accueil ;
+- `neon.py`, `nocturne.py` : ces deux mondes ;
+- `lot.py` : génère et rend un lot, par exemple `python3 lot.py fort,pirate PL` ;
+- `apercu.py` : crée l'image d'aperçu.
+
+Les dessins sont déterministes, ce qui permet de les retoucher puis de les régénérer à l'identique.
