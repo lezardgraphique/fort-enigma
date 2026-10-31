@@ -676,3 +676,26 @@ La couche `fort-ambiance` complète « Fêtes et saisons » pendant chaque fête
   - l'essai unique avec retour automatique ;
   - l'absence de répétition sur plusieurs parties simulées ;
   - l'autonomie du Gardien.
+
+## La vigie du Gardien : autonomie, alertes et veille du web
+
+Le Gardien veille désormais sur le Fort **sans joueur ni développeur** :
+
+| Pièce | Rôle |
+|---|---|
+| `netlify/functions/gardien-veille.mjs` (**toutes les heures**, tâche planifiée Netlify) | Vérifie le jeu, `version.json`, le mode hors connexion, la sauvegarde, la voix du Gardien et la présence de la clé de l'IA. Analyse aussi les incidents remontés par les joueurs (pannes répétées, avalanche d'erreurs). Il écrit l'état du Fort et **donne l'alerte** pour tout nouveau problème. |
+| `netlify/functions/rapport.mjs` (`/api/rapport`) | Reçoit des joueurs des résumés **anonymes** des réparations faites par le Gardien, ainsi que les signalements « Un souci ? ». Les messages sont nettoyés (pas de lien, de balise ni de jeton), bornés et limités en débit. |
+| `netlify/functions/etat.mjs` (`/api/etat`) | Donne l'état public du Fort, lu par le jeu. |
+| `netlify/functions/veille-web.mjs` (**une fois par jour**) | Le Gardien **source le web** grâce à l'outil de recherche de l'API Claude. Il garde un carnet de 3 nouveautés du monde des énigmes, avec leur source. |
+| Couche `fort-vigie` (`?vigie=0` pour la couper) | Envoie les incidents. Si une panne se répète sur l'appareil, elle prévient le joueur. Si la vigie signale une panne générale, elle prévient le joueur une fois en lui disant ce que ça change pour lui. Elle ajoute aussi l'entrée **☰ → État du Fort** : services, interventions, nouvelles du monde des énigmes et signalement d'un souci. |
+
+**Alertes** :
+- Chaque nouveau problème écrit une ligne `[ALERTE-FORT]` dans les journaux des fonctions Netlify.
+- Les signalements des joueurs écrivent une ligne `[SIGNALEMENT-FORT]`.
+- En option, définir `GITHUB_ALERTES_TOKEN` (jeton GitHub limité aux *Issues* du dépôt) dans les variables d'environnement Netlify. La vigie ouvre alors un ticket GitHub, au plus une fois par problème et par jour. `GITHUB_ALERTES_DEPOT` permet d'utiliser un autre dépôt.
+
+**Recherche web dans la conversation** :
+- Le Gardien peut faire une recherche sur le web, une seule par réponse, uniquement si le joueur demande une information réelle et récente. Il ne s'en sert jamais pour les épreuves du Fort.
+- Les sources s'affichent sous sa réponse, et le joueur reste dans le jeu.
+- Si la recherche web n'est pas activée sur le compte Anthropic, ou si elle est trop lente, le Gardien répond sans elle.
+- Coût : environ 10 $ pour 1 000 recherches, en plus des jetons.

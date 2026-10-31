@@ -1,10 +1,10 @@
 {
- "version": "2026-10-31 22:43",
+ "version": "2026-10-31 23:18",
  "nouveautes": [
+  "La vigie du Gardien surveille le Fort toute seule et donne l'alerte en cas de panne",
+  "☰ → État du Fort : santé des services, interventions et signalement d'un souci",
+  "Le Gardien consulte le web si besoin et tient une veille des nouveautés du monde des énigmes",
   "Le Gardien est autonome : il bâtit ses salles et installe les mises à jour lui-même",
-  "Chaque salle du Gardien a un seul jeu inédit, essayé une fois puis retour au Fort",
-  "Une épreuve n'apparaît qu'une fois par partie, tous univers confondus",
-  "Fêtes plus vivantes : ciel, brume, neige ou feux d'artifice selon la saison",
-  "Les habitants se déguisent et ont une réplique de saison"
+  "Chaque salle du Gardien a un seul jeu inédit, essayé une fois puis retour au Fort"
  ]
 }

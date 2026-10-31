@@ -68,5 +68,50 @@ await sauv("lecture du paquet chiffré", base + "?id=" + ID, { method: "GET" }, 
 await sauv("effacement d'une origine étrangère refusé", base + "?id=" + ID, { method: "DELETE", headers: { origin: "https://exemple-malveillant.com" } }, 403);
 await sauv("effacement par le jeu", base + "?id=" + ID, { method: "DELETE", headers: { origin: "https://fort-enigma.netlify.app" } }, 200);
 await sauv("méthode inconnue refusée", base, { method: "POST", headers: H, body: paquet() }, 405);
+// ---- recherche sur le web du Gardien ----
+let appels = [];
+globalThis.fetch = async (_u, opt) => { const b = JSON.parse(opt.body); appels.push(b); dernier = b; return reponseApi(b); };
+reponseApi = () => new Response(JSON.stringify({ content: [
+  { type: "text", text: "Les brumes du web murmurent ", citations: [{ url: "https://exemple.org/article", title: "Article <b>x</b>" }, { url: "javascript:alert(1)", title: "x" }] },
+  { type: "server_tool_use", id: "s", name: "web_search", input: { query: "q" } },
+  { type: "web_search_tool_result", tool_use_id: "s", content: [] },
+  { type: "text", text: "une nouvelle mode d'énigmes." }] }), { status: 200 });
+appels = [];
+await attend("web : outil de recherche proposé, texte et sources nettoyés", { method: "POST", headers: H, body: corps(msg) }, 200, (t) => {
+  const j = JSON.parse(t);
+  return appels[0].tools && appels[0].tools[0].type === "web_search_20250305" && appels[0].tools[0].max_uses === 1
+    && j.reply === "Les brumes du web murmurent une nouvelle mode d'énigmes."
+    && j.sources.length === 1 && j.sources[0].url === "https://exemple.org/article" && !/[<>]/.test(j.sources[0].titre);
+});
+let n = 0;
+reponseApi = (b) => (n++ === 0 && b.tools) ? new Response('{"error":{"type":"invalid_request_error","message":"web_search tool is not enabled"}}', { status: 400 }) : new Response(JSON.stringify({ content: [{ type: "text", text: "Sans le web." }] }), { status: 200 });
+appels = [];
+await attend("web : recherche indisponible → réponse sans elle", { method: "POST", headers: H, body: corps(msg) }, 200, (t) => JSON.parse(t).reply === "Sans le web." && appels.length === 2 && !appels[1].tools);
+
+// ---- vigie : rapports, état, contrôles ----
+const rp = await import(new URL("../netlify/functions/rapport.mjs", import.meta.url));
+const et = await import(new URL("../netlify/functions/etat.mjs", import.meta.url));
+const vg = await import(new URL("../netlify/functions/gardien-veille.mjs", import.meta.url));
+async function vig(nom, mod, url, init, statut, verif) {
+  const r = await mod.traiter(new Request(url, init), magasin); const t = await r.text();
+  const ok = r.status === statut && (!verif || verif(t)); if (!ok) echecs++;
+  console.log((ok ? "  ✓ " : "  ✗ ") + "vigie : " + nom + " → " + r.status);
+}
+const RP = "https://fort-enigma.netlify.app/api/rapport";
+await vig("rapport d'une origine étrangère refusé", rp, RP, { method: "POST", headers: { ...H, origin: "https://exemple-malveillant.com" }, body: corps({ incidents: [] }) }, 403);
+await vig("rapport : types inconnus ignorés", rp, RP, { method: "POST", headers: H, body: corps({ incidents: [{ type: "<script>", msg: "x" }] }) }, 200, (t) => JSON.parse(t).retenus === 0);
+await vig("rapport : message nettoyé (pas de lien, de balise ni de jeton)", rp, RP, { method: "POST", headers: H, body: corps({ version: "v1", incidents: [{ type: "erreur", msg: "<b>boom</b> https://x.y/secret " + "sk-" + "ant-api03-" + "A".repeat(40), ecran: "accueil", kind: "riddle" }] }) }, 200,
+  () => { const d = [...mem.entries()].find(([k]) => k.startsWith("jour-")); const sig = d && Object.values(JSON.parse(d[1].s).sig)[0]; return sig && !/[<>]|https?:|sk-ant-api03-A{20}/.test(sig.msg); });
+await vig("rapport : taille bornée", rp, RP, { method: "POST", headers: H, body: corps({ incidents: [{ type: "erreur", msg: "a".repeat(20000) }] }) }, 413);
+await vig("état : lecture publique sans secret", et, "https://fort-enigma.netlify.app/api/etat", { method: "GET" }, 200, (t) => JSON.parse(t).niveau === "inconnu");
+const tout = { ok: true, statut: 200, ms: 100 };
+const sain = await vg.verifier({ base: "https://f", cleIA: true, incidents: { total: 2, sig: {} }, sonde: async () => tout });
+const malade = await vg.verifier({ base: "https://f", cleIA: true, incidents: { total: 60, sig: { a: { n: 12, type: "maintenance", kind: "memory", msg: "boom" } } },
+  sonde: async (u) => /sauvegarde/.test(u) ? { ok: false, statut: 502, ms: 50 } : tout });
+const okV = sain.niveau === "ok" && malade.niveau === "panne" && malade.problemes.some((p) => p.code === "sauvegarde") && malade.problemes.some((p) => p.code === "repete:memory") && malade.problemes.some((p) => p.code === "incidents");
+if (!okV) echecs++; console.log((okV ? "  ✓ " : "  ✗ ") + "vigie : détecte panne, panne répétée et avalanche d'incidents");
+const sched = vg.config && vg.config.schedule === "@hourly";
+if (!sched) echecs++; console.log((sched ? "  ✓ " : "  ✗ ") + "vigie : tourne seule toutes les heures");
+
 console.log(echecs ? `\n${echecs} vérification(s) de sécurité en échec.` : "\nSécurité de la fonction : tout est conforme.");
 process.exit(echecs ? 1 : 0);
