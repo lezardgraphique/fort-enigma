@@ -4,7 +4,7 @@ import numpy as np
 from PIL import Image
 from playwright.async_api import async_playwright
 noms = sys.argv[1].split(','); fmts = sys.argv[2] if len(sys.argv) > 2 else 'PL'
-SALLES2 = ['bibliotheque','atlantide','farwest','cirque','station','maya','carnaval','cite','crypte','labyrinthe','jardin','ruche','laboratoire','palais']
+SALLES2 = ['tresor','bibliotheque','atlantide','farwest','cirque','station','maya','carnaval','cite','crypte','labyrinthe','jardin','ruche','laboratoire','palais']
 TAILLES = {'P': (1290, 2048), 'L': (2048, 1152)}
 async def main():
     async with async_playwright() as p:

@@ -1028,7 +1028,9 @@ def accueil3(S, phase):
     S.poly([(cx - k * 13, cb - k * 69), (cx, cb - k * 96), (cx + k * 13, cb - k * 69)], S.lin([(0, '#3a2a48'), (1, '#1a1428')], 0, 0, 1, 0))
     S.poly([(cx, cb - k * 96), (cx + k * 13, cb - k * 69), (cx + k * 4, cb - k * 69)], lum, 'opacity=".18"')
     S.a('<line x1="%.1f" y1="%.1f" x2="%.1f" y2="%.1f" stroke="#1a1428" stroke-width="%.1f"/>' % (cx, cb - k * 96, cx, cb - k * 104, k * .6))
-    S.path('M%.1f %.1fl%.1f %.1fl0 %.1fZ' % (cx, cb - k * 104, k * 7, k * 2, k * 4), '#f4d03f')
+    # fanion du donjon : côté droit fixé au mât, pointe qui flotte au vent
+    S.path('M%.1f %.1fv%.1fq%.1f %.1f %.1f %.1fq%.1f %.1f %.1f %.1fz' % (cx, cb - k * 104, k * 6, k * 4, -k * .6, k * 9, -k * 2.4, -k * 4, -k * 1.4, -k * 9, -k * 3.6), '#f4d03f')
+    S.path('M%.1f %.1fv%.1f' % (cx + k * .3, cb - k * 104, k * 6), 'none', 'stroke="#c9a227" stroke-width="%.1f"' % (k * .6))
     for (dx, h, r) in ((-50, 46, 8), (-28, 58, 8.5), (28, 58, 8.5), (50, 46, 8)):
         tour(S, cx + dx * k, cb, cb - h * k, r * k, mur, lum, '#f4d03f')
     # la grande porte des mondes
@@ -1065,8 +1067,11 @@ def accueil3(S, phase):
         if i % 5 == 3:   # une lanterne sur poteau à la place d'un étal
             S.rect(x - k * .4, quai + k * 20 - k * 22, k * .8, k * 22, '#140e10'); S.circ(x, quai + k * 20 - k * 23, k * 1.4, '#ffd27a')
             if nuit: S.lueur(x, quai - k * 3, k * 12, '#ffb347', .8)
-        else: etal3(S, x, quai + k * 20, w, *rayures[i % 5], nuit)
+        else:
+            etal3(S, x, quai + k * 20, w, *rayures[i % 5], nuit)
+            S.ancres.setdefault('etals', []).append([round(x, 1), round(quai + k * 20, 1), round(w, 1)] + list(rayures[i % 5]))
         x += w * S.R.uniform(1.3, 2.0); i += 1
+    S.ancres['quai'] = [round(quai + k * 24, 1), round(cx - k * 130, 1), W, round(k * 9, 2)]
     foule(S, cx - k * 130, W, quai + k * 24, k * 9, 18, '#120e18' if nuit else '#2a2028')
     if not P:   # second rang d'étals au premier plan
         q2 = quai + (H - quai) * .82; i = 2
@@ -1076,15 +1081,12 @@ def accueil3(S, phase):
             i += 1
         S.rect(0, q2 - k * 40, W, H - q2 + k * 40, S.lin([(0, '#0e0b18', 0), (.4, '#0e0b18', .45), (1, '#0e0b18', .55)]))
         foule(S, cx - k * 160, W, q2 + k * 6, k * 15, 10, '#0c0a10' if nuit else '#221a20')
-    # le Gardien à la lanterne au bord du quai
+    # le Gardien à la lanterne au bord du quai : dessiné et animé par le jeu (personnages.js)
     gx, gb, s = cx - k * 128, quai + k * 26, k * 26
-    S.path('M%.1f %.1fQ%.1f %.1f %.1f %.1fL%.1f %.1fQ%.1f %.1f %.1f %.1fL%.1f %.1fQ%.1f %.1f %.1f %.1fL%.1f %.1fZ' % (
-        gx - s * .32, gb, gx - s * .3, gb - s * .7, gx - s * .2, gb - s * 1.2, gx - s * .12, gb - s * 1.38, gx - s * .05, gb - s * 1.62, gx + s * .1, gb - s * 1.45,
-        gx + s * .16, gb - s * 1.4, gx + s * .22, gb - s * 1.2, gx + s * .3, gb - s * .7, gx + s * .32, gb), '#100e16')
     S.ombre(gx, gb, s * .7)
-    S.path('M%.1f %.1fQ%.1f %.1f %.1f %.1f' % (gx, gb - s * 1.5, gx + s * .2, gb - s * 1.2, gx + s * .3, gb), 'none', 'stroke="%s" stroke-width="%.1f" opacity=".4"' % (lum, s * .02))
     S.lueur(gx + s * .36, gb - s * .62, s * 1.3, '#ffb347', 1.0 if nuit else .6)
-    S.rect(gx + s * .3, gb - s * .7, s * .12, s * .16, '#ffd27a', 'rx="%.1f"' % (s * .02))
+    S.ancres['gardien'] = [round(gx, 1), round(gb, 1), round(s, 1)]
+    S.ancres['nuit'] = nuit
     S.lumiere = (cx, cb - k * 10, '#ffd36b' if nuit else '#fff4d8')
 
 

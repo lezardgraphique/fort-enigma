@@ -468,7 +468,57 @@ def palais(S):
             S.flamme(x, c[1] - s2 * .02, s2 * .1)
     S.lumiere = (t[0], t[1] - s * 1.4, '#ffd36b')
 
-SALLES = dict(bibliotheque=bibliotheque, atlantide=atlantide, farwest=farwest, cirque=cirque, station=station, maya=maya,
+# ================================================================= SALLE DU COFFRE AU TRÉSOR
+def tresor(S):
+    W, H, U, P = S.W, S.H, S.U, S.P
+    Pj, f, vx, vy = couloir(S, .36 if P else .5, .5 if P else .42)
+    S.rect(0, 0, W, H, '#120c08')
+    ZF = 9
+    # voûte ronde et murs de pierre dorés par la lumière du coffre
+    for z in (8.6, 6.4, 4.6, 3.2, 2.2, 1.4):
+        g, dd = Pj(-2.6, 0, z), Pj(2.6, 3.0, z)
+        w = dd[0] - g[0]
+        d = 'M%.1f %.1fH%.1fV%.1fH%.1fZ M%.1f %.1fV%.1fA%.1f %.1f 0 0 1 %.1f %.1fV%.1fZ' % (-W * .1, -H * .1, W * 1.1, H * 1.1, -W * .1, g[0], g[1], dd[1], w / 2, w * .42, dd[0], dd[1], g[1])
+        c = z / ZF
+        S.path(d, S.lin([(0, '#2a1e14'), (1, '#4a3420' if c > .4 else '#24180e')]), 'fill-rule="evenodd"')
+        S.a('<path d="%s" fill="#000" opacity=".25" filter="url(#texture)" fill-rule="evenodd"/>' % d)
+        S.path('M%.1f %.1fV%.1fA%.1f %.1f 0 0 1 %.1f %.1fV%.1f' % (g[0], g[1], dd[1], w / 2, w * .42, dd[0], dd[1], g[1]), 'none', 'stroke="#ffd36b" stroke-width="%.1f" opacity="%.2f"' % (max(1, f / z * .015), .5 * (1 - c * .5)))
+        S.runes(g[0] + w * .2, dd[1] - w * .26, w * .6, 9, max(2, f / z * .02), '#ffd36b', .55)
+    S.poly([Pj(-2.6, 0, .45), Pj(2.6, 0, .45), Pj(2.6, 0, ZF), Pj(-2.6, 0, ZF)], S.lin([(0, '#5a4024'), (1, '#120c08')]))
+    # estrade et grand coffre
+    e0, e1 = Pj(-1.6, 0, 4.4), Pj(1.6, .45, 4.4)
+    S.rect(e0[0], e1[1], e1[0] - e0[0], e0[1] - e1[1], '#3a2a1c'); S.rect(e0[0], e1[1], e1[0] - e0[0], (e0[1] - e1[1]) * .2, '#6a4a2a')
+    c0, c1 = Pj(-1.0, .45, 4.2), Pj(1.0, 1.75, 4.2)
+    cw, ch = c1[0] - c0[0], c0[1] - c1[1]
+    S.lueur(vx, c1[1], cw * 2.4, '#ffc04a', 1.0)
+    S.rect(c0[0], c1[1], cw, ch, S.lin([(0, '#8a5a24'), (1, '#4a2a10')]))
+    S.path('M%.1f %.1fQ%.1f %.1f %.1f %.1fZ' % (c0[0], c1[1], vx, c1[1] - ch * .9, c1[0], c1[1]), S.lin([(0, '#9a6a2a'), (1, '#5a3414')]))
+    for dx in (.1, .5, .9):
+        S.rect(c0[0] + cw * dx - cw * .03, c1[1] - ch * .25, cw * .06, ch * 1.25, '#c9a227')
+    S.circ(vx, c1[1] + ch * .35, cw * .07, '#ffd36b'); S.rect(vx - cw * .012, c1[1] + ch * .33, cw * .024, ch * .2, '#2a1808')
+    S.runes(c0[0] + cw * .15, c1[1] + ch * .78, cw * .7, 5, cw * .03, '#fff3c4')
+    # piles de pièces et gemmes
+    for _ in range(140):
+        side = S.R.choice([-1, 1]); x = vx + side * S.R.uniform(.55, 1.6) * cw; y = e0[1] + S.R.uniform(-.1, .25) * ch * 2
+        S.ell(x, y, cw * .03, cw * .012, S.R.choice(['#ffd36b', '#f4c430', '#c9a227', '#fff3c4']))
+    for _ in range(14):
+        x = vx + S.R.uniform(-1.6, 1.6) * cw; y = e0[1] + S.R.uniform(0, .3) * ch * 2
+        S.poly([(x, y - cw * .03), (x + cw * .025, y), (x, y + cw * .02), (x - cw * .025, y)], S.R.choice(['#ff5c8a', '#5ec8e5', '#46d17f', '#b45cff']))
+    # serrures à clés sur le mur du fond (une par clé du Fort)
+    b0, b1 = Pj(-1.6, 3.9, 8.6), Pj(1.6, 3.9, 8.6)
+    for k in range(10):
+        x = b0[0] + (b1[0] - b0[0]) * (k + .5) / 10
+        S.circ(x, b0[1], U * .012, '#2a1a0c', 'stroke="#ffd36b" stroke-width="%.1f"' % (U * .002)); S.rect(x - U * .002, b0[1], U * .004, U * .012, '#ffd36b')
+    # braseros
+    for X in (-1.9, 1.9):
+        b = Pj(X, 0, 3.6); s = f / 3.6
+        S.poly([(b[0] - s * .2, b[1] - s * .9), (b[0] + s * .2, b[1] - s * .9), (b[0] + s * .08, b[1] - s * .7), (b[0] - s * .08, b[1] - s * .7)], '#3a2a1c')
+        S.rect(b[0] - s * .03, b[1] - s * .7, s * .06, s * .7, '#3a2a1c'); S.flamme(b[0], b[1] - s * .9, s * .35)
+        S.ombre(b[0], b[1], s * .4)
+    S.lucioles(10, W * .2, W * .8, vy - U * .2, vy + U * .2, '#ffe8a0')
+    S.lumiere = (vx, c1[1], '#ffc04a')
+
+SALLES = dict(tresor=tresor, bibliotheque=bibliotheque, atlantide=atlantide, farwest=farwest, cirque=cirque, station=station, maya=maya,
               carnaval=carnaval, cite=cite, crypte=crypte, labyrinthe=labyrinthe, jardin=jardin, ruche=ruche, laboratoire=laboratoire, palais=palais)
 if __name__ == '__main__':
     nom, W, H, out = sys.argv[1], int(sys.argv[2]), int(sys.argv[3]), sys.argv[4]

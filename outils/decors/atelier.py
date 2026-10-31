@@ -14,6 +14,7 @@ class Scene:
         s.defs = []
         s._id = 0
         s.lumiere = (W * .3, H * .2, '#ffb347')
+        s.ancres = {}
         U = s.U
         s.defs.append(
             '<filter id="b1" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="{:.1f}"/></filter>'
@@ -250,6 +251,9 @@ class Scene:
                       '<stop offset="1" stop-color="#0e0b18" stop-opacity=".6"/></radialGradient>' % (cx, cy, r))
         s.rect(0, 0, s.W, s.H, 'url(#vig2)')
     def ecrire(s, chemin):
+        if s.ancres:
+            import json
+            json.dump(s.ancres, open(chemin.rsplit('.', 1)[0] + '.json', 'w'))
         out = ['<svg xmlns="http://www.w3.org/2000/svg" width="%d" height="%d" viewBox="0 0 %d %d"><defs>%s</defs>' % (s.W, s.H, s.W, s.H, ''.join(s.defs))]
         out += s.o
         out.append('</svg>')

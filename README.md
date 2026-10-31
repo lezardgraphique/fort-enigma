@@ -582,3 +582,11 @@ Quand la partie mène d'un univers à un autre, on franchit vraiment une porte. 
 - pendant ce temps, le décor du nouveau monde s'installe derrière.
 
 La première salle s'ouvre de la même façon à la fin de l'introduction. Les animations se limitent à des déplacements et des fondus, sans flash de lumière. Elles sont raccourcies si l'appareil demande de réduire les animations. Désactivation : `?seuil=0`.
+
+## Les habitants du Fort et la salle du Coffre
+
+- **Drapeau du donjon** : le bord droit du fanion est désormais fixé au mât et la pointe flotte au vent.
+- **Port animé** (couche `fort-persos`, désactivable avec `?persos=0`) : sur les écrans de menu, les auvents des étals ondulent, des passants marchent sur le quai, le Panda tient son étal et le Gardien veille sur son perchoir. Leurs positions viennent des ancres enregistrées au rendu du décor (`peint/out/accueil_*.json`, injectées dans `window.__decorsAncres`).
+- **Les personnages reviennent** : le Gardien, le Panda, le Parieur, le Voleur et les duellistes apparaissent, dessinés et animés (respiration, clignement, lanterne, pièce, clés), avec une bulle tirée de leur **chronique**. Chaque rencontre fait avancer leur histoire, et le compteur est mémorisé dans le navigateur (`fort-chronique`).
+- **Salle du Coffre** : la chambre forte (arches, runes, coffre sur son estrade, dix serrures) sert de décor à la salle du trésor, à ses transitions et aux écrans bonus.
+- Le Gardien (`gardien-chat.mjs`) connaît la même histoire et reste cohérent avec elle.
