@@ -613,3 +613,49 @@ La première salle s'ouvre de la même façon à la fin de l'introduction. Les a
 - Grands écrans (à partir de 1500×860) : la carte grandit avec l'écran (zoom jusqu'à ×1,5). Les écrans de lecture (règles, histoire, légendes…) s'élargissent.
 - Le décor suit légèrement la souris. Cet effet est désactivé si « réduire les animations » est actif ou avec `?relief=0`.
 - Désactivation de tout ce confort PC : `?pc=0`.
+
+## Ambiance des fêtes
+
+La couche `fort-ambiance` complète « Fêtes et saisons » pendant chaque fête. Elle se désactive avec `?ambiance=0`, et `?fete=0` coupe toutes les fêtes. Pour tester une fête : `?fete=halloween`, `noel`, `nouvelan`, `valentin`, `paques`, `muguet`, `musique` ou `quatorze`.
+
+- **Ciel et lumière** : chaque fête recolore le décor et y ajoute un effet.
+
+  | Fête | Effet |
+  |---|---|
+  | Halloween | brume violette au sol |
+  | Noël | neige qui tombe en deux couches, neige posée sur le port |
+  | Nouvel An, 14 Juillet | feux d'artifice au-dessus du château |
+  | Fête de la musique | faisceaux de concert |
+  | Pâques, 1er Mai | rais de soleil |
+  | Saint-Valentin | halos roses |
+- **Coins de la carte** : toiles d'araignée et araignée qui descend à Halloween, givre à Noël.
+- **Les habitants se déguisent** : le Gardien, le Panda, le Voleur et les duellistes portent un chapeau de saison.
+
+  | Fête | Chapeau |
+  |---|---|
+  | Halloween | sorcière |
+  | Noël | bonnet |
+  | Nouvel An | cotillon |
+  | Saint-Valentin | cœurs |
+  | Pâques | couronne de fleurs |
+  | 1er Mai | brins de muguet |
+  | Fête de la musique | casque audio |
+  | 14 Juillet | bicorne |
+
+  Le Parieur garde son haut-de-forme, mais son ruban prend les couleurs de la fête. À sa première rencontre de la fête, chacun dit une réplique de saison.
+- **Chasse de saison** : le Gardien cache 5 objets dans le décor, jamais pendant une épreuve. Les trouver tous donne un titre de saison, affiché dans la bannière de la fête.
+
+  | Fête | Objets cachés |
+  |---|---|
+  | Halloween | citrouilles |
+  | Noël | boules de Noël |
+  | Nouvel An | étoiles d'or |
+  | Saint-Valentin | cœurs |
+  | Pâques | œufs |
+  | 1er Mai | brins de muguet |
+  | Fête de la musique | notes perdues |
+  | 14 Juillet | cocardes |
+
+  La progression suit la sauvegarde partagée entre appareils.
+- **Contraintes d'animation** : tout s'anime en transform et opacité, lentement et sans flash. Rien ne bouge en mode calme ni si « réduire les animations » est actif.
+- **Correctif** : le jeu déclare `GuardianSpirit` en `const`, que les couches ne voyaient pas via `window`. Un petit pont (`fort-pont`) l'expose désormais. Les annonces du Gardien des couches (mise à jour du Fort, sauvegarde, astuces PC, fêtes) s'affichent donc enfin.
