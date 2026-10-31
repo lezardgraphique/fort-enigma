@@ -38,7 +38,7 @@ jobs:
         run: python3 outils/reparer.py index.html
 
       - name: Vérifier la syntaxe de la fonction serverless du Gardien
-        run: node --check netlify/functions/gardien-chat.mjs
+        run: node --check netlify/functions/gardien-chat.mjs && node --check netlify/functions/sauvegarde.mjs
 
       - name: Tests de sécurité de la fonction du Gardien
         run: node outils/test-securite.mjs

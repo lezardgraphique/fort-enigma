@@ -590,3 +590,26 @@ La première salle s'ouvre de la même façon à la fin de l'introduction. Les a
 - **Les personnages reviennent** : le Gardien, le Panda, le Parieur, le Voleur et les duellistes apparaissent, dessinés et animés (respiration, clignement, lanterne, pièce, clés), avec une bulle tirée de leur **chronique**. Chaque rencontre fait avancer leur histoire, et le compteur est mémorisé dans le navigateur (`fort-chronique`).
 - **Salle du Coffre** : la chambre forte (arches, runes, coffre sur son estrade, dix serrures) sert de décor à la salle du trésor, à ses transitions et aux écrans bonus.
 - Le Gardien (`gardien-chat.mjs`) connaît la même histoire et reste cohérent avec elle.
+
+## Sauvegarde partagée entre PC et mobile
+
+- Menu **☰ → Sauvegarde PC ↔ mobile** (ou touche **S** sur PC). Un premier appareil crée un **code de voyage** de 16 caractères. Les autres appareils le récupèrent en scannant le **QR code**, en ouvrant le lien (`#relier=…`) ou en saisissant le code.
+- La synchronisation est ensuite automatique : au lancement, quelques secondes après chaque progrès, au retour sur l'onglet et au retour du réseau. Pendant une épreuve, rien n'est appliqué : les nouveautés attendent le prochain menu.
+- **Chiffrement de bout en bout** : le navigateur chiffre la progression (AES-GCM, clé tirée du code par PBKDF2) avant l'envoi. La fonction `netlify/functions/sauvegarde.mjs` ne stocke qu'un paquet illisible dans Netlify Blobs, sous une empreinte opaque du code. Elle applique les mêmes garde-fous que le Gardien : même origine pour écrire, JSON uniquement, taille bornée, limite de débit et écriture conditionnelle (pas d'écrasement en cas de conflit). Les tests sont dans `outils/test-securite.mjs`.
+- **Fusion clé par clé** : la modification la plus récente gagne, avec l'horloge recalée sur celle du serveur. Le Tableau des Légendes réunit les deux appareils. Si les deux appareils ont déjà joué au moment de les relier, le joueur choisit la progression à garder.
+- Désactivation : `?synchro=0`. Le QR code est généré par *qrcode-generator* (Kazuhiko Arase, licence MIT), intégré au fichier.
+
+## Confort sur PC
+
+- **Raccourcis clavier** (avec une souris) :
+  - **1–6** pour répondre (le numéro s'affiche sur chaque réponse) ;
+  - **Entrée** pour l'action principale ;
+  - **Échap** pour fermer une fenêtre ou revenir ;
+  - **F** pour le plein écran ;
+  - **G** pour parler au Gardien ;
+  - **S** pour la sauvegarde ;
+  - **?** pour l'aide, aussi accessible dans le menu ☰.
+- Survols dorés et focus clavier visible.
+- Grands écrans (à partir de 1500×860) : la carte grandit avec l'écran (zoom jusqu'à ×1,5). Les écrans de lecture (règles, histoire, légendes…) s'élargissent.
+- Le décor suit légèrement la souris. Cet effet est désactivé si « réduire les animations » est actif ou avec `?relief=0`.
+- Désactivation de tout ce confort PC : `?pc=0`.
