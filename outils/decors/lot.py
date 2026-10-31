@@ -4,6 +4,7 @@ import numpy as np
 from PIL import Image
 from playwright.async_api import async_playwright
 noms = sys.argv[1].split(','); fmts = sys.argv[2] if len(sys.argv) > 2 else 'PL'
+SALLES2 = ['bibliotheque','atlantide','farwest','cirque','station','maya','carnaval','cite','crypte','labyrinthe','jardin','ruche','laboratoire','palais']
 TAILLES = {'P': (1290, 2048), 'L': (2048, 1152)}
 async def main():
     async with async_playwright() as p:
@@ -11,7 +12,7 @@ async def main():
         for nom in noms:
             for f in fmts:
                 W, H = TAILLES[f]; svg = f'out/{nom}_{f}.svg'
-                subprocess.run([sys.executable, 'mondes.py', nom, str(W), str(H), svg], check=True)
+                subprocess.run([sys.executable, 'mondes2.py' if nom in SALLES2 else 'mondes.py', nom, str(W), str(H), svg], check=True)
                 pg = await b.new_page(viewport={'width': W, 'height': H})
                 await pg.set_content('<html><body style="margin:0;background:#000">' + open(svg, encoding='utf-8').read() + '</body></html>')
                 await pg.wait_for_timeout(200)

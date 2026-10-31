@@ -556,3 +556,29 @@ Avant, les salles proposées par le Gardien collaient un nouveau nom sur une poi
 - S'il en trouve une plus récente, il l'annonce avec les nouveautés et propose **« Mettre à jour le Fort »**. Il récupère alors la nouvelle version et recharge le jeu, sans toucher à la progression.
 - Après une mise à jour, il présente une fois les nouveautés.
 - Désactivation : `?maj=0`.
+
+## Décors des salles du Gardien
+
+Les salles que propose le Gardien ont maintenant leur propre décor, dans la même facture que les dix mondes. Avant, elles affichaient le château de l'accueil.
+
+- **Décors dédiés** (14, dans `decors/`) : Bibliothèque Interdite, Atlantide Engloutie, Far West, Cirque Mystique, Station Orbitale, Temple Maya, Carnaval Vénitien, Cité, Crypte, Labyrinthe, Jardin, Ruche, Laboratoire, Palais.
+- **Salles aux noms composés** (« Crypte Maudite des Cendres », « Ruche Radiante de Jade »…) : le premier mot choisit le décor.
+  - Tombeau et Prison utilisent la Crypte.
+  - Archives utilise la Bibliothèque, Canyon le Far West et Temple le Temple Maya.
+  - Forge, Observatoire et Bastion reprennent l'Atelier à Vapeur, la Veillée Nocturne et le Fort de Pierre.
+  - Cité Cyberpunk reprend le Quartier Néon.
+- **Teinte** : la matière du nom (de Glace, de Jade, des Cendres, de Plasma…) teinte légèrement la salle.
+- **Porte magique** : elle prend la couleur de la salle.
+- **Chargement** : ces décors ne sont pas intégrés au fichier du jeu. Ils se chargent à l'entrée de la salle, puis restent disponibles hors connexion. S'ils manquent (aperçu sans les fichiers), le Fort reprend son décor d'accueil.
+- **Sources** : `outils/decors/mondes2.py`.
+
+## Le passage du seuil
+
+Quand la partie mène d'un univers à un autre, on franchit vraiment une porte. Le passage dure environ 1,8 s, et on peut le passer en touchant l'écran :
+
+- l'arche de pierre se rapproche, comme si l'on avançait ;
+- une carte de passage indique d'où l'on vient (« Tu quittes la Crique des Pirates ») et le monde où l'on entre (icône, nom et ambiance) ;
+- elle montre aussi le **chemin dans le Fort** : les portes déjà franchies, la salle actuelle (« Salle 3 sur 8 ») et celles qui restent ;
+- pendant ce temps, le décor du nouveau monde s'installe derrière.
+
+La première salle s'ouvre de la même façon à la fin de l'introduction. Les animations se limitent à des déplacements et des fondus, sans flash de lumière. Elles sont raccourcies si l'appareil demande de réduire les animations. Désactivation : `?seuil=0`.

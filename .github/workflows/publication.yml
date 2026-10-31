@@ -31,7 +31,7 @@ jobs:
       - name: Préparer le site (jeu seul, sans les outils)
         run: |
           mkdir -p site
-          cp index.html version.json apercu.jpg sw.js manifest.webmanifest icone-192.png icone-512.png icone-masquable-512.png favicon.ico favicon-32.png site/
+          cp -r decors site/ && cp index.html version.json apercu.jpg sw.js manifest.webmanifest icone-192.png icone-512.png icone-masquable-512.png favicon.ico favicon-32.png site/
       - uses: actions/upload-pages-artifact@v3
         with:
           path: site
