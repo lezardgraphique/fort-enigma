@@ -659,3 +659,20 @@ La couche `fort-ambiance` complète « Fêtes et saisons » pendant chaque fête
   La progression suit la sauvegarde partagée entre appareils.
 - **Contraintes d'animation** : tout s'anime en transform et opacité, lentement et sans flash. Rien ne bouge en mode calme ni si « réduire les animations » est actif.
 - **Correctif** : le jeu déclare `GuardianSpirit` en `const`, que les couches ne voyaient pas via `window`. Un petit pont (`fort-pont`) l'expose désormais. Les annonces du Gardien des couches (mise à jour du Fort, sauvegarde, astuces PC, fêtes) s'affichent donc enfin.
+
+## Un Gardien autonome, une épreuve une seule fois
+
+- **Le Gardien décide seul.**
+  - Quand il imagine une salle, il ne demande plus « Accepter / Refuser ». Il la bâtit lui-même avec **un seul jeu inédit** de la Forge, puis l'annonce.
+  - Il ne donne jamais à une salle un jeu qu'une autre possède déjà. Une fois ses 8 inventions placées, il renonce seul aux nouvelles idées.
+  - Il bâtit au plus une salle par jour, et note tout dans son journal.
+  - Il installe aussi les **mises à jour du Fort** lui-même, toujours entre deux parties. Il ne fait qu'une tentative automatique par version et par session, donc jamais de boucle de rechargement.
+- **Essai d'un nouveau jeu** : un seul jeu (celui de la salle), une seule tentative. Ensuite, le Gardien ramène automatiquement au Fort.
+- **Une épreuve, une seule fois par partie** (couche `fort-unique`, désactivable avec `?unique=0`) :
+  - aucune répétition, même dans un autre univers, en duel ou en défi bonus ;
+  - le bouton « Rejouer » est retiré. Il pouvait aussi figer le jeu, car il transmettait un niveau de difficulté invalide ;
+  - chaque salle du Gardien fait jouer son propre jeu, et l'atelier n'apparaît plus dans les autres univers.
+- `outils/verifier.js` contrôle désormais :
+  - l'essai unique avec retour automatique ;
+  - l'absence de répétition sur plusieurs parties simulées ;
+  - l'autonomie du Gardien.

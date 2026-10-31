@@ -1,10 +1,10 @@
 {
- "version": "2026-10-31 21:38",
+ "version": "2026-10-31 22:43",
  "nouveautes": [
+  "Le Gardien est autonome : il bâtit ses salles et installe les mises à jour lui-même",
+  "Chaque salle du Gardien a un seul jeu inédit, essayé une fois puis retour au Fort",
+  "Une épreuve n'apparaît qu'une fois par partie, tous univers confondus",
   "Fêtes plus vivantes : ciel, brume, neige ou feux d'artifice selon la saison",
-  "Les habitants se déguisent et ont une réplique de saison",
-  "Chasse de saison : 5 objets cachés dans le Fort, un titre à gagner",
-  "Sauvegarde partagée entre PC et mobile : relie tes appareils avec un QR code",
-  "Sur PC : raccourcis clavier, carte plus grande sur grand écran, décor en relief"
+  "Les habitants se déguisent et ont une réplique de saison"
  ]
 }

@@ -149,10 +149,12 @@ async function controlerFormat(navigateur, vp) {
     await new Promise((r) => setTimeout(r, 1100));
     const enEssai = document.body.dataset.screen === 'epreuve'
       && !!document.getElementById('bandeauEssai');
-    const q = document.querySelector('#bandeauEssai .be-quitter');
-    if (q) q.click();
-    await new Promise((r) => setTimeout(r, 700));
+    // un seul test : l'épreuve terminée, le Gardien ramène seul au Fort
+    try { resolveChallenge(true); } catch (_) {}
+    await new Promise((r) => setTimeout(r, 3600));
+    const w2 = JSON.parse(localStorage.getItem('fort-propositions-acceptees') || '[]');
     return { enJeu: w.filter((x) => x.compiled).length, panneau, enEssai,
+             unJeu: w2.every((x) => (x.trials || []).length === 1),
              retour: document.body.dataset.screen };
   });
   if (jeux.err) ko(jeux.err);
@@ -160,9 +162,10 @@ async function controlerFormat(navigateur, vp) {
     if (jeux.enJeu < 1) ko('jeu accepte : pas cree immediatement');
     if (!jeux.panneau) ko('jeu accepte : panneau d\'annonce absent');
     if (!jeux.enEssai) ko('jeu accepte : l\'essai ne se lance pas');
-    if (jeux.retour !== 'accueil') ko('jeu accepte : sortie d\'essai incorrecte');
-    if (jeux.enJeu >= 1 && jeux.panneau && jeux.enEssai && jeux.retour === 'accueil')
-      ok('jeu accepte : cree aussitot, essai jouable, retour propre');
+    if (jeux.retour !== 'accueil') ko('essai : pas de retour automatique au Fort apres le test');
+    if (!jeux.unJeu) ko('salle du Gardien : plus d\'un jeu propose');
+    if (jeux.enJeu >= 1 && jeux.panneau && jeux.enEssai && jeux.retour === 'accueil' && jeux.unJeu)
+      ok('salle du Gardien : un seul jeu, un seul essai, retour automatique');
   }
 
   /* 7 — anti-clignotement : fond sombre des la premiere image */
@@ -218,6 +221,55 @@ async function controlerFormat(navigateur, vp) {
   if (meca.rebaptises.length) ko('jeux forges : anciens jeux rebaptises (' + meca.rebaptises.join(', ') + ')');
   else ok('jeux forges : uniquement des jeux inedits, aucun ancien jeu rebaptise');
 
+
+  /* 9 — une epreuve ne revient jamais deux fois dans une partie (univers, duel, bonus) */
+  const uni = await page.evaluate(async () => {
+    localStorage.setItem('fort-propositions-acceptees', JSON.stringify([
+      { universe: 'Salle U', emoji: '🧪', compiled: true, trials: [{ name: 'R', icon: 'x', mech: 'runes' }] }]));
+    try { registerAcceptedProposals(); } catch (_) {}
+    let doublons = 0; const exemples = [];
+    for (let p = 0; p < 6; p++) {
+      state.mode = 'solo'; state.solo = newRun(8, 'T', false); const run = state.solo, vus = [];
+      for (let i = 0; i < 8; i++) {
+        state._universe = nextUniverse(run);
+        const c = genChallenge(run);
+        try { launchChallenge(c); } catch (_) {}
+        try { stopActiveTimer(); } catch (_) {}
+        const a = c.isDuel ? c : state.activeChallenge;
+        vus.push(a.kind + (a.kind === 'atelier' ? ':' + a.data.mech : ''));
+        run.doneCount++;
+      }
+      state.bonusMode = true;
+      try { launchChallenge(buildChallenge(vus[0].split(':')[0], run, 3)); } catch (_) {}
+      try { stopActiveTimer(); } catch (_) {}
+      vus.push(state.activeChallenge.kind + (state.activeChallenge.kind === 'atelier' ? ':' + state.activeChallenge.data.mech : ''));
+      state.bonusMode = false;
+      const d = vus.length - new Set(vus).size;
+      if (d) { doublons += d; exemples.push(vus.join(',')); }
+    }
+    try { go('accueil'); } catch (_) {}
+    return { doublons, exemples, rejouer: getComputedStyle(document.documentElement).getPropertyValue('--x') };
+  });
+  if (uni.doublons) ko('epreuves repetees dans une partie : ' + uni.exemples.slice(0, 2).join(' | '));
+  else ok('chaque epreuve n\'apparait qu\'une fois par partie (univers, duel et bonus compris)');
+
+  /* 10 — le Gardien est autonome : il batit seul une salle, avec un seul jeu inedit */
+  const auto = await page.evaluate(async () => {
+    localStorage.setItem('fort-propositions-acceptees', '[]');
+    localStorage.removeItem('fort-forge-derniere');
+    try { GuardianSpirit.suggestUniverse(true); } catch (e) { return { err: String(e) }; }
+    await new Promise((r) => setTimeout(r, 900));
+    const w = JSON.parse(localStorage.getItem('fort-propositions-acceptees') || '[]');
+    const t = document.getElementById('gardienToast');
+    return { salles: w.length, jeux: w[0] ? (w[0].trials || []).length : 0,
+             demande: !!(t && t.querySelector('[data-gp-accept],[data-gp-decline]')),
+             essai: !!(t && t.querySelector('[data-forge-essai]'))
+               || (GuardianSpirit.journal || []).some((e) => /d.office/.test(e.msg || '')) };
+  });
+  if (auto.err) ko('autonomie : ' + auto.err);
+  else if (auto.salles !== 1 || auto.jeux !== 1 || auto.demande || !auto.essai)
+    ko('autonomie du Gardien : ' + JSON.stringify(auto));
+  else ok('le Gardien batit seul sa salle (un seul jeu inedit, sans demander)');
   await page.close();
 }
 
