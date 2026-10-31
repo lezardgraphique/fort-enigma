@@ -720,12 +720,12 @@ def intro(S):
     S.halo(vx, a0[1] - dh * .4, dw * .9, '#9aa6ff', .35, 'b4')
     # mur du fond autour de la porte
     fb = [Pj(XL, 0, ZF), Pj(XL, HV, ZF), Pj(XR, HV, ZF), Pj(XR, 0, ZF)]
-    S.a('<path d="M%s Z %s" fill="#2a2838" fill-rule="evenodd"/>' % ('M' + ' L'.join('%.1f %.1f' % q for q in fb), d_ouv))
+    S.a('<path d="M%s Z %s" fill="#3a3248" fill-rule="evenodd"/>' % ('M' + ' L'.join('%.1f %.1f' % q for q in fb), d_ouv))
     S.runes(a0[0] - dw * .1, a1[1] - U * .015, dw * 1.2, 7, U * .006, '#ffd36b')
     # murs latéraux, voûte et sol (perspective)
     for side, X in ((-1, XL), (1, XR)):
-        S.poly([Pj(X, 0, 1.0), Pj(X, HV, 1.0), Pj(X, HV, ZF), Pj(X, 0, ZF)], S.lin([(0, '#1a1824'), (1, '#2e2c3e')], 0 if side < 0 else 1, 0, 1 if side < 0 else 0, 0))
-    S.poly([Pj(XL, 0, 1.0), Pj(XR, 0, 1.0), Pj(XR, 0, ZF), Pj(XL, 0, ZF)], S.lin([(0, '#3a3448'), (1, '#121018')]))
+        S.poly([Pj(X, 0, 1.0), Pj(X, HV, 1.0), Pj(X, HV, ZF), Pj(X, 0, ZF)], S.lin([(0, '#221c2a'), (1, '#4a4058')], 0 if side < 0 else 1, 0, 1 if side < 0 else 0, 0))
+    S.poly([Pj(XL, 0, 1.0), Pj(XR, 0, 1.0), Pj(XR, 0, ZF), Pj(XL, 0, ZF)], S.lin([(0, '#4a3e52'), (1, '#0e0b18')]))
     # voûte en berceau : courbes successives + ciel de constellations peint
     vault = []
     for k in range(0, 41):
@@ -762,25 +762,46 @@ def intro(S):
     for x in (-1.5, -.75, 0, .75, 1.5):
         S.a('<polyline points="%s" fill="none" stroke="#0a0810" stroke-width="%.1f" opacity=".6"/>' % (pts([Pj(x, 0, 1.0), Pj(x, 0, ZF)]), U * .002))
     S.poly([Pj(-.9, 0, ZF), Pj(.9, 0, ZF), Pj(1.6, 0, 1.2), Pj(-1.6, 0, 1.2)], '#9aa6ff', 'opacity=".1" filter="url(#b3)"')
-    # les portes des mondes, 5 de chaque côté, avec torches entre elles
-    for i, z in enumerate((3.0, 4.4, 6.0, 7.8, 9.8)):
+    # les portes des mondes : de vraies arches de pierre (comme la porte du jeu)
+    # qui laissent voir chaque monde tel qu'on le retrouvera dans la partie
+    import base64, io
+    from PIL import Image as _I
+    MONDES_PORTES = ['fort', 'foraine', 'steampunk', 'nordique', 'pirate', 'manoir', 'jungle', 'desert', 'neon', 'nocturne']
+    def vue(u):
+        im = _I.open('out/%s_P.webp' % u).convert('RGB').resize((430, 683), _I.LANCZOS)
+        bf = io.BytesIO(); im.save(bf, 'JPEG', quality=86); return 'data:image/jpeg;base64,' + base64.b64encode(bf.getvalue()).decode()
+    for i, z in reversed(list(enumerate((3.0, 4.4, 6.0, 7.8, 9.8)))):
         for side, X in ((-1, XL), (1, XR)):
-            col, kind = PORTES[i * 2 + (0 if side < 0 else 1)]
+            idx = i * 2 + (0 if side < 0 else 1)
+            col, kind = PORTES[idx]
             za, zb = z - .55, z + .55
             q = [Pj(X, 0, za), Pj(X, 2.4, za), Pj(X, 2.4, zb), Pj(X, 0, zb)]
             top = Pj(X, 3.0, z)
             d = 'M%.1f %.1fL%.1f %.1fQ%.1f %.1f %.1f %.1fL%.1f %.1fZ' % (q[0][0], q[0][1], q[1][0], q[1][1], top[0], top[1] - (q[1][1] - top[1]) * .2, q[2][0], q[2][1], q[3][0], q[3][1])
-            S.path(d, 'none', 'stroke="#4a4058" stroke-width="%.1f"' % max(3, f / z * .08))
-            S.path(d, S.lin([(0, '#0e0b18'), (1, col, .45)]))
-            S.poly([Pj(X * .95, 0, za), Pj(X * .95, 0, zb), Pj(X * .4, 0, zb), Pj(X * .4, 0, za)], col, 'opacity=".18" filter="url(#b3)"')
-            S.path(d, 'none', 'stroke="%s" stroke-width="%.1f" opacity=".5" filter="url(#b1)"' % (col, max(2, f / z * .06)))
-            S.path(d, 'none', 'stroke="%s" stroke-width="%.1f"' % (col, max(1, f / z * .015)))
-            c = Pj(X, 1.5, z)
-            S.halo(c[0], c[1], f / z * .5, col, .2, 'b3')
-            embleme(S, c[0], c[1], f / z * .4, kind, col)
+            ep = f / z
+            # lumière du monde qui se répand sur le sol devant la porte
+            S.poly([Pj(X * .95, 0, za), Pj(X * .95, 0, zb), Pj(X * .35, 0, zb + .3), Pj(X * .35, 0, za - .3)], col, 'opacity=".22" filter="url(#b3)"')
+            # le monde vu par l'ouverture (perspective du mur)
+            cid = S.id('porte'); S.defs.append('<clipPath id="%s"><path d="%s"/></clipPath>' % (cid, d))
+            if side < 0: p00, p10, p01 = Pj(X, 3.2, za), Pj(X, 3.2, zb), Pj(X, -.4, za)
+            else: p00, p10, p01 = Pj(X, 3.2, zb), Pj(X, 3.2, za), Pj(X, -.4, zb)
+            iw, ih = 430, 683 * .6
+            mat = 'matrix(%.5f %.5f %.5f %.5f %.2f %.2f)' % ((p10[0] - p00[0]) / iw, (p10[1] - p00[1]) / iw, (p01[0] - p00[0]) / ih, (p01[1] - p00[1]) / ih, p00[0], p00[1])
+            S.a('<g clip-path="url(#%s)"><image href="%s" x="0" y="0" width="430" height="683" preserveAspectRatio="none" transform="%s"/>' % (cid, vue(MONDES_PORTES[idx]), mat))
+            S.path(d, S.lin([(0, '#0e0b18', .55), (.35, '#0e0b18', .1), (1, col, .18)]))
+            S.a('</g>')
+            # liseré magique du seuil, couleur du monde
+            S.path(d, 'none', 'stroke="%s" stroke-width="%.1f" opacity=".55" filter="url(#b1)"' % (col, max(2, ep * .05)))
+            S.path(d, 'none', 'stroke="%s" stroke-width="%.1f" opacity=".9"' % (col, max(1, ep * .012)))
+            # encadrement de pierre (voussoirs) et clé de voûte runique
+            S.path(d, 'none', 'stroke="#4a4058" stroke-width="%.1f" stroke-dasharray="%.1f %.1f" opacity=".95"' % (max(3, ep * .1), max(4, ep * .12), max(1, ep * .015)))
+            k = Pj(X, 3.15, z)
+            S.circ(k[0], k[1], max(3, ep * .1), '#5a5068')
+            S.halo(k[0], k[1], ep * .2, '#ffd36b', .4, 'b2')
+            embleme(S, k[0], k[1], max(6, ep * .14), kind, '#ffd36b')
             if i < 4:
                 t = Pj(X, 2.1, z + .9)
-                S.lueur(t[0], t[1], f / (z + .9) * .9, '#ffb347', .5)
+                S.lueur(t[0], t[1], f / (z + .9) * 1.1, '#ffb347', .6)
                 S.torche(t[0], t[1], f / (z + .9) * .35)
     # le Gardien à la lanterne, de dos, au milieu du hall
     gz = 5.2; gx, gy = Pj(.35, 0, gz); s = f / gz
