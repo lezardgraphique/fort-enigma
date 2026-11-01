@@ -270,6 +270,21 @@ async function controlerFormat(navigateur, vp) {
   else if (auto.salles !== 1 || auto.jeux !== 1 || auto.demande || !auto.essai)
     ko('autonomie du Gardien : ' + JSON.stringify(auto));
   else ok('le Gardien batit seul sa salle (un seul jeu inedit, sans demander)');
+
+  /* 11 — chaque entrée du menu ☰ ouvre bien quelque chose (ex. Registre du Fort hors partie) */
+  const menu = await page.evaluate(async () => {
+    try { go('accueil'); } catch (_) {}
+    await new Promise((r) => setTimeout(r, 400));
+    const b = document.getElementById('fm-bouton'); if (!b) return { err: 'menu absent' };
+    b.click(); await new Promise((r) => setTimeout(r, 200));
+    const reg = document.getElementById('rg-menu'); if (!reg) return { err: 'entrée Registre absente' };
+    reg.click(); await new Promise((r) => setTimeout(r, 300));
+    const ok = !!document.getElementById('rg-panneau');
+    try { window.FortRegistre.fermer(); } catch (_) {}
+    return { ok };
+  });
+  if (menu.err || !menu.ok) ko('menu ☰ : le Registre du Fort ne s\'ouvre pas' + (menu.err ? ' (' + menu.err + ')' : ''));
+  else ok('menu ☰ : le Registre du Fort s\'ouvre, en partie comme hors partie');
   await page.close();
 }
 

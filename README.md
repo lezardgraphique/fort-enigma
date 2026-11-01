@@ -699,3 +699,19 @@ Le Gardien veille désormais sur le Fort **sans joueur ni développeur** :
 - Les sources s'affichent sous sa réponse, et le joueur reste dans le jeu.
 - Si la recherche web n'est pas activée sur le compte Anthropic, ou si elle est trop lente, le Gardien répond sans elle.
 - Coût : environ 10 $ pour 1 000 recherches, en plus des jetons.
+
+## Registre du Fort
+
+☰ → « Registre du Fort » ouvre un vrai registre, partout (couche `fort-registre`, désactivable avec `?registre=0`) :
+
+- **En partie** :
+  - l'univers et la salle en cours (n / total) ;
+  - le trousseau de clés gagnées et perdues ;
+  - les doublons ;
+  - les épreuves déjà franchies.
+- **Toujours** :
+  - ta légende (parties jouées, coffres ouverts, record, niveau, titres) ;
+  - la chasse de saison ;
+  - les salles bâties par le Gardien, avec leur jeu.
+
+Auparavant, cette entrée ne faisait qu'afficher un petit encart, invisible hors partie : rien ne se passait sur l'accueil. `outils/verifier.js` vérifie désormais que le Registre s'ouvre.
