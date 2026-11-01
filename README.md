@@ -715,3 +715,7 @@ Le Gardien veille désormais sur le Fort **sans joueur ni développeur** :
   - les salles bâties par le Gardien, avec leur jeu.
 
 Auparavant, cette entrée ne faisait qu'afficher un petit encart, invisible hors partie : rien ne se passait sur l'accueil. `outils/verifier.js` vérifie désormais que le Registre s'ouvre.
+
+## Entrée dans les mondes
+
+La carte de passage d'un univers à l'autre (« Devant toi, la porte de… ») ne se ferme plus toute seule. On n'entre dans le monde qu'en cliquant sur **« Entrer dans … ▸ »**, ou avec Entrée ou Espace au clavier. Un toucher à côté ne fait rien, et la carte se referme si l'on revient à un menu.
