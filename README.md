@@ -366,10 +366,7 @@ absentes du code). Pour le contrôler :
    GitHub). Les deux doivent être identiques.
 
 **Adresse du jeu : https://fort-enigma.netlify.app** — c'est la seule à
-utiliser et à partager. Les adresses de type `main--fort-enigma.netlify.app`
-(branche) ou `<id>--fort-enigma.netlify.app` (déploiement) affichées par
-Netlify répondent « Site not found » pour ce projet ; elles sont redirigées
-vers l'adresse principale (voir `netlify.toml`).
+utiliser et à partager.
 
 ---
 
