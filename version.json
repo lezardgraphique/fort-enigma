@@ -1,10 +1,10 @@
 {
- "version": "2026-11-01 07:38",
+ "version": "2026-11-01 08:16",
  "nouveautes": [
+  "Le Fort suit les saisons : automne, hiver, printemps et été entre les fêtes",
+  "Les décorations changent d'elles-mêmes au fil du calendrier, même si le jeu reste ouvert",
   "La vigie du Gardien surveille le Fort toute seule et donne l'alerte en cas de panne",
   "☰ → État du Fort : santé des services, interventions et signalement d'un souci",
-  "Le Gardien consulte le web si besoin et tient une veille des nouveautés du monde des énigmes",
-  "Le Gardien est autonome : il bâtit ses salles et installe les mises à jour lui-même",
-  "Chaque salle du Gardien a un seul jeu inédit, essayé une fois puis retour au Fort"
+  "Le Gardien consulte le web si besoin et tient une veille des nouveautés du monde des énigmes"
  ]
 }

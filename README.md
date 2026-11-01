@@ -719,3 +719,22 @@ Auparavant, cette entrée ne faisait qu'afficher un petit encart, invisible hors
 ## Entrée dans les mondes
 
 La carte de passage d'un univers à l'autre (« Devant toi, la porte de… ») ne se ferme plus toute seule. On n'entre dans le monde qu'en cliquant sur **« Entrer dans … ▸ »**, ou avec Entrée ou Espace au clavier. Un toucher à côté ne fait rien, et la carte se referme si l'on revient à un menu.
+
+## Saisons et changement automatique des décorations
+
+- **Entre les fêtes, le Fort suit les saisons** :
+
+  | Saison | Période | Décor |
+  |---|---|---|
+  | Automne | 23 sept. → 30 nov. | feuilles qui tombent, guirlande de feuilles, citrouille, brume dorée |
+  | Hiver | 1er déc. → 19 mars | flocons, bonhomme de neige, neige posée, givre aux coins de la carte |
+  | Printemps | 20 mars → 20 juin | pétales, pots de fleurs, guirlande pastel, rais de soleil |
+  | Été | 22 juin → 22 sept. | lucioles, soleil, lampion, lumière chaude |
+
+  Les fêtes gardent la priorité sur les saisons pendant leurs dates.
+- **Changement automatique** :
+  - le Fort revérifie le calendrier toutes les 10 minutes et à chaque retour sur l'onglet ;
+  - quand la fête ou la saison change, le Gardien l'annonce (« Le Fort change de parure : Hiver au Fort ») et recharge le décor ;
+  - ce rechargement n'a lieu que sur un menu, jamais en pleine partie, et une seule fois par session ;
+  - une fête imposée par l'adresse (`?fete=…`) ne change pas.
+- Pour tester une saison : `?fete=automne`, `hiver`, `printemps` ou `ete`.
