@@ -820,6 +820,10 @@ Couche `fort-guide`, désactivable avec `?guide=0`.
 
 Le temps de chaque monde est **tiré au hasard à chaque entrée** selon son climat et la saison. Il change ensuite à **intervalles irréguliers**, entre 1 et 2 minutes et demie. Sur le port, la vraie météo du joueur devient seulement plus probable, elle n'est plus imposée. Le temps annoncé sur la carte d'entrée est toujours celui que l'on trouve en entrant.
 
+## Météo : fond propre
+
+Les couches de météo inactives sont retirées de l'affichage (et non plus seulement rendues transparentes), ce qui supprime les lignes « fantômes » vues sur certains téléphones. Le vent et le sable sont dessinés en courtes rafales répétées, sans lignes sur toute la largeur. L'orage ne déclenche plus l'éclair blanc plein écran du décor.
+
 ## Bouton « Aide » : la solution
 
 Couche `fort-aide`, désactivable avec `?aide=0`.

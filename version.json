@@ -1,10 +1,11 @@
 {
- "version": "2026-11-02 20:50",
+ "version": "2026-11-02 21:09",
  "nouveautes": [
+  "Plus de longues lignes orange sur le fond : le vent et le sable soufflent en courtes rafales, et les effets de météo inactifs disparaissent vraiment",
+  "Le compteur de la fête (ex. 0/5) passe proprement sous la bannière sur téléphone",
+  "Orage sans éclair blanc plein écran",
   "Bouton « 💡 Aide » dans chaque épreuve : le Gardien montre la solution (3 doublons)",
   "Les épreuves montent d'un cran de difficulté",
-  "Le temps est tiré au hasard à chaque entrée dans un monde et change à intervalles irréguliers",
-  "Guide des épreuves : comment jouer à chaque jeu, avec l'astuce du Gardien",
-  "« ❔ Comment jouer » dans chaque épreuve, ouvert d'office la première fois"
+  "Le temps est tiré au hasard à chaque entrée dans un monde et change à intervalles irréguliers"
  ]
 }
