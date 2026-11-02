@@ -587,7 +587,7 @@ La première salle s'ouvre de la même façon à la fin de l'introduction. Les a
 
 - **Drapeau du donjon** : le bord droit du fanion est désormais fixé au mât et la pointe flotte au vent.
 - **Port animé** (couche `fort-persos`, désactivable avec `?persos=0`) : sur les écrans de menu, les auvents des étals ondulent, des passants marchent sur le quai, le Panda tient son étal et le Gardien veille sur son perchoir. Leurs positions viennent des ancres enregistrées au rendu du décor (`peint/out/accueil_*.json`, injectées dans `window.__decorsAncres`).
-- **Les personnages reviennent** : le Gardien, le Panda, le Parieur, le Voleur et les duellistes apparaissent, dessinés et animés (respiration, clignement, lanterne, pièce, clés), avec une bulle tirée de leur **chronique**. Chaque rencontre fait avancer leur histoire, et le compteur est mémorisé dans le navigateur (`fort-chronique`).
+- **Les personnages reviennent** : le Gardien, le Panda, le Parieur et le Voleur apparaissent, dessinés et animés (respiration, clignement, lanterne, pièce, clés), avec une bulle tirée de leur **chronique**. Chaque rencontre fait avancer leur histoire, et le compteur est mémorisé dans le navigateur (`fort-chronique`).
 - **Salle du Coffre** : la chambre forte (arches, runes, coffre sur son estrade, dix serrures) sert de décor à la salle du trésor, à ses transitions et aux écrans bonus.
 - Le Gardien (`gardien-chat.mjs`) connaît la même histoire et reste cohérent avec elle.
 
@@ -629,7 +629,7 @@ La couche `fort-ambiance` complète « Fêtes et saisons » pendant chaque fête
   | Pâques, 1er Mai | rais de soleil |
   | Saint-Valentin | halos roses |
 - **Coins de la carte** : toiles d'araignée et araignée qui descend à Halloween, givre à Noël.
-- **Les habitants se déguisent** : le Gardien, le Panda, le Voleur et les duellistes portent un chapeau de saison.
+- **Les habitants se déguisent** : le Gardien, le Panda et le Voleur portent un chapeau de saison.
 
   | Fête | Chapeau |
   |---|---|
@@ -819,6 +819,10 @@ Couche `fort-guide`, désactivable avec `?guide=0`.
 ## Temps aléatoire
 
 Le temps de chaque monde est **tiré au hasard à chaque entrée** selon son climat et la saison. Il change ensuite à **intervalles irréguliers**, entre 1 et 2 minutes et demie. Sur le port, la vraie météo du joueur devient seulement plus probable, elle n'est plus imposée. Le temps annoncé sur la carte d'entrée est toujours celui que l'on trouve en entrant.
+
+## Personnages : sans duellistes
+
+Les personnages du Fort sont le Gardien, le Panda, le Parieur et le Voleur. Les duellistes ont été retirés : un duel oppose désormais au Gardien ou au Panda (une ancienne partie qui avait tiré les duellistes affronte le Gardien). Avant un duel, c'est l'adversaire réel qui entre en scène, avec sa propre réplique.
 
 ## Météo : fond propre
 

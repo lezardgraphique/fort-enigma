@@ -1,11 +1,10 @@
 {
- "version": "2026-11-02 21:09",
+ "version": "2026-11-02 21:26",
  "nouveautes": [
+  "Les duellistes quittent le Fort : les duels t'opposent au Gardien ou au Panda",
+  "Le Gardien, le Panda, le Parieur et le Voleur sont les personnages du Fort",
   "Plus de longues lignes orange sur le fond : le vent et le sable soufflent en courtes rafales, et les effets de météo inactifs disparaissent vraiment",
   "Le compteur de la fête (ex. 0/5) passe proprement sous la bannière sur téléphone",
-  "Orage sans éclair blanc plein écran",
-  "Bouton « 💡 Aide » dans chaque épreuve : le Gardien montre la solution (3 doublons)",
-  "Les épreuves montent d'un cran de difficulté",
-  "Le temps est tiré au hasard à chaque entrée dans un monde et change à intervalles irréguliers"
+  "Orage sans éclair blanc plein écran"
  ]
 }
