@@ -738,3 +738,55 @@ La carte de passage d'un univers à l'autre (« Devant toi, la porte de… ») n
   - ce rechargement n'a lieu que sur un menu, jamais en pleine partie, et une seule fois par session ;
   - une fête imposée par l'adresse (`?fete=…`) ne change pas.
 - Pour tester une saison : `?fete=automne`, `hiver`, `printemps` ou `ete`.
+
+## Le temps qu'il fait
+
+Couche `fort-meteo`, désactivable avec `?meteo=0` ou dans ⚙️ Réglages PC.
+
+- Chaque monde a son climat, et le temps y change pendant la partie : environ toutes les 3 minutes, il peut évoluer. Par exemple clair → nuageux → pluie → orage → pluie → nuageux, puis un **arc-en-ciel** quand la pluie cesse en journée.
+
+  | Monde | Temps les plus fréquents |
+  |---|---|
+  | La Crique | pluie, orage, vent |
+  | Néon | pluie |
+  | Jungle | pluie, brouillard |
+  | Désert | soleil, **vent de sable** |
+  | Manoir | brouillard, orage |
+  | Nord | neige, vent |
+- **Sur le port de l'accueil**, le temps suit la **vraie météo de chez le joueur** quand elle est connue. Sinon, il suit la saison. En hiver, la pluie se change souvent en neige.
+- Les salles intérieures (Coffre, salles du Gardien) restent à l'abri.
+- La carte d'entrée dans un monde, le Registre et le carnet de route annoncent le temps qu'il fait. Le Gardien commente l'orage, la neige, le brouillard, le vent de sable et l'arc-en-ciel.
+- **Animation** : uniquement transform et opacité, avec des motifs en tuile qui glissent d'une hauteur de motif. L'orage ne gronde que par des éclairs lointains, petits et brefs, jamais en éclairant l'écran.
+- **Version allégée sur téléphone** : un seul rideau de pluie, pas de ronds dans les flaques.
+
+## Sur PC : ce que font les bons jeux PC
+
+- **Échap** ouvre le **Menu du Fort** quand il n'y a rien à fermer, et jamais en pleine épreuve, où le temps continue de courir. Le menu propose :
+  - reprendre ;
+  - le Registre ;
+  - le mode photo ;
+  - les réglages ;
+  - les raccourcis ;
+  - le plein écran ;
+  - l'abandon de la partie, avec confirmation.
+- **⚙️ Réglages PC** (touche O ou menu ☰), chaque réglage étant expliqué au survol :
+  - taille de l'interface : Auto ou de 90 à 150 % ;
+  - carnet de route ;
+  - curseur du Fort (une clé dorée) ;
+  - météo animée ;
+  - compteur d'images (img/s et pire image).
+- **Raccourcis personnalisables** : clique sur la touche, puis appuie sur la nouvelle. Les réglages et les touches suivent la sauvegarde PC ↔ mobile.
+
+  | Touche | Action |
+  |---|---|
+  | F | plein écran |
+  | P | mode photo |
+  | R | Registre |
+  | G | Gardien |
+  | S | sauvegarde |
+  | E | État du Fort |
+  | O | réglages |
+  | ? | aide |
+- **Mode photo** : l'interface s'efface pour admirer le décor, qui suit la souris.
+- **Carnet de route** : sur grand écran et en partie, un encadré en bas à gauche affiche le monde, la salle, le trousseau, les doublons et le temps.
+- **Écrans ultra-larges** : la carte se rapproche du centre.
