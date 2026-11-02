@@ -23,3 +23,6 @@ Thumbs.db
 
 # Local Netlify folder
 .netlify
+
+# le dossier des applications a besoin de son verrou de dépendances (npm ci)
+!portage/package-lock.json
