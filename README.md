@@ -822,7 +822,7 @@ Le temps de chaque monde est **tiré au hasard à chaque entrée** selon son cli
 
 ## Accueil allégé
 
-- La carte d'accueil ne garde que l'essentiel : titre, phrase d'ambiance, horloge, bannière de fête, les trois modes de jeu, Règles / Légendes / Mes cartes et le lien « café ». L'horloge du Fort reste affichée ; la demande de localisation, le compteur de parties et le doublon d'ambiance « Il fait nuit » sont retirés de la carte.
+- La carte d'accueil ne garde que l'essentiel : titre, phrase d'ambiance, horloge et météo, bannière (centrée) de fête, les trois modes de jeu, Règles / Légendes / Mes cartes et le lien « café ». L'horloge et la météo restent affichées côte à côte : la pastille montre le temps qu'il fait sur le Fort (la vraie météo locale si elle est connue), et un toucher dessus ouvre la saisie de la ville. Le compteur de parties et le doublon d'ambiance « Il fait nuit » sont retirés de la carte.
 - **Titres du Gardien**, **Histoire du Fort** et **Qualité graphique** (Max → Auto → Éco, rechargement) passent dans le menu ☰, visibles hors partie seulement.
 - Le **Panda du port** est découpé au niveau du comptoir de son étal : il le tient au lieu de flotter devant.
 - Les **décors vivants** ne réagissent plus sur l'accueil ; ailleurs, la phrase n'apparaît qu'au premier toucher d'un lieu (ensuite, une simple onde).
