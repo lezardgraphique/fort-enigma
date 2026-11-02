@@ -1,5 +1,7 @@
 # Fort Énigma — L'Appel du Gardien
 
+[![Soutenir sur Ko-fi](https://img.shields.io/badge/Ko--fi-Soutenir-FF5E5B?logo=ko-fi&logoColor=white)](https://ko-fi.com/thomaslzg75)
+
 Jeu d'aventure et d'énigmes qui tient dans **un seul fichier HTML**, sans
 serveur ni dépendance : `index.html` s'ouvre directement dans un navigateur.
 
