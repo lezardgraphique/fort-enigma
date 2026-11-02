@@ -820,6 +820,12 @@ Couche `fort-guide`, désactivable avec `?guide=0`.
 
 Le temps de chaque monde est **tiré au hasard à chaque entrée** selon son climat et la saison. Il change ensuite à **intervalles irréguliers**, entre 1 et 2 minutes et demie. Sur le port, la vraie météo du joueur devient seulement plus probable, elle n'est plus imposée. Le temps annoncé sur la carte d'entrée est toujours celui que l'on trouve en entrant.
 
+## Visages et Fil d'Argent
+
+- **Le Contrebandier** (rencontre aux grilles, la nuit) a un portrait dessiné dans la facture du Panda et du Gardien : tricorne galonné, bandeau sur l'œil, cicatrice, pipe fumante, anneau d'or, éclairé par une lanterne (couche `visages.js`, `window.FortVisages`).
+- **Le Voleur des Ombres** remplace son emoji par un portrait (capuche pointue, masque, yeux qui guettent, clé dérobée) ; sa silhouette en pied est redessinée dans le même esprit.
+- **Le Fil d'Argent** est tracé en courbe : l'objet y est accroché par un anneau, la bourse est un vrai dessin noué par son cordon. Le fil ploie sous le poids, se dilate et rougit en chauffant, s'amincit en fondant, vibre en surchauffe puis se rompt en deux.
+
 ## Personnages : sans duellistes
 
 Les personnages du Fort sont le Gardien, le Panda, le Parieur et le Voleur. Les duellistes ont été retirés : un duel oppose désormais au Gardien ou au Panda (une ancienne partie qui avait tiré les duellistes affronte le Gardien). Avant un duel, c'est l'adversaire réel qui entre en scène, avec sa propre réplique.
