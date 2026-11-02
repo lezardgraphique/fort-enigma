@@ -1,10 +1,10 @@
 {
- "version": "2026-11-02 21:57",
+ "version": "2026-11-02 22:18",
  "nouveautes": [
+  "Aucune clé gagnée : le Gardien te raccompagne à l'accueil, sans passer par le Coffre",
+  "Le Coffre ouvert renferme toujours au moins 5 doublons (jusqu'à 7 si tu es rapide)",
+  "Touche le décor : il réagit selon le monde et la météo, et cache parfois un doublon",
   "Le Contrebandier a enfin un visage : tricorne, bandeau, pipe et anneau d'or",
-  "Le Voleur des Ombres redessiné : capuche, masque, yeux qui guettent et clé dérobée",
-  "Fil d'Argent : la bourse est nouée au fil, qui ploie, rougit et s'étire sous la chauffe puis se rompt",
-  "Les duellistes quittent le Fort : les duels t'opposent au Gardien ou au Panda",
-  "Le Gardien, le Panda, le Parieur et le Voleur sont les personnages du Fort"
+  "Le Voleur des Ombres redessiné : capuche, masque, yeux qui guettent et clé dérobée"
  ]
 }

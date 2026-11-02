@@ -820,6 +820,12 @@ Couche `fort-guide`, désactivable avec `?guide=0`.
 
 Le temps de chaque monde est **tiré au hasard à chaque entrée** selon son climat et la saison. Il change ensuite à **intervalles irréguliers**, entre 1 et 2 minutes et demie. Sur le port, la vraie météo du joueur devient seulement plus probable, elle n'est plus imposée. Le temps annoncé sur la carte d'entrée est toujours celui que l'on trouve en entrant.
 
+## Fin de partie et décors vivants
+
+- **Aucune clé gagnée** : en solo, l'écran « Le Destin est scellé » propose seulement **🏠 Retour à l'accueil** (la partie est inscrite au Tableau des légendes comme un échec). En soirée ou au plateau, l'équipe passe son tour de Coffre.
+- **Le Coffre ouvert renferme un gain** : 5 doublons, +1 s'il reste plus de 30 s au sablier, +2 s'il en reste plus de 60. Le gain s'affiche sur l'écran de victoire.
+- **Décors vivants** : toucher le décor (hors carte et boutons) sur l'accueil, les entrées de monde et les écrans de choix fait réagir la scène : une onde, des éclats et une phrase propre à chaque univers et à la météo. Une fois par lieu visité, il y a 30 % de chances d'y trouver un doublon caché (3 par partie au plus, pas en mode plateau). Couche `fin.js`, `window.FortFin`.
+
 ## Visages et Fil d'Argent
 
 - **Le Contrebandier** (rencontre aux grilles, la nuit) a un portrait dessiné dans la facture du Panda et du Gardien : tricorne galonné, bandeau sur l'œil, cicatrice, pipe fumante, anneau d'or, éclairé par une lanterne (couche `visages.js`, `window.FortVisages`).
