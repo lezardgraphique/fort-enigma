@@ -1,10 +1,10 @@
 {
- "version": "2026-11-02 20:31",
+ "version": "2026-11-02 20:50",
  "nouveautes": [
+  "Bouton « 💡 Aide » dans chaque épreuve : le Gardien montre la solution (3 doublons)",
+  "Les épreuves montent d'un cran de difficulté",
   "Le temps est tiré au hasard à chaque entrée dans un monde et change à intervalles irréguliers",
   "Guide des épreuves : comment jouer à chaque jeu, avec l'astuce du Gardien",
-  "« ❔ Comment jouer » dans chaque épreuve, ouvert d'office la première fois",
-  "Fort Énigma existe en application : PC (Windows, macOS, Linux) et Android",
-  "Le temps change dans les mondes : pluie, orage, neige, brouillard, vent, arc-en-ciel"
+  "« ❔ Comment jouer » dans chaque épreuve, ouvert d'office la première fois"
  ]
 }

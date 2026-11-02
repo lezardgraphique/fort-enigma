@@ -819,3 +819,40 @@ Couche `fort-guide`, désactivable avec `?guide=0`.
 ## Temps aléatoire
 
 Le temps de chaque monde est **tiré au hasard à chaque entrée** selon son climat et la saison. Il change ensuite à **intervalles irréguliers**, entre 1 et 2 minutes et demie. Sur le port, la vraie météo du joueur devient seulement plus probable, elle n'est plus imposée. Le temps annoncé sur la carte d'entrée est toujours celui que l'on trouve en entrant.
+
+## Bouton « Aide » : la solution
+
+Couche `fort-aide`, désactivable avec `?aide=0`.
+
+Dans chaque épreuve, un seul bouton **💡 Aide** montre la solution. Il coûte **3 doublons**.
+
+| Épreuves | Ce que montre l'aide |
+|---|---|
+| Énigme, Écho | la bonne réponse, surlignée |
+| Calcul, Anagramme | le résultat, le mot |
+| Mémoire | la séquence |
+| Sceau | combien de fois tourner chaque roue |
+| Poids | les poids à prendre, surlignés |
+| Marché | l'ordre des nombres |
+| Astres | le nombre d'étoiles dorées |
+| Pari du Panda | la carte la plus forte |
+| Bingo | tes numéros qui vont sortir |
+| Morpion | la case à jouer |
+| Course, arbalète, fil d'argent, équilibre, lueurs, auto-tamponneuses | la technique exacte, avec les chiffres utiles |
+
+Pour les jeux de la Forge, l'aide calcule la vraie solution :
+
+| Jeu | Méthode | Ce que montre l'aide |
+|---|---|---|
+| Runes | calcul exact (algèbre linéaire) | les runes à toucher |
+| Mosaïque | recherche du plus court chemin | les pièces à faire glisser |
+| Dédale | plus court chemin | le chemin, surligné |
+| Trois piliers | suite de coups optimale | les coups à jouer |
+| Conduits | solution de la grille | rotations à faire, case par case |
+| Miroirs | solution de la grille | les miroirs à tourner |
+| Tableau | solution de la grille | les cases à remplir |
+| Sceaux | solution de la grille | le sceau de chaque case |
+
+Chaque solution a été suivie jusqu'à la victoire dans les tests.
+
+Comme la solution est toujours à portée de main, les épreuves **montent d'un cran de difficulté**. Le guide des épreuves reste disponible dans le menu ☰.
