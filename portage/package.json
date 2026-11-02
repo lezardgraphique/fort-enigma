@@ -19,7 +19,7 @@
     "@capacitor/ios": "8.5.3"
   },
   "devDependencies": {
-    "@capacitor/cli": "8.5.3",
+    "@capacitor/cli": "8.6.0",
     "@tauri-apps/cli": "2.12.3"
   }
 }
