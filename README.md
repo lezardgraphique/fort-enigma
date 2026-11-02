@@ -800,3 +800,22 @@ Le dossier `portage/` emballe le jeu en applications installables, sans le réé
 Pour les construire : onglet **Actions** de GitHub → **Applications (PC et Android)** → **Run workflow**, puis récupérer les installateurs dans la rubrique « Artifacts ». Tous les détails sont dans `portage/README.md`.
 
 Dans l'application, le jeu est embarqué et marche hors connexion. Le module `fort-natif` envoie les appels aux services en ligne vers le site, et les fonctions Netlify n'acceptent que les origines des applications, grâce à des règles d'accès entre origines (CORS) testées dans `outils/test-securite.mjs`.
+
+## Guide des épreuves
+
+Couche `fort-guide`, désactivable avec `?guide=0`.
+
+- On l'ouvre depuis ☰ → **Guide des épreuves**, avec la touche **H** sur PC, ou depuis les Règles.
+- Il couvre toutes les épreuves du Fort et les 8 jeux de la Forge, avec pour chacune :
+  - le but ;
+  - comment jouer ;
+  - l'astuce du Gardien ;
+  - le moment de la journée où elle apparaît ;
+  - la salle qui l'abrite ;
+  - le nombre de parties où tu l'as jouée.
+- On peut chercher par nom et filtrer : épreuves du Fort, jeux de la Forge, jamais jouées.
+- **Dans chaque épreuve**, le bouton « ❔ Comment jouer » ouvre l'aide de cette épreuve dans la carte, sans la couvrir. Le sablier continue de tourner. La toute première fois qu'on rencontre une épreuve, l'aide s'ouvre d'elle-même.
+
+## Temps aléatoire
+
+Le temps de chaque monde est **tiré au hasard à chaque entrée** selon son climat et la saison. Il change ensuite à **intervalles irréguliers**, entre 1 et 2 minutes et demie. Sur le port, la vraie météo du joueur devient seulement plus probable, elle n'est plus imposée. Le temps annoncé sur la carte d'entrée est toujours celui que l'on trouve en entrant.

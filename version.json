@@ -1,10 +1,10 @@
 {
- "version": "2026-11-02 17:55",
+ "version": "2026-11-02 20:31",
  "nouveautes": [
+  "Le temps est tiré au hasard à chaque entrée dans un monde et change à intervalles irréguliers",
+  "Guide des épreuves : comment jouer à chaque jeu, avec l'astuce du Gardien",
+  "« ❔ Comment jouer » dans chaque épreuve, ouvert d'office la première fois",
   "Fort Énigma existe en application : PC (Windows, macOS, Linux) et Android",
-  "Le temps change dans les mondes : pluie, orage, neige, brouillard, vent, arc-en-ciel",
-  "Sur le port, la météo suit le vrai temps de chez toi",
-  "Sur PC : menu du Fort (Échap), réglages, raccourcis personnalisables, mode photo, carnet de route",
-  "Le Fort suit les saisons : automne, hiver, printemps et été entre les fêtes"
+  "Le temps change dans les mondes : pluie, orage, neige, brouillard, vent, arc-en-ciel"
  ]
 }
