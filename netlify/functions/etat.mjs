@@ -4,7 +4,7 @@
 // Données publiques et sans secret : textes de la vigie et carnet de
 // veille du web. Mis en cache une minute.
 // ============================================================
-import { json, magasin } from "../lib/vigie.mjs";
+import { json, magasin, preflight, avecCors } from "../lib/vigie.mjs";
 
 export const config = { path: "/api/etat", rateLimit: { windowLimit: 30, windowSize: 60, aggregateBy: ["ip", "domain"] } };
 
@@ -20,6 +20,7 @@ export async function traiter(req, store) {
 }
 
 export default async (req) => {
-  try { return await traiter(req, await magasin("vigie")); }
+  const p = preflight(req); if (p) return p;
+  try { return avecCors(req, await traiter(req, await magasin("vigie"))); }
   catch (e) { return json({ niveau: "inconnu", problemes: [], veille: null }, 200, "no-store"); }
 };

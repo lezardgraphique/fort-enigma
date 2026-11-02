@@ -9,7 +9,7 @@
 // la vigie horaire (gardien-veille) les analyse et donne l'alerte.
 //   POST /api/rapport  { version, incidents: [{ type, msg, ecran, kind }] }
 // ============================================================
-import { json, origineOk, propre, jour, magasin, modifier } from "../lib/vigie.mjs";
+import { json, origineOk, propre, jour, magasin, modifier, preflight, avecCors } from "../lib/vigie.mjs";
 
 export const config = {
   path: "/api/rapport",
@@ -56,6 +56,7 @@ export async function traiter(req, store) {
 }
 
 export default async (req) => {
-  try { return await traiter(req, await magasin("vigie")); }
+  const p = preflight(req); if (p) return p;
+  try { return avecCors(req, await traiter(req, await magasin("vigie"))); }
   catch (e) { console.error("rapport : échec", e && e.name); return json({ erreur: "indisponible" }, 503); }
 };

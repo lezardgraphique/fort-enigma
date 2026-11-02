@@ -1,0 +1,7 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Le jeu n'utilise aucune API native : aucune permission accordée.",
+  "windows": ["main"],
+  "permissions": []
+}

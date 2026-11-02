@@ -19,6 +19,8 @@
 // fourni avec le site.
 // ============================================================
 
+import { ORIGINES_APP, preflight, avecCors } from "../lib/vigie.mjs";
+
 export const config = {
   rateLimit: { windowLimit: 40, windowSize: 60, aggregateBy: ["ip", "domain"] },
 };
@@ -42,7 +44,7 @@ function origineOk(req) {
   try {
     if (new URL(req.url).origin === o) return true;
   } catch (e) {}
-  return ORIGINES.test(o);
+  return ORIGINES.test(o) || ORIGINES_APP.test(o);
 }
 
 let magasinParDefaut = null;
@@ -104,7 +106,8 @@ export async function traiter(req, store) {
 
 export default async (req) => {
   try {
-    return await traiter(req, await magasin());
+    const p = preflight(req); if (p) return p;
+    return avecCors(req, await traiter(req, await magasin()));
   } catch (e) {
     console.error("sauvegarde : échec", e && e.name);
     return json({ erreur: "service momentanément indisponible" }, 503);

@@ -1,0 +1,25 @@
+{
+  "name": "fort-enigma-app",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Fort Énigma en application : PC (Tauri) et mobile (Capacitor)",
+  "type": "module",
+  "scripts": {
+    "preparer": "node preparer.mjs",
+    "pc": "node preparer.mjs && tauri dev",
+    "pc:construire": "node preparer.mjs && tauri build",
+    "android:creer": "node preparer.mjs && cap add android",
+    "android:construire": "node preparer.mjs && cap sync android && cd android && ./gradlew assembleDebug",
+    "ios:creer": "node preparer.mjs && cap add ios",
+    "ios:synchroniser": "node preparer.mjs && cap sync ios"
+  },
+  "dependencies": {
+    "@capacitor/android": "8.5.3",
+    "@capacitor/core": "8.5.3",
+    "@capacitor/ios": "8.5.3"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "8.5.3",
+    "@tauri-apps/cli": "2.12.3"
+  }
+}

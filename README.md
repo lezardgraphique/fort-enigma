@@ -790,3 +790,13 @@ Couche `fort-meteo`, désactivable avec `?meteo=0` ou dans ⚙️ Réglages PC.
 - **Mode photo** : l'interface s'efface pour admirer le décor, qui suit la souris.
 - **Carnet de route** : sur grand écran et en partie, un encadré en bas à gauche affiche le monde, la salle, le trousseau, les doublons et le temps.
 - **Écrans ultra-larges** : la carte se rapproche du centre.
+
+## Applications (PC et mobile)
+
+Le dossier `portage/` emballe le jeu en applications installables, sans le réécrire :
+- **Tauri 2** pour Windows, macOS et Linux ;
+- **Capacitor 8** pour Android, et iOS sur un Mac.
+
+Pour les construire : onglet **Actions** de GitHub → **Applications (PC et Android)** → **Run workflow**, puis récupérer les installateurs dans la rubrique « Artifacts ». Tous les détails sont dans `portage/README.md`.
+
+Dans l'application, le jeu est embarqué et marche hors connexion. Le module `fort-natif` envoie les appels aux services en ligne vers le site, et les fonctions Netlify n'acceptent que les origines des applications, grâce à des règles d'accès entre origines (CORS) testées dans `outils/test-securite.mjs`.

@@ -1,0 +1,8 @@
+{
+  "appId": "app.netlify.fortenigma",
+  "appName": "Fort Énigma",
+  "webDir": "www",
+  "server": { "androidScheme": "https" },
+  "android": { "allowMixedContent": false, "backgroundColor": "#0f121a" },
+  "ios": { "backgroundColor": "#0f121a", "contentInset": "never" }
+}

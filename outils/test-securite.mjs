@@ -113,5 +113,20 @@ if (!okV) echecs++; console.log((okV ? "  ✓ " : "  ✗ ") + "vigie : détecte 
 const sched = vg.config && vg.config.schedule === "@hourly";
 if (!sched) echecs++; console.log((sched ? "  ✓ " : "  ✗ ") + "vigie : tourne seule toutes les heures");
 
+// ---- application installée (Tauri / Capacitor) : CORS limité à ses origines ----
+async function cors(nom, fn, init, statut, verif) {
+  const r = await fn(new Request("https://fort-enigma.netlify.app/api/x", init)); const ok = r.status === statut && (!verif || verif(r)); if (!ok) echecs++;
+  console.log((ok ? "  ✓ " : "  ✗ ") + "application : " + nom + " → " + r.status);
+}
+reponseApi = () => new Response(JSON.stringify({ content: [{ type: "text", text: "Bonjour" }] }), { status: 200 });
+await cors("pré-vérification depuis l'appli mobile", m.default, { method: "OPTIONS", headers: { origin: "capacitor://localhost" } }, 204, (r) => r.headers.get("access-control-allow-origin") === "capacitor://localhost");
+await cors("pré-vérification depuis un site étranger refusée", m.default, { method: "OPTIONS", headers: { origin: "https://exemple-malveillant.com" } }, 403);
+await cors("réponse lisible par l'appli PC", m.default, { method: "POST", headers: { ...H, origin: "tauri://localhost" }, body: corps(msg) }, 200, (r) => r.headers.get("access-control-allow-origin") === "tauri://localhost");
+await cors("aucun CORS pour un site étranger", m.default, { method: "POST", headers: { ...H, origin: "https://exemple-malveillant.com" }, body: corps(msg) }, 403, (r) => !r.headers.get("access-control-allow-origin"));
+const vl = await import(new URL("../netlify/lib/vigie.mjs", import.meta.url));
+const pf = vl.preflight(new Request("https://f/api/rapport", { method: "OPTIONS", headers: { origin: "http://tauri.localhost" } }));
+const okp = pf && pf.status === 204 && pf.headers.get("access-control-allow-origin") === "http://tauri.localhost"; if (!okp) echecs++;
+console.log((okp ? "  ✓ " : "  ✗ ") + "application : services de la vigie et de la sauvegarde ouverts à l'appli");
+
 console.log(echecs ? `\n${echecs} vérification(s) de sécurité en échec.` : "\nSécurité de la fonction : tout est conforme.");
 process.exit(echecs ? 1 : 0);

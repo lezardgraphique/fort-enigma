@@ -206,6 +206,8 @@ const ORIGINES_OK = [
   /^https:\/\/[a-z0-9-]+--fort-enigma\.netlify\.app$/,
   /^https:\/\/lezardgraphique\.github\.io$/,
   /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/,
+  // l'application installée (Tauri sur PC, Capacitor sur mobile)
+  /^(capacitor:\/\/localhost|https?:\/\/localhost|tauri:\/\/localhost|https?:\/\/tauri\.localhost)$/,
 ];
 const CHAMPS_CONTEXTE = {
   ecran: "s", univers: "s", cles: "s", pieces: "n", ferveur: "n", defi: "s", horsligne: "b",
@@ -291,6 +293,18 @@ async function forge(apiKey, payload) {
 }
 
 export default async (req) => {
+  const o = req.headers.get("origin") || "";
+  const app = /^(capacitor:\/\/localhost|https?:\/\/localhost|tauri:\/\/localhost|https?:\/\/tauri\.localhost)$/.test(o);
+  if (req.method === "OPTIONS") {
+    return app ? new Response(null, { status: 204, headers: { "access-control-allow-origin": o, "access-control-allow-methods": "POST", "access-control-allow-headers": "content-type", "access-control-max-age": "86400", vary: "Origin" } }) : new Response(null, { status: 403 });
+  }
+  const r = await repondre(req);
+  if (!app) return r;
+  const h = new Headers(r.headers); h.set("access-control-allow-origin", o); h.append("vary", "Origin");
+  return new Response(r.body, { status: r.status, headers: h });
+};
+
+async function repondre(req) {
   if (req.method !== "POST") {
     return jsonResponse(405, { error: "Méthode non autorisée" });
   }
