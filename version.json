@@ -1,10 +1,10 @@
 {
- "version": "2026-11-02 22:18",
+ "version": "2026-11-02 22:45",
  "nouveautes": [
+  "Accueil allégé : l'essentiel pour jouer, le reste (Titres, Histoire, Qualité) passe dans le menu ☰",
+  "Le Panda tient son étal derrière le comptoir au lieu de flotter devant",
+  "Le décor ne réagit plus sur l'accueil, et ailleurs ne parle qu'au premier toucher",
   "Aucune clé gagnée : le Gardien te raccompagne à l'accueil, sans passer par le Coffre",
-  "Le Coffre ouvert renferme toujours au moins 5 doublons (jusqu'à 7 si tu es rapide)",
-  "Touche le décor : il réagit selon le monde et la météo, et cache parfois un doublon",
-  "Le Contrebandier a enfin un visage : tricorne, bandeau, pipe et anneau d'or",
-  "Le Voleur des Ombres redessiné : capuche, masque, yeux qui guettent et clé dérobée"
+  "Le Coffre ouvert renferme toujours au moins 5 doublons (jusqu'à 7 si tu es rapide)"
  ]
 }
