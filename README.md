@@ -827,6 +827,7 @@ Le temps de chaque monde est **tiré au hasard à chaque entrée** selon son cli
 Sur l'accueil (couche `personnages.js`) :
 - **Étals** : en plus des auvents qui ondulent, une lanterne se balance au coin de chaque étal (allumée la nuit) et un marchand s'active derrière un comptoir sur trois.
 - **Passants** : chacun suit un trajet d'étal en étal et **s'arrête devant les stands** (2 à 5 s), se retourne quand il change de sens, et ne marque le pas qu'en marchant. Trajets calculés à partir des étals du décor (`@keyframes` générées).
+- **Le bâton du Gardien** devient un bâton-clé : bois noueux, bague dorée, surmonté de l'anneau d'une clé qui luit doucement, et tenu par une main (il ne flotte plus à côté de la robe). Même dessin partout où le Gardien apparaît en pied (port, rencontres, planche de BD).
 - **Le Panda** s'affaire derrière son comptoir (il se déplace, se penche, revient) ; **le Gardien** fait sa ronde sur le quai avec des haltes et fait demi-tour, sans masquer l'étal du Panda.
 - Sobriété : trois passants en portrait, lanternes et marchands immobiles sur les appareils modestes, tout s'arrête si « réduire les animations » est demandé.
 
