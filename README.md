@@ -822,6 +822,14 @@ Couche `fort-guide`, désactivable avec `?guide=0`.
 
 Le temps de chaque monde est **tiré au hasard à chaque entrée** selon son climat et la saison. Il change ensuite à **intervalles irréguliers**, entre 1 et 2 minutes et demie. Sur le port, la vraie météo du joueur devient seulement plus probable, elle n'est plus imposée. Le temps annoncé sur la carte d'entrée est toujours celui que l'on trouve en entrant.
 
+## Le marché du port s'anime
+
+Sur l'accueil (couche `personnages.js`) :
+- **Étals** : en plus des auvents qui ondulent, une lanterne se balance au coin de chaque étal (allumée la nuit) et un marchand s'active derrière un comptoir sur trois.
+- **Passants** : chacun suit un trajet d'étal en étal et **s'arrête devant les stands** (2 à 5 s), se retourne quand il change de sens, et ne marque le pas qu'en marchant. Trajets calculés à partir des étals du décor (`@keyframes` générées).
+- **Le Panda** s'affaire derrière son comptoir (il se déplace, se penche, revient) ; **le Gardien** fait sa ronde sur le quai avec des haltes et fait demi-tour, sans masquer l'étal du Panda.
+- Sobriété : trois passants en portrait, lanternes et marchands immobiles sur les appareils modestes, tout s'arrête si « réduire les animations » est demandé.
+
 ## Correctifs : choix respectés et confort sur PC
 
 - **Le jeu choisi est celui qui se lance.** La couche « une épreuve, une seule fois » remplaçait au lancement tout jeu déjà joué, y compris celui que le joueur venait de choisir sur une carte (ex. « Le Pari du Panda » → « Le Fil d'Argent »). Désormais, un jeu choisi sur une carte (épreuve ou défi bonus) n'est jamais remplacé, et la liste des jeux joués est recalée avant de proposer les cartes, qui ne montrent donc plus de jeu déjà fait. Une épreuve annoncée en duel (« Relever le défi ») est aussi celle qui se joue : elle n'est plus échangée au moment de la relancer.
