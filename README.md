@@ -822,6 +822,14 @@ Couche `fort-guide`, désactivable avec `?guide=0`.
 
 Le temps de chaque monde est **tiré au hasard à chaque entrée** selon son climat et la saison. Il change ensuite à **intervalles irréguliers**, entre 1 et 2 minutes et demie. Sur le port, la vraie météo du joueur devient seulement plus probable, elle n'est plus imposée. Le temps annoncé sur la carte d'entrée est toujours celui que l'on trouve en entrant.
 
+## Le livre du Fort : règles, histoire, plateau
+
+Couche `livre.js` (`window.FortLivre`, désactivation `?livre=0`) :
+
+- **Règles du jeu** réécrites et à jour : le but en une phrase, une frise (Entrer → épreuves → défis bonus → Coffre) et neuf chapitres repliables — une partie pas à pas (planche de BD, refus d'une porte), les épreuves (une fois par partie, jeux liés à l'heure, 💡 Aide à 3 doublons, duels), clés et doublons, le Coffre (gain d'au moins 5 doublons, retour sans clé), le Fort la nuit (effraction, Contrebandier), les habitants (portraits), les modes de jeu, un Fort vivant (saisons, météo, décor, menu ☰), astuces. L'ancienne contradiction sur les défis bonus est levée. Le bouton du Guide des épreuves reste en tête.
+- **Histoire du Fort** : neuf chapitres cohérents avec le jeu actuel (le Gardien encapuchonné à la lanterne et au bâton-clé, le Marché du port et le Panda, le Parieur et le Voleur, les grilles de la nuit et le Contrebandier, le Coffre), un portrait par chapitre, le texte entier sans « Lire la suite », des points cliquables, ← → au clavier, et « Jouer en solo » au dernier chapitre.
+- **Mode Plateau** : légende des cases sous le plateau (repliable, l'état est mémorisé), info-bulle sur chaque case, icônes de cases agrandies, nom du joueur réduit au centre ; panneau élargi sur PC.
+
 ## Le Fort fermé la nuit
 
 Le soir et la nuit (`isFortClosed`, 18 h – 6 h), le Fort est réellement fermé à l'image (couche `nuit.js`, `window.FortNuit`) :
