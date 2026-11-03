@@ -822,6 +822,14 @@ Couche `fort-guide`, désactivable avec `?guide=0`.
 
 Le temps de chaque monde est **tiré au hasard à chaque entrée** selon son climat et la saison. Il change ensuite à **intervalles irréguliers**, entre 1 et 2 minutes et demie. Sur le port, la vraie météo du joueur devient seulement plus probable, elle n'est plus imposée. Le temps annoncé sur la carte d'entrée est toujours celui que l'on trouve en entrant.
 
+## Le Fort fermé la nuit
+
+Le soir et la nuit (`isFortClosed`, 18 h – 6 h), le Fort est réellement fermé à l'image (couche `nuit.js`, `window.FortNuit`) :
+
+- **Effraction** (rencontre du Contrebandier aux grilles) : voile de nuit sur la muraille peinte, lune à la place du soleil couchant, porte close (battants de bois, herse baissée, chaîne et cadenas qui se balance, mince lueur sous la porte) et lanterne d'une sentinelle qui fait sa ronde sur le chemin de ronde.
+- **Accueil** : la porte lumineuse du château est remplacée par une petite herse fermée.
+- Repères de porte mesurés sur chaque image (paysage 2048×1152 et portrait 1290×2048), placés avec le même calcul « cover » que le décor. En journée, rien ne change. Désactivation : `?nuitfort=0`.
+
 ## Nouvelle épreuve : le Bonneteau du Panda
 
 Le Panda glisse un doublon sous un de ses bols à thé, le montre une seconde, puis mélange les bols : il faut suivre le bon et le toucher (touches 1 à 4 sur PC). Couche `bonneteau.js` (`makeBonneteau` / `bonneteauHtml` / `attachBonneteau`), branchée dans `ALL_KINDS`, `buildChallenge`, l'affichage et le branchement des épreuves, `KIND_META`, les types de clés et les étiquettes.
