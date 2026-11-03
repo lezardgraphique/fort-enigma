@@ -824,7 +824,12 @@ Le temps de chaque monde est **tiré au hasard à chaque entrée** selon son cli
 
 ## La planche du passage
 
-Avant d'entrer dans un nouveau monde, une courte planche de bande dessinée en trois cases se pose par-dessus l'écran d'entrée (couche `bd.js`, `window.FortBD`) : un récitatif et le Gardien à la lanterne avec une réplique propre au monde, la clé qui tourne dans la serrure avec son onomatopée (« CLAC ! », « KLONK ! »…), puis la porte en bois qui s'ouvre sur l'image du monde et son nom. Environ 4 s ; un toucher ou « Passer › » la ferme. Une seule planche par monde (pas de répétition en revenant sur le même lieu), aucune en mode plateau ni pendant l'essai d'un jeu inédit. Elle ne retarde pas la logique du jeu. Désactivation : `?bd=0` (absente sous navigateur automatisé, sauf `?bd=1`).
+À chaque entrée dans un monde, une planche de bande dessinée en trois cases **remplace la carte d'entrée** (couche `bd.js`, `window.FortBD`) : le Gardien à la lanterne avec un récitatif et une réplique propre au monde, la clé qui tourne dans la serrure avec son onomatopée (« CLAC ! », « KLONK ! »…), puis la porte en bois qui s'ouvre sur l'image du monde et son nom.
+
+- **Entrer dans le monde ▸** (ou la touche Entrée) lance la salle.
+- **Un autre monde ↻** : une fois par salle. Le Gardien choisit alors d'office une autre porte ; la nouvelle planche n'offre plus que « Entrer ».
+- La carte d'entrée du jeu et la carte du seuil sont masquées pendant la planche (la carte reste en place, invisible, pour que la surveillance technique ne croie pas l'écran vide).
+- Pas de planche en mode plateau ni pendant l'essai d'un jeu inédit : la carte classique y reste. Désactivation : `?bd=0` (absente sous navigateur automatisé, sauf `?bd=1`).
 
 ## Accueil allégé
 
