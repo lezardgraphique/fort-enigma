@@ -828,6 +828,7 @@ Le soir et la nuit (`isFortClosed`, 18 h – 6 h), le Fort est réellement ferm�
 
 - **Effraction** (rencontre du Contrebandier aux grilles) : voile de nuit sur la muraille peinte, lune à la place du soleil couchant, porte close (battants de bois, herse baissée, chaîne et cadenas qui se balance, mince lueur sous la porte) et lanterne d'une sentinelle qui fait sa ronde sur le chemin de ronde.
 - **Accueil** : la porte lumineuse du château est remplacée par une petite herse fermée.
+- **Début de partie cohérent** : le soir et la nuit, l'introduction montre le château de l'extérieur, porte close (texte adapté : « Le Fort a fermé ses portes pour la nuit… », bouton « Approcher des grilles 🌙 »). Le bouton mène directement à l'effraction devant la muraille du Fort (et non plus après l'entrée dans un monde). Réussie, « la grille s'entrouvre » puis la planche de BD ouvre le premier monde ; ratée, on est traîné à l'intérieur et la première épreuve devient un duel contre le Gardien. L'effraction a toujours le décor de la muraille (univers « fort ») et la carte de passage du seuil n'y apparaît plus. En journée, rien ne change.
 - Repères de porte mesurés sur chaque image (paysage 2048×1152 et portrait 1290×2048), placés avec le même calcul « cover » que le décor. En journée, rien ne change. Désactivation : `?nuitfort=0`.
 
 ## Nouvelle épreuve : le Bonneteau du Panda
