@@ -822,6 +822,15 @@ Couche `fort-guide`, désactivable avec `?guide=0`.
 
 Le temps de chaque monde est **tiré au hasard à chaque entrée** selon son climat et la saison. Il change ensuite à **intervalles irréguliers**, entre 1 et 2 minutes et demie. Sur le port, la vraie météo du joueur devient seulement plus probable, elle n'est plus imposée. Le temps annoncé sur la carte d'entrée est toujours celui que l'on trouve en entrant.
 
+## Nouvelle épreuve : le Bonneteau du Panda
+
+Le Panda glisse un doublon sous un de ses bols à thé, le montre une seconde, puis mélange les bols : il faut suivre le bon et le toucher (touches 1 à 4 sur PC). Couche `bonneteau.js` (`makeBonneteau` / `bonneteauHtml` / `attachBonneteau`), branchée dans `ALL_KINDS`, `buildChallenge`, l'affichage et le branchement des épreuves, `KIND_META`, les types de clés et les étiquettes.
+
+- **Difficulté** : de 5 à 14 passes de plus en plus rapides (560 → 230 ms), **feintes** dès le niveau 3 (deux bols se croisent puis reviennent), **4e bol** dès le niveau 5. Temps : durée du mélange + 6 à 11 s pour choisir.
+- Le tirage est fait d'avance et la position finale calculée ; un test rejoue 300 tirages pour vérifier qu'elle correspond.
+- **Aide** (💡) : indique le bon bol, qui brille à la fin du mélange. Fiche dans le Guide des épreuves et réponse du Gardien.
+- Le Panda entre en scène pendant l'épreuve. Pas de duel sur cette épreuve. Une seule fois par partie, comme les autres.
+
 ## Le marché du port s'anime
 
 Sur l'accueil (couche `personnages.js`) :
