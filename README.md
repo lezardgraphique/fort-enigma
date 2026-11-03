@@ -822,6 +822,10 @@ Couche `fort-guide`, désactivable avec `?guide=0`.
 
 Le temps de chaque monde est **tiré au hasard à chaque entrée** selon son climat et la saison. Il change ensuite à **intervalles irréguliers**, entre 1 et 2 minutes et demie. Sur le port, la vraie météo du joueur devient seulement plus probable, elle n'est plus imposée. Le temps annoncé sur la carte d'entrée est toujours celui que l'on trouve en entrant.
 
+## La planche du passage
+
+Avant d'entrer dans un nouveau monde, une courte planche de bande dessinée en trois cases se pose par-dessus l'écran d'entrée (couche `bd.js`, `window.FortBD`) : un récitatif et le Gardien à la lanterne avec une réplique propre au monde, la clé qui tourne dans la serrure avec son onomatopée (« CLAC ! », « KLONK ! »…), puis la porte en bois qui s'ouvre sur l'image du monde et son nom. Environ 4 s ; un toucher ou « Passer › » la ferme. Une seule planche par monde (pas de répétition en revenant sur le même lieu), aucune en mode plateau ni pendant l'essai d'un jeu inédit. Elle ne retarde pas la logique du jeu. Désactivation : `?bd=0` (absente sous navigateur automatisé, sauf `?bd=1`).
+
 ## Accueil allégé
 
 - La carte d'accueil ne garde que l'essentiel : titre, phrase d'ambiance, horloge et météo, bannière (centrée) de fête, les trois modes de jeu, Règles / Légendes / Mes cartes et le lien « café ». L'horloge et la météo restent affichées côte à côte : la pastille montre le temps qu'il fait sur le Fort (la vraie météo locale si elle est connue), et un toucher dessus ouvre la saisie de la ville. Le compteur de parties et le doublon d'ambiance « Il fait nuit » sont retirés de la carte.

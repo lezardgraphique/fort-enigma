@@ -1,10 +1,10 @@
 {
- "version": "2026-11-02 23:14",
+ "version": "2026-11-03 07:28",
  "nouveautes": [
+  "Une planche de BD avant chaque nouveau monde : le Gardien, la clé qui tourne, la porte qui s'ouvre",
   "Accueil allégé : l'horloge et la météo du Fort restent à portée de vue ; Titres, Histoire et Qualité passent dans le menu ☰",
   "La bannière de saison (ex. « Automne au Fort ») est centrée",
   "Le Panda tient son étal derrière le comptoir au lieu de flotter devant",
-  "Le décor ne réagit plus sur l'accueil, et ailleurs ne parle qu'au premier toucher",
-  "Aucune clé gagnée : le Gardien te raccompagne à l'accueil, sans passer par le Coffre"
+  "Le décor ne réagit plus sur l'accueil, et ailleurs ne parle qu'au premier toucher"
  ]
 }
