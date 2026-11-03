@@ -1,0 +1,23 @@
+# La branche « staging » reflète « main » à chaque mise à jour.
+# Netlify publie alors une adresse stable qui fonctionne (staging--fort-enigma.netlify.app),
+# avec une vraie vignette de prévisualisation — l'alias « main-- » n'existe pas
+# pour la branche de production.
+name: Miroir staging
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: miroir-staging
+  cancel-in-progress: true
+jobs:
+  miroir:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Pousser main vers staging
+        run: git push --force origin HEAD:refs/heads/staging
