@@ -824,7 +824,7 @@ Le temps de chaque monde est **tiré au hasard à chaque entrée** selon son cli
 
 ## Correctifs : choix respectés et confort sur PC
 
-- **Le jeu choisi est celui qui se lance.** La couche « une épreuve, une seule fois » remplaçait au lancement tout jeu déjà joué, y compris celui que le joueur venait de choisir sur une carte (ex. « Le Pari du Panda » → « Le Fil d'Argent »). Désormais, un jeu choisi sur une carte (épreuve ou défi bonus) n'est jamais remplacé, et la liste des jeux joués est recalée avant de proposer les cartes, qui ne montrent donc plus de jeu déjà fait.
+- **Le jeu choisi est celui qui se lance.** La couche « une épreuve, une seule fois » remplaçait au lancement tout jeu déjà joué, y compris celui que le joueur venait de choisir sur une carte (ex. « Le Pari du Panda » → « Le Fil d'Argent »). Désormais, un jeu choisi sur une carte (épreuve ou défi bonus) n'est jamais remplacé, et la liste des jeux joués est recalée avant de proposer les cartes, qui ne montrent donc plus de jeu déjà fait. Une épreuve annoncée en duel (« Relever le défi ») est aussi celle qui se joue : elle n'est plus échangée au moment de la relancer.
 - **PC** : le panneau grandit dès 1100 px de large (×1,05 en 1366×768, ×1,2 en 1536×864, ×1,45 en 1920×1080 ; l'accueil plafonne à ×1,15 et s'élargit pour garder « Fort Énigma » sur une ligne). Les épreuves et les choix disposent d'un panneau plus large (560 px avant zoom). La salle du Coffre passe en deux colonnes (code à gauche, pavé et « Valider » à droite) : le bouton n'est plus coupé. La planche de BD s'agrandit sur les grands écrans.
 
 ## La planche du passage
