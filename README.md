@@ -855,6 +855,8 @@ Sur l'accueil (couche `personnages.js`) :
 - **Passants** : chacun suit un trajet d'étal en étal et **s'arrête devant les stands** (2 à 5 s), se retourne quand il change de sens, et ne marque le pas qu'en marchant. Trajets calculés à partir des étals du décor (`@keyframes` générées).
 - **Le bâton du Gardien** devient un bâton-clé : bois noueux, bague dorée, surmonté de l'anneau d'une clé qui luit doucement, et tenu par une main (il ne flotte plus à côté de la robe). Même dessin partout où le Gardien apparaît en pied (port, rencontres, planche de BD).
 - **Le Panda** s'affaire derrière son comptoir (il se déplace, se penche, revient) ; **le Gardien** fait sa ronde sur le quai avec des haltes et fait demi-tour, sans masquer l'étal du Panda.
+- **Marche** : les passants ont deux jambes et deux bras qui se balancent en opposition, le corps monte à chaque pas, et tout se fige quand ils s'arrêtent devant un étal (variable `--pp-m`). Certains portent un chapeau.
+- **La nuit** (21 h – 6 h) le marché s'assoupit : moins de passants (2 à 3), plus lents, aux haltes plus longues ; un seul marchand, qui somnole ; le Panda pique du nez et laisse s'envoler des « z » ; le Gardien fait une ronde plus lente ; auvents et lanternes bougent à peine.
 - Sobriété : trois passants en portrait, lanternes et marchands immobiles sur les appareils modestes, tout s'arrête si « réduire les animations » est demandé.
 
 ## Correctifs : choix respectés et confort sur PC
