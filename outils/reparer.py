@@ -114,7 +114,7 @@ def d_accolades(txt):
     Repli sur un comptage approché uniquement si node est introuvable."""
     constats = []
     node = shutil.which("node")
-    for i, m in enumerate(re.finditer(r"<script[^>]*>(.*?)</script>", txt, re.S)):
+    for i, m in enumerate(re.finditer(r"<script[^>]*>(.*?)</script>", txt, re.S | re.I)):
         code = m.group(1)
         if not code.strip():
             continue
@@ -141,8 +141,7 @@ def d_accolades(txt):
         else:
             sans = re.sub(r'"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\'|`(?:\\.|[^`\\])*`'
                           r"|//[^\n]*|/\*.*?\*/", "", code, flags=re.S)
-            sans = re.sub(r"(?<=[=(,:!&|?{;\[\s])/(?:\\.|\[(?:\\.|[^\]\\])*\]|[^/\\\n])+/[gimsuy]*",
-                          "", sans)
+            sans = _sans_regex_literals(sans)
             ecart = sans.count("{") - sans.count("}")
             if ecart:
                 constats.append(
@@ -150,6 +149,40 @@ def d_accolades(txt):
                     "(comptage approché — installez node pour un résultat fiable)"
                 )
     return constats
+
+
+def _sans_regex_literals(code):
+    """Retire les littéraux regex en un seul passage, sans backtracking."""
+    resultat = list(code)
+    i = 0
+    contexte = "=(,:!&|?{;[ \t\r\n"
+    while i < len(code):
+        if code[i] != "/" or i == 0 or code[i - 1] not in contexte:
+            i += 1
+            continue
+        j = i + 1
+        classe = False
+        echappe = False
+        while j < len(code) and code[j] not in "\r\n":
+            caractere = code[j]
+            if echappe:
+                echappe = False
+            elif caractere == "\\":
+                echappe = True
+            elif caractere == "[":
+                classe = True
+            elif caractere == "]" and classe:
+                classe = False
+            elif caractere == "/" and not classe:
+                break
+            j += 1
+        if j < len(code) and code[j] == "/":
+            j += 1
+            while j < len(code) and code[j] in "gimsuy":
+                j += 1
+            resultat[i:j] = " " * (j - i)
+        i = j if j > i + 1 else i + 1
+    return "".join(resultat)
 
 
 def d_important_excessif(txt):
