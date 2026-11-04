@@ -22,6 +22,7 @@ import datetime
 import subprocess
 import tempfile
 import os
+from html.parser import HTMLParser
 
 # --------------------------------------------------------------------------
 # Chaque règle : (identifiant, description, détection, correction|None)
@@ -114,8 +115,30 @@ def d_accolades(txt):
     Repli sur un comptage approché uniquement si node est introuvable."""
     constats = []
     node = shutil.which("node")
-    for i, m in enumerate(re.finditer(r"<script[^>]*>(.*?)</script\s*>", txt, re.S | re.I)):
-        code = m.group(1)
+
+    class Scripts(HTMLParser):
+        def __init__(self):
+            super().__init__(convert_charrefs=False)
+            self.codes = []
+            self.code = None
+
+        def handle_starttag(self, tag, attrs):
+            if tag == "script" and self.code is None:
+                self.code = []
+
+        def handle_endtag(self, tag):
+            if tag == "script" and self.code is not None:
+                self.codes.append("".join(self.code))
+                self.code = None
+
+        def handle_data(self, data):
+            if self.code is not None:
+                self.code.append(data)
+
+    scripts = Scripts()
+    scripts.feed(txt)
+    scripts.close()
+    for i, code in enumerate(scripts.codes):
         if not code.strip():
             continue
         if node:

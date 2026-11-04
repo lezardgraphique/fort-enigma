@@ -11,7 +11,7 @@ class TestAccolades(unittest.TestCase):
 
     @patch("outils.reparer.shutil.which", return_value=None)
     def test_recognizes_whitespace_in_uppercase_script_end_tag(self, _which):
-        constats = reparer.d_accolades("<SCRIPT>if (true) {</SCRIPT >")
+        constats = reparer.d_accolades("<SCRIPT>if (true) {</SCRIPT\t\n foo>")
         self.assertTrue(any("accolade(s) non appariée(s)" in c for c in constats))
 
     @patch("outils.reparer.shutil.which", return_value=None)
