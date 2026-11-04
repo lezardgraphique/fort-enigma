@@ -10,6 +10,11 @@ class TestAccolades(unittest.TestCase):
         self.assertEqual([], reparer.d_accolades("<SCRIPT>const ok = true;</SCRIPT>"))
 
     @patch("outils.reparer.shutil.which", return_value=None)
+    def test_recognizes_whitespace_in_uppercase_script_end_tag(self, _which):
+        constats = reparer.d_accolades("<SCRIPT>if (true) {</SCRIPT >")
+        self.assertTrue(any("accolade(s) non appariée(s)" in c for c in constats))
+
+    @patch("outils.reparer.shutil.which", return_value=None)
     def test_ignores_braces_in_regex_literals(self, _which):
         self.assertEqual([], reparer.d_accolades("<script>const re = /[{}]+/g;</script>"))
 

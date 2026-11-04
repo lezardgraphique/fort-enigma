@@ -114,7 +114,7 @@ def d_accolades(txt):
     Repli sur un comptage approché uniquement si node est introuvable."""
     constats = []
     node = shutil.which("node")
-    for i, m in enumerate(re.finditer(r"<script[^>]*>(.*?)</script>", txt, re.S | re.I)):
+    for i, m in enumerate(re.finditer(r"<script[^>]*>(.*?)</script\s*>", txt, re.S | re.I)):
         code = m.group(1)
         if not code.strip():
             continue
