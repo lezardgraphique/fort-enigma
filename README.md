@@ -822,6 +822,11 @@ Couche `fort-guide`, désactivable avec `?guide=0`.
 
 Le temps de chaque monde est **tiré au hasard à chaque entrée** selon son climat et la saison. Il change ensuite à **intervalles irréguliers**, entre 1 et 2 minutes et demie. Sur le port, la vraie météo du joueur devient seulement plus probable, elle n'est plus imposée. Le temps annoncé sur la carte d'entrée est toujours celui que l'on trouve en entrant.
 
+## Dépendances à jour
+
+- **Applications (`portage/`)** : Capacitor passe de 8.5.3 à 8.6.0. Cela corrige l'alerte Dependabot (paquet `uuid` vulnérable, tiré par `xcode`). `glob`, `minimatch` et `rimraf` sont aussi mis à jour. `npm audit` : 0 vulnérabilité.
+- **Tests (racine)** : Puppeteer passe de 23 à 25.16, ce qui ferme 10 alertes de gravité haute sur ses dépendances (`extract-zip`, `basic-ftp`, `zod`…). La CI de vérification tourne désormais sous Node 22, version requise par Puppeteer 25.
+
 ## Conformité W3C
 
 Le code est vérifié avec le **Nu Html Checker** du W3C (`vnu.jar`, le moteur de validator.w3.org), lancé en local sur deux cibles :

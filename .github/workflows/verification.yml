@@ -27,7 +27,7 @@ jobs:
       - name: Installer Node
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
 
       - name: Installer Python
         uses: actions/setup-python@v5
@@ -54,7 +54,7 @@ jobs:
           echo "Aucune cle API detectee dans les fichiers versionnes."
 
       - name: Installer Puppeteer
-        run: npm install puppeteer@^23.0.0
+        run: npm install --no-save puppeteer@^25.16.0
 
       - name: Tester le jeu en conditions réelles (verifier.js)
         run: node outils/verifier.js index.html
