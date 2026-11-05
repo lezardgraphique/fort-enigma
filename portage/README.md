@@ -41,3 +41,17 @@ npm run ios:synchroniser      # puis ouvrir ios/App dans Xcode
 - **Windows / macOS** : les installateurs ne sont pas signés, donc Windows SmartScreen ou macOS Gatekeeper afficheront un avertissement. Pour l'éviter, il faut un certificat de signature de code (Windows) et un compte Apple Developer avec notarisation (macOS), à ajouter en secrets GitHub.
 - **Android / Play Store** : l'APK construit est une version de test. Pour le Play Store, il faut une clé de signature (*keystore*) et `./gradlew bundleRelease`, qui produit un `.aab`.
 - **iOS / App Store** : il faut un Mac, Xcode et un compte Apple Developer. Apple refuse les applications qui ne sont qu'un site web emballé (règle 4.2). Le jeu embarqué, son fonctionnement hors connexion et la sauvegarde aident, mais rien n'est garanti.
+
+## Widget Android de l'écran d'accueil
+
+L'APK Android embarque un widget **Fort Énigma** : appui long sur l'écran d'accueil → Widgets → Fort Énigma.
+
+- **Le jour (6 h – 18 h)** : « ☀️ Le Fort est ouvert », le passage par lequel on entrera ce soir et l'heure de fermeture.
+- **La nuit (18 h – 6 h)** : « 🌙 Le Fort est fermé », le passage de cette nuit et l'annonce de la Foire secrète.
+- Un appui ouvre le jeu.
+
+Le passage est calculé sur le téléphone, sans réseau, avec le même tirage que le jeu (`widget-android/java/…/FortSoir.java`, vérifié identique au jeu sur 400 soirs). Seule différence : les soirs d'orage, le jeu remplace la poterne par le souterrain, ce que le widget ne sait pas. Le widget bascule à 6 h et 18 h grâce à un réveil inexact, qui ne demande aucune permission.
+
+Les sources sont dans `widget-android/`. `node installer-widget.mjs`, lancé après `npx cap add android` et `npx cap sync android`, les copie dans le projet généré et déclare le widget dans le manifeste. La CI « Applications » le fait automatiquement.
+
+Pas encore de widget iPhone : il faudrait une extension WidgetKit (Swift), un Mac et un compte développeur Apple, et le projet ne construit pas encore d'application iOS.

@@ -81,6 +81,8 @@ jobs:
           node preparer.mjs
           npx cap add android
           npx cap sync android
+          # widget de l'écran d'accueil (passage du soir, Fort ouvert ou fermé, Foire secrète)
+          node installer-widget.mjs
           # icônes de l'application (générées depuis icone-512.png)
           cp -r src-tauri/icons/android/* android/app/src/main/res/ || true
       - name: Construire l'APK

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="fort_widget_nom">Fort Énigma</string>
+    <string name="fort_widget_description">Le Fort est-il ouvert ? Par où entrer cette nuit ? La Foire secrète vous attend.</string>
+</resources>
