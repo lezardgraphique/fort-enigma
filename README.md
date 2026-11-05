@@ -822,6 +822,31 @@ Couche `fort-guide`, désactivable avec `?guide=0`.
 
 Le temps de chaque monde est **tiré au hasard à chaque entrée** selon son climat et la saison. Il change ensuite à **intervalles irréguliers**, entre 1 et 2 minutes et demie. Sur le port, la vraie météo du joueur devient seulement plus probable, elle n'est plus imposée. Le temps annoncé sur la carte d'entrée est toujours celui que l'on trouve en entrant.
 
+## Conformité W3C
+
+Le code est vérifié avec le **Nu Html Checker** du W3C (`vnu.jar`, le moteur de validator.w3.org), lancé en local sur deux cibles :
+
+- **`index.html` tel que publié** : 0 erreur, 0 avertissement (il y en avait 373).
+- **Le DOM rendu de 22 écrans** (accueil, règles, histoire, choix, sept épreuves, résultat, effraction, voleur, trésor, plateau, menu…), capturé dans Chromium puis validé : de 166 erreurs à 0 erreur réelle.
+
+Ce qui a été corrigé :
+
+- les 30 feuilles `<style>` posées dans `<body>` rejoignent `<head>`, dans le même ordre ;
+- deux valeurs CSS fautives : une durée `NaNs` (remplacée par `.01ms`) et un raccourci `mask` (écrit en propriétés détaillées) ;
+- `"Palatino Linotype"` entre guillemets doubles cassait les attributs `style="…"` ; la famille s'écrit désormais sans guillemets, ce qui est du CSS valide ;
+- les cartes d'épreuve sont des `<button>` : leur contenu passe de `<div>` à `<span>` affichés en bloc, sans changement visuel ;
+- plus de `role="button"` redondant sur un vrai bouton, ni d'`aria-hidden` doublant `hidden` ;
+- `@property --pp-m` devient `CSS.registerProperty()`, son équivalent JavaScript ;
+- `vector-effect` passe du CSS à l'attribut SVG du fil d'argent.
+
+Trois signalements restants sont des limites connues du validateur, pas des défauts :
+
+- `clip-path: inset(… round 0 0 50% 50%)` sur le cadre des portraits : syntaxe valide de CSS Shapes, mais le validateur CSS n'accepte qu'un seul rayon ;
+- « meta charset après 1024 octets » : n'apparaît que dans la sérialisation du DOM rendu, à cause des styles posés en ligne sur `<html>` à l'exécution ; le fichier publié déclare son encodage dès les premiers octets ;
+- « image bloquée par img-src » (simple info) : la CSP autorise `data:` explicitement. Le validateur émet la même info sur un document minimal de deux lignes avec la même CSP.
+
+Pour relancer : `java -jar vnu.jar index.html` (paquet npm `vnu-jar`, Java 11 ou plus).
+
 ## Le livre du Fort : règles, histoire, plateau
 
 Couche `livre.js` (`window.FortLivre`, désactivation `?livre=0`) :
