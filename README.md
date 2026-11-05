@@ -822,6 +822,31 @@ Couche `fort-guide`, désactivable avec `?guide=0`.
 
 Le temps de chaque monde est **tiré au hasard à chaque entrée** selon son climat et la saison. Il change ensuite à **intervalles irréguliers**, entre 1 et 2 minutes et demie. Sur le port, la vraie météo du joueur devient seulement plus probable, elle n'est plus imposée. Le temps annoncé sur la carte d'entrée est toujours celui que l'on trouve en entrant.
 
+## L'effraction du soir et la Foire secrète
+
+Couches `fort-effraction` et `fort-foire`. Elles ne concernent que les parties commencées le soir ou la nuit, quand le Fort est fermé.
+
+**Un passage différent chaque soir.** Le mode d'effraction est tiré à partir de la date. Tous les joueurs ont donc le même passage la même nuit, et jamais deux soirs de suite le même. L'accueil l'annonce (« 🌙 Ce soir, on entre par… »), et l'introduction comme son bouton s'adaptent.
+
+| Passage | Le jeu |
+|---|---|
+| 🔒 Les grilles du Fort | le dialogue avec le Contrebandier, comme avant |
+| 🌊 La poterne de la mer | avancer de rocher en rocher quand la vague se retire (5 passages, 3 faux pas permis) |
+| 🪜 L'échelle du rempart | maintenir pour grimper, lâcher quand la sentinelle se retourne |
+| 🛒 La charrette du Contrebandier | retenir sa couverture, puis répondre aux 3 questions du garde (9 s chacune) |
+| 🕯️ Le souterrain oublié | un dédale 5 × 5 à la lanterne, avant que l'huile s'épuise |
+
+Les soirs d'orage, la poterne est noyée : on passe par le souterrain. Gain : 6 doublons, plus 3 par faux pas évité. En cas d'échec, le Gardien attend le joueur en duel, comme avant. L'effraction revient à chaque nouvelle partie de nuit (le drapeau vit sur la partie). Test : `?effraction=poterne|rempart|charrette|souterrain|grilles`.
+
+**La Foire secrète du Gardien (nuit seulement).** Une fois entré, le joueur découvre que le Gardien tient une foire clandestine derrière les remparts :
+
+- chaque monde devient une attraction, avec la même épreuve et la même salle (le Galion Tanguant, le Train Fantôme, le Palais des Glaces, la Grande Roue des Étoiles…) ;
+- la planche de BD devient l'affiche de l'attraction : bandeau rayé « La Foire secrète · attraction n° X », billets des attractions déjà faites, boutons « Monter dans l'attraction ▸ » et « Une autre attraction ↻ » ;
+- des guirlandes et une grande roue qui tourne lentement veillent sur la partie (transform et opacity seulement) ;
+- la salle du trésor affiche le plan de la foire parcourue cette nuit-là.
+
+Le jour, rien ne change. Désactivation : `?foire=0`.
+
 ## Dépendances à jour
 
 - **Applications (`portage/`)** : Capacitor passe de 8.5.3 à 8.6.0. Cela corrige l'alerte Dependabot (paquet `uuid` vulnérable, tiré par `xcode`). `glob`, `minimatch` et `rimraf` sont aussi mis à jour. `npm audit` : 0 vulnérabilité.
