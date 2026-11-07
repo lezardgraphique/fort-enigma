@@ -992,3 +992,10 @@ Pour les jeux de la Forge, l'aide calcule la vraie solution :
 Chaque solution a été suivie jusqu'à la victoire dans les tests.
 
 Comme la solution est toujours à portée de main, les épreuves **montent d'un cran de difficulté**. Le guide des épreuves reste disponible dans le menu ☰.
+
+## Le Panda du quai, les habitations et l'aide visuelle
+
+- **Le Panda du Marché** (accueil, derrière le deuxième étal) a été redessiné : pelage ombré, gilet bordé d'or, lunettes rondes, brin de bambou et doublon épinglé. On peut le toucher : il répond dans sa propre bulle, avec des répliques qui changent selon le moment de la journée (petit matin, matin, après-midi, soir, nuit) et selon le profil du joueur (prénom, parties, record, coffres, épreuves rangées au grenier). La nuit, il somnole et se réveille au premier toucher.
+- **Les habitations du quai** (`<script id="fort-habitations">`, désactivable avec `?habitations=0`) : le jeu lit la silhouette de la première rangée de façades dans le décor peint, puis ajoute des fenêtres, des volets, des portes et un liseré de lumière sur les toits le jour, des fenêtres qui vacillent (et s'éteignent de temps en temps) le soir et la nuit, et quelques cheminées qui fument. Les animations sont coupées en mode calme ou si « réduire les animations » est activé.
+- **L'aide visuelle des épreuves** (`<script id="fort-aide-visuelle">`, `?aide-visuelle=0`) : quand une épreuve a été ratée au moins 2 fois (la moitié des essais, ou les 2 derniers), une fiche s'affiche sous la consigne : les gestes en pictogrammes, la règle et une astuce. Un toucher la referme.
+- **Grenier plus réactif** : une épreuve est rangée au grenier (elle ne revient plus dans les parties) dès 3 échecs avec au moins 75 % d'échecs, ou 3 échecs sur les 4 dernières tentatives. L'ancienne règle (5 échecs à 60 %) reste valable. Au moins 10 épreuves restent toujours en jeu, et une épreuve rangée revient quand une nouvelle idée de l'Atelier est façonnée.
