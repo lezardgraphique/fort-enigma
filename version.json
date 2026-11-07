@@ -1,10 +1,10 @@
 {
- "version": "2026-11-07 19:00",
+ "version": "2026-11-07 21:30",
  "nouveautes": [
+  "Le Panda du Marché a été redessiné (lunettes, gilet, bambou). Touche-le sur le quai : il te parle selon l’heure et ta progression",
+  "Les maisons du quai prennent vie : fenêtres, volets, portes, cheminées qui fument, et fenêtres qui vacillent la nuit",
+  "Aide visuelle : une petite fiche en pictogrammes apparaît sur les épreuves que tu rates souvent. Celles ratées la plupart du temps partent plus vite au grenier",
   "Le Gardien devient un vrai personnage : répliques à choisir, légendes, rumeurs, confidences et petites quêtes, même hors connexion",
-  "Foire secrète : la grande roue cède la place à des lampions et fanions discrets sur les bords",
-  "Chaque soir, un passage différent pour entrer dans le Fort fermé : grilles, poterne de la mer, échelle du rempart, charrette ou souterrain",
-  "La nuit, derrière les remparts : la Foire secrète du Gardien, où chaque monde devient une attraction",
-  "Code validé par le W3C (Nu Html Checker) : 0 erreur sur la page publiée et sur 22 écrans rendus"
+  "Foire secrète : la grande roue cède la place à des lampions et fanions discrets sur les bords"
  ]
 }
