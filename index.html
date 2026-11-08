@@ -12128,21 +12128,35 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   }
 
   /* ------------------------------------------------------------ installation */
-  var calque = null, tourne = 0;
+  var calque = null, tourne = 0, ancre = null;
   function poser() {
     var port = D.querySelector('.pp-port');
     var ici = false; try { ici = state.screen === 'accueil'; } catch (e) {}
     if (!port || !ici) { if (calque) { calque.remove(); calque = null; } return; }
     var aus = port.querySelectorAll('.pp-auvent'); if (!aus.length) return;
-    var pr = port.getBoundingClientRect(), r0 = aus[0].getBoundingClientRect(), haut = Infinity;
-    for (var i = 0; i < aus.length; i++) haut = Math.min(haut, aus[i].getBoundingClientRect().top);
-    var u = r0.width, base = haut - pr.top + u * .45; // pied des manèges : juste derrière les étals
+    /* Le fond (et le marché qu'il porte) zoome lentement et suit la souris : on travaille donc
+       dans le repère propre du calque du marché, sans ce zoom, pour que le décor ajouté reste
+       collé aux étals au lieu d'être recalculé (et de sauter) à chaque instant. */
+    var P = port.getBoundingClientRect(), k = P.width / (port.offsetWidth || P.width) || 1;
+    var R = function (e) { var r = e.getBoundingClientRect(); return { left: (r.left - P.left) / k, right: (r.right - P.left) / k, top: (r.top - P.top) / k, bottom: (r.bottom - P.top) / k, width: r.width / k, height: r.height / k }; };
+    var pr = { left: 0, top: 0, width: port.offsetWidth, height: port.offsetHeight };
+    var AU = [].map.call(aus, R), i;
     // la partie visible de la place : à gauche de la carte sur PC, toute la largeur sur téléphone
-    var carte = D.querySelector('#app .frame'), vis = innerWidth;
-    if (carte) { var cr = carte.getBoundingClientRect(); if (cr.left > innerWidth * .35) vis = cr.left; }
-    var x0 = -pr.left, X = function (f) { return x0 + vis * f; };
+    var x0 = -P.left / k, ecranL = innerWidth / k;                       // l'écran, dans le repère du marché
+    var carte = D.querySelector('#app .frame'), vis = ecranL, cr2 = carte && R(carte);
+    if (cr2 && cr2.left > x0 + ecranL * .35) vis = cr2.left - x0;
+    // le cadrage (partie visible de la place) est figé tant que la fenêtre ne change pas :
+    // le léger zoom du fond et le suivi de la souris ne doivent pas déplacer les manèges
+    var phaseF = ''; try { phaseF = timePhase(); } catch (e) {}
+    var cadre = [pr.width, innerWidth, innerHeight, !!(cr2 && cr2.left > x0 + ecranL * .35), phaseF, port.childElementCount > 0 && port.querySelector('.pp-auvent') === aus[0]].join('|');
+    if (ancre && ancre.cadre === cadre && ancre.AU.length === AU.length) { x0 = ancre.x0; vis = ancre.vis; AU = ancre.AU; }
+    else ancre = { cadre: cadre, x0: x0, vis: vis, AU: AU };
+    var haut = Infinity;
+    for (i = 0; i < AU.length; i++) haut = Math.min(haut, AU[i].top);
+    var u = AU[0].width, base = haut - pr.top + u * .45; // pied des manèges : juste derrière les étals
+    var X = function (f) { return x0 + vis * f; };
     var foire = foireDuMoment(), pubs = panneauxValides();
-    var cle = [Math.round(u), Math.round(base), Math.round(vis), carte ? Math.round(carte.getBoundingClientRect().top / 8) : 0, foire && foire.nom, pubs.length, nuit()].join('|'); // la carte d'accueil arrive en glissant : on se recale
+    var cle = [Math.round(u), Math.round(base), Math.round(vis), Math.round(x0), cr2 ? Math.round(cr2.top / 8) : 0, foire && foire.nom, pubs.length, nuit()].join('|'); // la carte d'accueil arrive en glissant : on se recale
     if (calque && calque.__cle === cle && port.contains(calque)) return;
     if (calque) calque.remove();
     calque = D.createElement('div'); calque.className = 'pf-calque' + (nuit() ? ' pf-nuit' : ''); calque.__cle = cle;
@@ -12151,10 +12165,10 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       return '<div class="pf-el ' + cls + '" style="left:' + (cx - larg / 2).toFixed(1) + 'px;top:' + (base - haute).toFixed(1) + 'px;width:' + larg.toFixed(1) + 'px;height:' + haute.toFixed(1) + 'px' + (extra || '') + '">' + contenu + '</div>';
     }
     // les espaces entre les étals visibles (le plus grand accueille le chapiteau, les suivants les panneaux)
-    var bas = haut + u * .9, cr2 = carte && carte.getBoundingClientRect(), devant = !carte || cr2.left > innerWidth * .35 || cr2.top > bas;
+    var bas = haut + u * .9, devant = !cr2 || cr2.left > x0 + ecranL * .35 || cr2.top > bas;
     // espaces libres entre les auvents (bord à bord, tous les étals, visibles ou non) : [largeur libre, centre]
     var lamp = lampadaires(pr);
-    var bords = [].map.call(aus, function (a) { var r = a.getBoundingClientRect(); return [r.left - pr.left, r.right - pr.left]; })
+    var bords = AU.map(function (r) { return [r.left, r.right]; })
       .concat(lamp.map(function (l) { return [l.x - l.demi * 1.6, l.x + l.demi * 1.6]; })) // un lampadaire occupe aussi l'allée
       .sort(function (a, b) { return a[0] - b[0]; });
     var trous = [];
@@ -12176,8 +12190,8 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
          découpés par un masque qui laisse un trou à la place de chaque étal (de l'auvent jusqu'au
          sol) : ce qui est derrière un étal disparaît derrière lui, comme dans la réalité. */
       var Wp = Math.round(pr.width), Hp = Math.round(pr.height), trousMasque = '';
-      [].forEach.call(aus, function (a) {
-        var r = a.getBoundingClientRect(), x1 = r.left - pr.left - 1, x2 = r.right - pr.left + 1, y1 = r.top - pr.top + r.height * .45, y2 = r.top - pr.top + u * .9;
+      AU.forEach(function (r) {
+        var x1 = r.left - pr.left - 1, x2 = r.right - pr.left + 1, y1 = r.top - pr.top + r.height * .45, y2 = r.top - pr.top + u * .9;
         trousMasque += 'M' + x1.toFixed(1) + ' ' + y1.toFixed(1) + 'H' + x2.toFixed(1) + 'V' + y2.toFixed(1) + 'H' + x1.toFixed(1) + 'Z';
       });
       lamp.forEach(function (l) {
