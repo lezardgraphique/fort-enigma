@@ -12149,7 +12149,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   function poser() {
     var port = D.querySelector('.pp-port');
     var ici = false; try { ici = state.screen === 'accueil'; } catch (e) {}
-    if (!port || !ici) { if (calque) { calque.remove(); calque = null; } return; }
+    if (!port || !ici) { if (calque) { if (calque.__devant) calque.__devant.remove(); calque.remove(); calque = null; } return; }
     var aus = port.querySelectorAll('.pp-auvent'); if (!aus.length) return;
     /* Le fond (et le marché qu'il porte) zoome lentement et suit la souris : on travaille donc
        dans le repère propre du calque du marché, sans ce zoom, pour que le décor ajouté reste
@@ -12175,7 +12175,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     var foire = foireDuMoment(), pubs = panneauxValides();
     var cle = [Math.round(u), Math.round(base), Math.round(vis), Math.round(x0), cr2 ? Math.round(cr2.top / 8) : 0, foire && foire.nom, pubs.length, nuit()].join('|'); // la carte d'accueil arrive en glissant : on se recale
     if (calque && calque.__cle === cle && port.contains(calque)) { arriere(port); return; }
-    if (calque) calque.remove();
+    if (calque) { if (calque.__devant) calque.__devant.remove(); calque.remove(); }
     calque = D.createElement('div'); calque.className = 'pf-calque' + (nuit() ? ' pf-nuit' : ''); calque.__cle = cle;
     var h = '';
     function el(cls, cx, larg, haute, contenu, extra) {
@@ -12192,8 +12192,23 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     for (i = 1; i < bords.length; i++) { var g = bords[i][0] - bords[i - 1][1]; if (g > 0) trous.push([g, (bords[i][0] + bords[i - 1][1]) / 2]); }
     trous.sort(function (a, b) { return b[0] - a[0]; });
     var trousVus = trous.filter(function (t) { return t[1] > x0 + u * 1.3 && t[1] < x0 + vis - u * 1.3; });
-    var chapX = foire && devant && trousVus.length ? trousVus[0][1] : X(.52);
-    if (foire && devant && trousVus.length) trous.splice(trous.indexOf(trousVus[0]), 1);
+    /* Le chapiteau : de préférence face à une allée (on voit son entrée), mais jamais contre la
+       roue, et en laissant la place du carrousel de l'autre côté (ils sont au même plan). */
+    var roueX = X(.11);
+    var placeCarr = function (cx) {
+      var oc = [[roueX - u * 1.55, roueX + u * 1.55], [cx - u * 1.3, cx + u * 1.3]], g0 = x0 + u * .2, m = 0;
+      oc.forEach(function (o) { m = Math.max(m, o[0] - g0); g0 = Math.max(g0, o[1]); });
+      return Math.max(m, x0 + vis - u * .2 - g0);
+    };
+    var candChap = (devant ? trousVus.map(function (t) { return t[1]; }) : []).concat([X(.52), X(.47), X(.57), X(.42)]);
+    var chapX = X(.52), noteChap = -1;
+    candChap.forEach(function (cx, n) {
+      if (Math.abs(cx - roueX) < u * 2.9) return;                    // trop près de la roue
+      var lib = placeCarr(cx), note = (lib >= u * 2.5 ? 3 : lib >= u * 1.6 ? 2 : 1) * 100 - n;
+      if (note > noteChap) { noteChap = note; chapX = cx; }
+    });
+    var tChap = trous.filter(function (t) { return Math.abs(t[1] - chapX) < 1; })[0];
+    if (foire && tChap) trous.splice(trous.indexOf(tChap), 1);
     /* Les étals sont peints dans l'image de fond : sans précaution, les pieds de la roue, du
        carrousel ou du chapiteau passeraient PAR-DESSUS leurs comptoirs. Les manèges sont donc
        découpés par un masque qui laisse un trou à la place de chaque étal (de l'auvent jusqu'au
@@ -12211,25 +12226,35 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     });
     var masque = 'url("data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="' + Wp + '" height="' + Hp + '" viewBox="0 0 ' + Wp + ' ' + Hp + '"><path fill-rule="evenodd" d="M0 0H' + Wp + 'V' + Hp + 'H0Z' + trousMasque + '"/></svg>') + '")';
     dernierMasque = masque;
-    if (foire) {
-      var noel = foire.type === 'noel';
-      // point d'accroche (coordonnées du dessin SVG) → pixels du calque, avec le cadrage « meet » du SVG
-      var anc = function (cx, w, hh, vb, px, py) {
-        var sc = Math.min(w / vb[2], hh / vb[3]), ox = (w - vb[2] * sc) / 2, oy = (hh - vb[3] * sc) / 2;
-        return [cx - w / 2 + ox + (px - vb[0]) * sc, base - hh + oy + (py - vb[1]) * sc];
-      };
-      var rX = X(.11), cX = X(.86);
-      h += '<div class="pf-fond" style="-webkit-mask-image:' + masque.replace(/"/g, '&quot;') + ';mask-image:' + masque.replace(/"/g, '&quot;') + '">';
-      h += el('pf-roue', rX, u * 3.1, u * 3.6, roue() + '<i class="pf-sol"></i>');
-      h += el('pf-chap', chapX, u * 2.6, u * 2.3, (noel ? sapin(foire.enseigne || foire.nom) : chapiteau(foire.enseigne || foire.nom)) + '<i class="pf-sol"></i>');
-      h += el('pf-carr', cX, u * 2.4, u * 1.9, carrousel() + '<i class="pf-sol"></i>');
-      // fanions (ou guirlande d'ampoules à Noël) tendus de mât en mât : moyeu de la roue → mât central → mât du carrousel
-      var a1 = anc(rX, u * 3.1, u * 3.6, [-130, -130, 260, 300], 0, 0),
-        a2 = anc(chapX, u * 2.6, u * 2.3, [0, 0, 200, 175], 100, noel ? -4 : -12),
-        a3 = anc(cX, u * 2.4, u * 1.9, [0, 0, 220, 165], 110, -8);
-      h += cordes([a1, a2, a3], u, noel, pr.width, pr.height);
-      h += '</div>';
-    }
+    var rX = X(.11), cX = X(.86), cS = 0;
+    var placerCarrousel = function (ecX) {
+      /* Le carrousel ne doit chevaucher ni la roue ni le chapiteau (ils sont au même plan) :
+         on cherche les intervalles libres de la vue, on y choisit la place la plus proche de
+         l'emplacement habituel et, de préférence, non masquée par un panneau. S'il manque de
+         place, il rapetisse un peu (il est alors un peu plus loin) ; trop peu de place : pas de carrousel. */
+      var occupe = [[rX - u * 1.55, rX + u * 1.55], [chapX - u * 1.3, chapX + u * 1.3]].sort(function (a, b) { return a[0] - b[0]; });
+      var libresIv = [], g0 = x0 + u * .2;
+      occupe.forEach(function (o) { if (o[0] - g0 > 0) libresIv.push([g0, o[0]]); g0 = Math.max(g0, o[1]); });
+      if (x0 + vis - u * .2 - g0 > 0) libresIv.push([g0, x0 + vis - u * .2]);
+      
+      var choix = null;
+      libresIv.forEach(function (iv) {
+        var csMax = Math.min(1, (iv[1] - iv[0]) / (u * 2.5));
+        [csMax, .85, .75, .62].forEach(function (cs) {
+          if (cs > csMax || cs < .62) return;
+          var demi = u * 1.2 * cs;
+          for (var cx2 = iv[0] + demi + u * .05; cx2 <= iv[1] - demi - u * .05 + .01; cx2 += u * .1) {
+            // recouvrement par un panneau (0 si aucun), puis taille, puis distance à la place habituelle
+            var rec = ecX.reduce(function (m, x) { return Math.max(m, demi + u * .9 - Math.abs(x - cx2)); }, 0);
+            var note = rec * 1e4 + (1 - cs) * 300 + Math.abs(cx2 - X(.86));
+            if (!choix || note < choix.note) choix = { x: cx2, cs: cs, note: note };
+          }
+        });
+      });
+      cS = choix ? choix.cs : 0;
+      if (choix) cX = choix.x;
+    };
+    if (foire) placerCarrousel([]);
     if (pubs.length) {
       /* Panneaux d'affichage sur pied, plantés sur les pavés de la place, dans la
          rangée des étals : leurs deux montants descendent jusqu'au sol, au même
@@ -12240,26 +12265,58 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       var pw = u * 1.75, ph = pw / 2;
       var hautPanneau = haut - pr.top - u * 1.2 - ph;  // le panneau dépasse franchement des auvents
       var ecrans = [];
-      trous.forEach(function (t) {
+      // un panneau ne doit pas masquer une attraction : on cherche d'abord une allée dégagée,
+      // et seulement à défaut une allée devant la roue ou le carrousel
+      var manegesX = foire ? [[rX, u * 1.55]].concat(cS ? [[cX, u * 1.2 * cS]] : []) : [];
+      var gene = function (x) { return manegesX.some(function (m) { return Math.abs(x - m[0]) < m[1] + pw / 2; }); };
+      [2, 1, 0].forEach(function (exigence) { trous.forEach(function (t) {
+        if (exigence === 2 && gene(t[1])) return;   // 2 : rien derrière ; 1 : devant un manège ; 0 : même devant le chapiteau
         // les montants doivent tomber dans l'espace libre entre les deux étals, sans toucher ni auvent ni comptoir
         //   assez large : deux montants ; plus étroit : un seul mât au centre de l'allée
         var off = Math.min(u * .49, t[0] / 2 - u * .14), mat = off < u * .2;
         if (ecrans.length >= Math.min(2, pubs.length) || t[0] < Math.max(3, u * .07) + u * .24) return;
         if (t[1] - pw / 2 < x0 || t[1] + pw / 2 > x0 + vis) return;        // entièrement visible
-        if (foire && Math.abs(t[1] - chapX) < u * 1.6) return;              // ne pas cacher l'enseigne du chapiteau
+        if (exigence && foire && Math.abs(t[1] - chapX) < u * 1.6) return; // de préférence, ne pas cacher le chapiteau
         for (var k = 0; k < ecrans.length; k++) if (Math.abs(t[1] - ecrans[k][0]) < pw * 1.2) return;
         ecrans.push([t[1], off, mat]);
-      });
+      }); });
+      // le carrousel s'écarte des panneaux s'il en a la place
+      if (foire && ecrans.length) placerCarrousel(ecrans.map(function (e) { return e[0]; }));
       ecrans.forEach(function (e, n) {
         var x = e[0], jambe = e[2] ? Math.max(4, u * .07) : Math.max(3, u * .045);
         h += '<div class="pf-el pf-panneau' + (e[2] ? ' pf-mat' : '') + '" style="--jl:' + (pw / 2 - e[1] - jambe / 2).toFixed(1) + 'px;--jw:' + jambe.toFixed(1) + 'px;left:' + (x - pw / 2).toFixed(1) + 'px;top:' + hautPanneau.toFixed(1) + 'px;width:' + pw.toFixed(1) + 'px;height:' + (sol - hautPanneau).toFixed(1) + 'px;--ph:' + ph.toFixed(1) + 'px">' + panneau(n ? pubs.slice(1).concat(pubs.slice(0, 1)) : pubs) + '</div>';
       });
     }
+    if (foire) {
+      var noel = foire.type === 'noel';
+      // point d'accroche (coordonnées du dessin SVG) → pixels du calque, avec le cadrage « meet » du SVG
+      var anc = function (cx, w, hh, vb, px, py) {
+        var sc = Math.min(w / vb[2], hh / vb[3]), ox = (w - vb[2] * sc) / 2, oy = (hh - vb[3] * sc) / 2;
+        return [cx - w / 2 + ox + (px - vb[0]) * sc, base - hh + oy + (py - vb[1]) * sc];
+      };
+      // le carrousel se place à droite du chapiteau, là où aucun panneau ne le masque
+      h += '<div class="pf-fond" style="-webkit-mask-image:' + masque.replace(/"/g, '&quot;') + ';mask-image:' + masque.replace(/"/g, '&quot;') + '">';
+      h += el('pf-roue', rX, u * 3.1, u * 3.6, roue() + '<i class="pf-sol"></i>');
+      h += el('pf-chap', chapX, u * 2.6, u * 2.3, (noel ? sapin(foire.enseigne || foire.nom) : chapiteau(foire.enseigne || foire.nom)) + '<i class="pf-sol"></i>');
+      if (cS) h += el('pf-carr', cX, u * 2.4 * cS, u * 1.9 * cS, carrousel() + '<i class="pf-sol"></i>');
+      // fanions (ou guirlande d'ampoules à Noël) tendus de mât en mât : moyeu de la roue → mât central → mât du carrousel
+      var a1 = anc(rX, u * 3.1, u * 3.6, [-130, -130, 260, 300], 0, 0),
+        a2 = anc(chapX, u * 2.6, u * 2.3, [0, 0, 200, 175], 100, noel ? -4 : -12),
+        a3 = cS ? anc(cX, u * 2.4 * cS, u * 1.9 * cS, [0, 0, 220, 165], 110, -8) : null;
+      h += cordes((a3 ? [a1, a2, a3] : [a1, a2]).sort(function (p, q) { return p[0] - q[0]; }), // de mât en mât, de gauche à droite
+         u, noel, pr.width, pr.height);
+      h += '</div>';
+    }
     calque.innerHTML = h;
     var hb = port.querySelector(':scope > svg'); port.insertBefore(calque, hb ? hb.nextSibling : port.firstChild); // devant les fenêtres de la ville, derrière les étals et les passants
+    // les panneaux sont plantés au niveau des étals : ils passent devant le Gardien (qui marche
+    // derrière les étals) ; ils quittent donc le calque des manèges pour un calque « devant »
+    var calqueDevant = D.createElement('div'); calqueDevant.className = 'pf-calque pf-devant' + (nuit() ? ' pf-nuit' : '');
+    [].slice.call(calque.querySelectorAll(':scope > .pf-panneau')).forEach(function (b) { calqueDevant.appendChild(b); });
+    calque.__devant = calqueDevant;
     dernierPied = base + u * .05; dernierEtals = AU; arriere(port);
     // un appui sur un panneau ouvre le lien choisi par le créateur, s'il y en a un
-    calque.querySelectorAll('.pf-panneau').forEach(function (b, n) {
+    calqueDevant.querySelectorAll('.pf-panneau').forEach(function (b, n) {
       var liste = n ? pubs.slice(1).concat(pubs.slice(0, 1)) : pubs;
       b.addEventListener('click', function () {
         var vue = b.querySelector('.pf-vue'), idx = [].indexOf.call(b.querySelectorAll('.pf-affiche'), vue), p = liste[idx];
@@ -12276,6 +12333,11 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     if (!a) { a = D.createElement('div'); a.className = 'pf-arriere'; a.setAttribute('aria-hidden', 'true'); }
     if (a.__masque !== dernierMasque) { a.style.webkitMaskImage = dernierMasque; a.style.maskImage = dernierMasque; a.__masque = dernierMasque; }
     if (a.previousSibling !== calque) port.insertBefore(a, calque.nextSibling);
+    var dv = calque.__devant; if (dv && dv.previousSibling !== a) port.insertBefore(dv, a.nextSibling);
+    // la petite herse de la porte du château (couche de nuit) est au fond du décor : elle passe
+    // derrière les maisons, les manèges et les fanions, et non devant
+    var couche = port.parentNode, nf = couche && couche.querySelector(':scope > .nf-calque');
+    if (nf && nf.compareDocumentPosition(port) & Node.DOCUMENT_POSITION_PRECEDING) couche.insertBefore(nf, port);
     var g = port.querySelector('.pp-gardien-port');
     if (g) {
       if (g.parentNode !== a) a.appendChild(g);
@@ -12288,7 +12350,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     }
     var p = port.querySelector(':scope > .pp-panda-port');
     if (p) {
-      if (p.previousSibling !== a) port.insertBefore(p, a.nextSibling);
+      var apres = dv || a; if (p.previousSibling !== apres) port.insertBefore(p, apres.nextSibling);
       // à la taille des autres marchands : la tête juste sous l'auvent, le corps caché par le comptoir
       var et = dernierEtals, cxp = p.offsetLeft + p.offsetWidth / 2, best = null;
       et.forEach(function (r) { var c = (r.left + r.right) / 2; if (!best || Math.abs(c - cxp) < Math.abs((best.left + best.right) / 2 - cxp)) best = r; });
@@ -12302,7 +12364,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   }
   function rotation() { // fondu enchaîné entre les affiches, toutes les 7 s
     if (!calque) return;
-    calque.querySelectorAll('.pf-cadre').forEach(function (c) {
+    (calque.__devant || calque).querySelectorAll('.pf-cadre').forEach(function (c) {
       var a = c.querySelectorAll('.pf-affiche'); if (a.length < 2) return;
       var i = [].indexOf.call(a, c.querySelector('.pf-vue'));
       a[i].classList.remove('pf-vue'); a[(i + 1) % a.length].classList.add('pf-vue');
@@ -12312,7 +12374,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   var css = '' +
     '.pf-calque{position:absolute;inset:0;pointer-events:none}' +
     '.pf-arriere{position:absolute;inset:0;pointer-events:none;-webkit-mask-size:100% 100%;mask-size:100% 100%;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}' +
-    '.pf-arriere .pp-gardien-port{scale:.8;transform-origin:50% 100%}' +
+    '.pf-arriere .pp-gardien-port{scale:.62;transform-origin:50% 100%}' +
     '.pf-fond{position:absolute;inset:0;-webkit-mask-size:100% 100%;mask-size:100% 100%;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}' +
     '.pf-el{position:absolute}.pf-svg{display:block;width:100%;height:100%;overflow:visible}' +
     '.pf-roue .pf-svg,.pf-chap .pf-svg,.pf-carr .pf-svg{filter:saturate(.8) brightness(.92)}' +

@@ -832,6 +832,16 @@ Couche `fort-panneaux` (écran d'accueil), réglée par le créateur dans `pubs/
 - **Cohérence du décor** : les étals et les lampadaires sont peints dans l'image de fond. Un masque découpe donc les manèges à leur place, pour qu'ils passent derrière. Les lampadaires sont retrouvés dans l'image elle-même (jour, crépuscule, nuit, téléphone ou PC). La nuit, les manèges s'assombrissent avec la ville, et seules les ampoules restent vives.
 - **Attractions animées** : la grande roue tourne. Le carrousel tourne aussi : ses chevaux défilent en boucle sur le plateau. Les ampoules du carrousel et du chapiteau s'allument en chenillard. Des visiteurs traversent la place et entrent sous le chapiteau, et la nuit, son entrée rougeoie. Ces animations restent actives en mode allégé (transform et opacity seulement).
 - **Derrière les étals** : le Gardien fait sa ronde derrière les étals, plus loin et un peu plus petit, découpé par le même masque que les manèges. Le Panda, à la taille des autres marchands, se tient sous son auvent, le corps caché par le comptoir.
+- **Les plans du décor, du fond vers l'avant** :
+  1. le ciel et le château ;
+  2. la petite herse de la porte la nuit, désormais derrière tout le reste ;
+  3. les maisons et leurs fenêtres ;
+  4. les manèges (roue, chapiteau ou sapin, carrousel) et les fanions ;
+  5. le Gardien en ronde ;
+  6. les panneaux, plantés dans les allées ;
+  7. le Panda sous son auvent ;
+  8. les étals, les marchands et les passants.
+- **Placement des manèges** : ils ne se chevauchent jamais. Le chapiteau se met face à une allée, loin de la roue, en laissant de la place au carrousel. Le carrousel prend la place libre la moins cachée par un panneau, quitte à rapetisser un peu (il paraît alors plus loin). S'il n'y a vraiment pas de place, il n'y a pas de carrousel. Un panneau évite d'abord les manèges, puis le chapiteau. Les fanions vont de mât en mât, de gauche à droite.
 - **Immobile par rapport aux étals** : le fond zoome lentement et suit la souris. Le décor est donc calculé dans le repère propre du marché, et le cadrage est figé tant que la fenêtre ne change pas. Manèges, panneaux et découpes restent collés aux étals au lieu d'être recalculés en continu.
 - Animations : transform et opacity seulement. Le mouvement réduit est respecté. Options : `?panneaux=0` pour désactiver, `?foraine=1` pour forcer la fête.
 
