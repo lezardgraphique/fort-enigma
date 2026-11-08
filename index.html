@@ -11905,6 +11905,394 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   if (D.readyState === 'loading') D.addEventListener('DOMContentLoaded', demarrer); else demarrer();
 })();
 </script>
+<script id="fort-panneaux">
+/* ==========================================================================
+   Fort Énigma — Panneaux du créateur et fête foraine saisonnière (couche fort-panneaux)
+   1) Panneaux : comme les panneaux d'arène de League of Legends, des
+      panneaux de bois sur la place affichent les images choisies par le
+      créateur uniquement. La liste vient du fichier pubs/annonces.json publié
+      avec le jeu (le joueur ne peut rien y changer) ; les images doivent être
+      dans pubs/ du même site (la CSP n'en accepte pas d'autres).
+   2) Fête foraine : certaines périodes de l'année, une grande roue, un
+      chapiteau, un carrousel et des fanions s'installent sur la place,
+      derrière les étals (un marché de Noël en décembre). Les périodes sont
+      dans le même fichier.
+   3) Un panneau peut montrer le dernier post Instagram du créateur
+      ({"source":"instagram","compte":"…"}), fourni par la fonction Netlify
+      « instagram » ; à défaut, une affiche qui renvoie au profil.
+   Désactivation : ?panneaux=0 · forcer la foire : ?foraine=1
+   Animations : transform et opacity uniquement, pas de flash.
+   ========================================================================== */
+(function () {
+  'use strict';
+  var W = window, D = document;
+  if (W.FortPanneaux) return;
+
+  if (/[?&]panneaux=0/.test(location.search)) return;
+  // Réglages par défaut ; le fichier du créateur pubs/annonces.json (publié avec le site) les remplace
+  var CONFIG = W.__FORT_ANNONCES || {
+    panneaux: [{ source: 'instagram', compte: 'thomas_lzg' }],
+    foires: [
+      { nom: 'Foire de printemps', enseigne: 'FOIRE DE PRINTEMPS', du: '04-10', au: '04-30' },
+      { nom: 'Fête de la Saint-Jean', enseigne: 'FÊTE DE LA SAINT-JEAN', du: '06-15', au: '07-15' },
+      { nom: 'Foire de la Toussaint', enseigne: 'FOIRE DE LA TOUSSAINT', du: '10-20', au: '11-15' },
+      { nom: 'Marché de Noël', type: 'noel', enseigne: 'MARCHÉ DE NOËL', du: '12-01', au: '01-06' }
+    ]
+  };
+  function chargerConfig() {
+    if (W.__FORT_ANNONCES || location.protocol === 'file:') { chargerInsta(); return; }
+    try {
+      fetch('pubs/annonces.json', { cache: 'no-cache' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) {
+        if (j && Array.isArray(j.panneaux) && Array.isArray(j.foires)) {
+          j.foires = j.foires.filter(function (f) { return f && /^\d\d-\d\d$/.test(f.du) && /^\d\d-\d\d$/.test(f.au); });
+          CONFIG = j; if (calque) calque.__cle = '';
+        }
+        chargerInsta();
+      }).catch(chargerInsta);
+    } catch (e) { chargerInsta(); }
+  }
+
+  /* ------------------------------------------------------------ calendrier */
+  function mmjj(d) { return (d.getMonth() + 1) * 100 + d.getDate(); }
+  function entre(d, du, au) { // "MM-JJ", période pouvant enjamber le Nouvel An
+    var a = +du.replace('-', ''), b = +au.replace('-', ''), x = mmjj(d);
+    return a <= b ? x >= a && x <= b : x >= a || x <= b;
+  }
+  function foireDuMoment() {
+    var f = /[?&]foraine=1/.test(location.search), d = new Date();
+    for (var i = 0; i < (CONFIG.foires || []).length; i++) if (f || entre(d, CONFIG.foires[i].du, CONFIG.foires[i].au)) return CONFIG.foires[i];
+    return null;
+  }
+  // Dernier post Instagram : servi par la fonction Netlify « instagram » (même origine), jamais par Instagram directement
+  var INSTA = W.__FORT_INSTA || null;
+  function chargerInsta() {
+    if (INSTA || !(CONFIG.panneaux || []).some(function (p) { return p.source === 'instagram'; })) return;
+    try {
+      fetch('/.netlify/functions/instagram', { cache: 'no-cache' }).then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (j) { if (j && /^\/\.netlify\/functions\/instagram\?image=/.test(j.image || '')) { INSTA = j; if (calque) calque.__cle = ''; } })
+        .catch(function () {});
+    } catch (e) {}
+  }
+  function panneauxValides() {
+    var d = new Date(), j = d.toISOString().slice(0, 10);
+    return (CONFIG.panneaux || []).map(function (p) {
+      if (p.source !== 'instagram') return p;
+      var compte = /^[\w.]{1,30}$/.test(p.compte || '') ? p.compte : '';
+      if (INSTA) return { image: INSTA.image, insta: INSTA, texte: 'Dernier post Instagram de @' + (INSTA.compte || compte), lien: INSTA.lien || (compte && 'https://www.instagram.com/' + compte + '/') };
+      // pas encore de post (jeton non configuré, réseau) : une affiche qui renvoie au profil
+      return compte ? { insta: { compte: compte, legende: p.accroche || 'Retrouve mes créations et les coulisses du Fort sur Instagram.', quand: 'Appuie pour voir le profil' }, texte: 'Profil Instagram @' + compte, lien: 'https://www.instagram.com/' + compte + '/' } : null;
+    }).filter(function (p) {
+      if (!p) return false;
+      if (p.insta && !p.image) return true;
+      var ok = /^(pubs\/[\w\-]+\.(png|jpe?g|webp|avif)|\/\.netlify\/functions\/instagram\?image=\w+|data:image\/(png|jpeg|webp);base64,)/.test(p.image || ''); // uniquement les images du créateur
+      return ok && (!p.du || j >= p.du) && (!p.au || j <= p.au);
+    });
+  }
+  function nuit() { try { return /soir|nuit/.test(timePhase()); } catch (e) { return false; } }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return '&#' + c.charCodeAt(0) + ';'; }); }
+
+  /* ------------------------------------------------------------- dessins */
+  function roue() {
+    var r = 100, s = '', c = '', a, i;
+    for (i = 0; i < 12; i++) {
+      a = i * Math.PI / 6;
+      var x = (Math.cos(a) * r).toFixed(1), y = (Math.sin(a) * r).toFixed(1);
+      s += '<line x1="0" y1="0" x2="' + x + '" y2="' + y + '"/>';
+      c += '<g transform="translate(' + x + ' ' + y + ')"><g class="pf-nacelle"><path d="M0 0v7" stroke="#3a2c22" stroke-width="2"/><rect x="-9" y="7" width="18" height="13" rx="4" fill="' + ['#b8282c', '#2b6cb0', '#d69e2e', '#2f855a'][i % 4] + '"/><rect x="-6" y="10" width="12" height="5" rx="2" fill="#ffe9a8" class="pf-vitre"/></g></g>';
+    }
+    var ampoules = '';
+    for (i = 0; i < 24; i++) { a = i * Math.PI / 12; ampoules += '<circle class="pf-ampoule" cx="' + (Math.cos(a) * r).toFixed(1) + '" cy="' + (Math.sin(a) * r).toFixed(1) + '" r="3" style="animation-delay:-' + (i % 6) * .5 + 's"/>'; }
+    return '<svg viewBox="-130 -130 260 300" class="pf-svg" aria-hidden="true">' +
+      '<path d="M0 0L-62 168M0 0L62 168M-80 168h160" stroke="#4a3a30" stroke-width="7" fill="none" stroke-linecap="round"/>' +
+      '<g class="pf-tourne"><circle r="' + r + '" fill="none" stroke="#5a4a3e" stroke-width="5"/><circle r="' + (r - 16) + '" fill="none" stroke="#5a4a3e" stroke-width="2"/>' +
+      '<g stroke="#5a4a3e" stroke-width="2.5">' + s + '</g>' + ampoules + c + '</g>' +
+      '<circle r="10" fill="#6a5440" stroke="#ffd27a" stroke-width="2"/></svg>';
+  }
+  function chapiteau(nom) {
+    var bandes = '';
+    for (var i = 0; i < 8; i++) bandes += '<path d="M100 10L' + (12 + i * 22) + ' 90L' + (34 + i * 22) + ' 90Z" fill="' + (i % 2 ? '#f3e7cf' : '#b8282c') + '"/>';
+    return '<svg viewBox="0 0 200 175" class="pf-svg" aria-hidden="true">' +
+      '<path d="M100 10V-14" stroke="#4a3a30" stroke-width="3"/><path class="pf-fanion" d="M100 -14l22 6-22 6z" fill="#d69e2e"/>' +
+      bandes +
+      '<rect x="12" y="88" width="176" height="70" fill="#f3e7cf"/><path d="M12 88h176" stroke="#8a1d22" stroke-width="5"/>' +
+      '<path d="M12 96q22 14 44 0t44 0 44 0 44 0" fill="none" stroke="#b8282c" stroke-width="5"/>' +
+      '<path d="M78 158V118q22-24 44 0V158Z" fill="#2a1712"/><path d="M78 158V118q11-12 22-12V158Z" fill="#8a1d22" opacity=".9"/>' +
+      '<rect x="40" y="128" width="28" height="18" rx="2" fill="#2a1712"/>' +
+      '<rect x="46" y="66" width="108" height="20" rx="3" fill="#8a1d22" stroke="#d69e2e" stroke-width="1.5"/><text x="100" y="80" text-anchor="middle" textLength="96" lengthAdjust="spacingAndGlyphs" font-family="Georgia,serif" font-size="10" font-weight="700" fill="#ffd27a">' + esc(nom) + '</text></svg>';
+  }
+  function carrousel() {
+    var chevaux = '';
+    for (var i = 0; i < 5; i++) chevaux += '<g class="pf-cheval" style="animation-delay:-' + (i * .45) + 's" transform="translate(' + (22 + i * 39) + ' 0)"><path d="M0 70V128" stroke="#d69e2e" stroke-width="2"/><path d="M-11 112q4-12 16-10l6-8 4 3-3 7q6 4 4 12l-6 0-2-5-12 1-2 6-6 0z" fill="' + ['#f3e7cf', '#b8282c', '#2b6cb0', '#f3e7cf', '#2f855a'][i] + '"/></g>';
+    var toit = '';
+    for (i = 0; i < 8; i++) toit += '<path d="M110 8L' + (10 + i * 25) + ' 58L' + (35 + i * 25) + ' 58Z" fill="' + (i % 2 ? '#f3e7cf' : '#2b6cb0') + '"/>';
+    return '<svg viewBox="0 0 220 165" class="pf-svg" aria-hidden="true">' +
+      '<path d="M110 8V-10" stroke="#4a3a30" stroke-width="3"/><circle cx="110" cy="-12" r="5" fill="#d69e2e"/>' + toit +
+      '<path d="M10 58h200" stroke="#d69e2e" stroke-width="5"/><path d="M10 64q12 10 25 0t25 0 25 0 25 0 25 0 25 0 25 0 25 0" fill="none" stroke="#2b6cb0" stroke-width="4"/>' +
+      '<rect x="102" y="62" width="16" height="78" fill="#6a5440"/>' + chevaux +
+      '<rect x="4" y="138" width="212" height="14" rx="3" fill="#5a4a3e"/><path d="M4 140h212" stroke="#d69e2e" stroke-width="2"/></svg>';
+  }
+  // emblème d'appareil photo dessiné (pas de logo de marque), quand il n'y a pas encore de photo
+  function objectif() {
+    return '<svg viewBox="0 0 100 100" class="pf-objectif" aria-hidden="true"><rect width="100" height="100" fill="#3a2a1c"/>' +
+      '<rect x="18" y="28" width="64" height="48" rx="12" fill="none" stroke="#ffd27a" stroke-width="6"/><circle cx="50" cy="52" r="14" fill="none" stroke="#ffd27a" stroke-width="6"/>' +
+      '<circle cx="70" cy="38" r="3.5" fill="#ffd27a"/><rect x="32" y="20" width="16" height="9" rx="3" fill="#ffd27a"/></svg>';
+  }
+  function sapin(nom) {
+    var b = '', i, cols = ['#ffd27a', '#ff6b6b', '#9ad7ff', '#ffffff'];
+    var pts = [[86, 40], [112, 52], [74, 74], [124, 82], [96, 96], [62, 110], [138, 116], [84, 128], [116, 134]];
+    for (i = 0; i < pts.length; i++) b += '<circle class="pf-ampoule" cx="' + pts[i][0] + '" cy="' + pts[i][1] + '" r="4" fill="' + cols[i % 4] + '" style="animation-delay:-' + (i * .55).toFixed(2) + 's"/>';
+    return '<svg viewBox="0 0 200 175" class="pf-svg" aria-hidden="true">' +
+      '<rect x="92" y="140" width="16" height="22" fill="#5a3a22"/>' +
+      '<path d="M100 8L52 70h22L40 112h26L28 148h144L134 112h26L126 70h22Z" fill="#1f5a3a" stroke="#123824" stroke-width="2"/>' +
+      '<path d="M66 60q34 14 68 0M54 100q46 18 92 0M44 138q56 18 112 0" stroke="#d69e2e" stroke-width="2" fill="none" opacity=".8"/>' + b +
+      '<path d="M100 -6l4 10h10l-8 6 3 10-9-6-9 6 3-10-8-6h10z" fill="#ffd27a"/>' +
+      '<rect x="46" y="150" width="108" height="20" rx="3" fill="#8a1d22" stroke="#d69e2e" stroke-width="1.5"/><text x="100" y="164" text-anchor="middle" textLength="96" lengthAdjust="spacingAndGlyphs" font-family="Georgia,serif" font-size="10" font-weight="700" fill="#ffd27a">' + esc(nom) + '</text></svg>';
+  }
+  function cordes(pts, u, noel, W0, H0) {
+    var s = '', cols = ['#b8282c', '#d69e2e', '#2b6cb0', '#2f855a', '#f3e7cf'], k = 0;
+    for (var i = 1; i < pts.length; i++) {
+      var A = pts[i - 1], B = pts[i], dx = B[0] - A[0], C = [(A[0] + B[0]) / 2, Math.max(A[1], B[1]) + Math.abs(dx) * .16];
+      s += '<path d="M' + A[0].toFixed(1) + ' ' + A[1].toFixed(1) + 'Q' + C[0].toFixed(1) + ' ' + C[1].toFixed(1) + ' ' + B[0].toFixed(1) + ' ' + B[1].toFixed(1) + '" stroke="#3a2c22" stroke-width="1.4" fill="none"/>';
+      var n = Math.max(3, Math.round(Math.abs(dx) / (u * .3)));
+      for (var j = 1; j < n; j++) {
+        var t = j / n, x = (1 - t) * (1 - t) * A[0] + 2 * (1 - t) * t * C[0] + t * t * B[0], y = (1 - t) * (1 - t) * A[1] + 2 * (1 - t) * t * C[1] + t * t * B[1], c = cols[k++ % 5];
+        if (noel) s += '<circle class="pf-ampoule" cx="' + x.toFixed(1) + '" cy="' + (y + 2).toFixed(1) + '" r="' + (u * .045).toFixed(1) + '" fill="' + ['#ffd27a', '#ff6b6b', '#9ad7ff', '#ffffff'][k % 4] + '" style="animation-delay:-' + (k % 6) * .5 + 's"/>';
+        else { var f = u * .08; s += '<path class="pf-fan" style="animation-delay:-' + (k % 5) * .4 + 's;transform-origin:' + x.toFixed(1) + 'px ' + y.toFixed(1) + 'px" d="M' + (x - f).toFixed(1) + ' ' + y.toFixed(1) + 'h' + (2 * f).toFixed(1) + 'l-' + f.toFixed(1) + ' ' + (f * 2.1).toFixed(1) + 'z" fill="' + c + '"/>'; }
+      }
+    }
+    return '<svg class="pf-cordes" viewBox="0 0 ' + Math.round(W0) + ' ' + Math.round(H0) + '" width="' + Math.round(W0) + '" height="' + Math.round(H0) + '" aria-hidden="true">' + s + '</svg>';
+  }
+  function panneau(liste, k) {
+    var imgs = '';
+    liste.forEach(function (p, i) {
+      var vue = i === 0 ? ' pf-vue' : '';
+      if (p.insta) { // affiche du dernier post : la photo carrée, le compte et le début de la légende
+        var I = p.insta, leg = String(I.legende || '').replace(/\s+/g, ' ').slice(0, 90);
+        imgs += '<div class="pf-affiche pf-insta' + vue + '" role="img" aria-label="' + esc(p.texte) + '">' + (p.image ? '<img src="' + esc(p.image) + '" alt="" draggable="false">' : objectif()) +
+          '<div class="pf-insta-txt"><b>' + (I.compte ? '@' + esc(I.compte) : 'Instagram') + '</b><span>' + esc(leg) + (I.legende && I.legende.length > 90 ? '…' : '') + '</span>' +
+          (I.quand ? '<i>' + esc(I.quand) + '</i>' : '') + '</div></div>';
+      } else imgs += '<img class="pf-affiche' + vue + '" src="' + esc(p.image) + '" alt="' + esc(p.texte || '') + '" draggable="false">';
+    });
+    return '<i class="pf-ombre"></i><i class="pf-pied"></i><i class="pf-pied pf-d"></i><i class="pf-traverse"></i>' +
+      '<div class="pf-cadre">' + imgs + '<i class="pf-lampe"></i><i class="pf-lampe pf-d"></i></div><i class="pf-toit"></i>';
+  }
+
+  /* Les lampadaires de la place sont peints dans l'image de fond, et chaque image (jour,
+     crépuscule, nuit, téléphone ou PC) les place un peu ailleurs. On les retrouve donc dans
+     l'image elle-même : sur la bande des pavés, un poteau est une colonne fine nettement plus
+     sombre que ses voisines, surmontée d'un globe. Analyse faite une fois par image. */
+  var lampesParImage = {};
+  function lampesDe(src) {
+    if (lampesParImage[src]) return lampesParImage[src];
+    lampesParImage[src] = { l: 0, p: [] };
+    var img = new Image();
+    img.onload = function () {
+      try {
+        var Wi = img.naturalWidth, Hi = img.naturalHeight, pay = Wi > Hi;
+        var yA = Math.round(Hi * (pay ? .64 : .24)), yB = Math.round(Hi * (pay ? .8 : .32)), ym = Math.round(Hi * (pay ? .733 : .29));
+        var cv = D.createElement('canvas'); cv.width = Wi; cv.height = yB - yA;
+        var cx = cv.getContext('2d', { willReadFrequently: true }); cx.drawImage(img, 0, -yA);
+        var px = cx.getImageData(0, 0, Wi, yB - yA).data;
+        var lum = function (x, y) { var k = ((y - yA) * Wi + x) * 4; return px[k] * .3 + px[k + 1] * .59 + px[k + 2] * .11; };
+        var sombre = function (x, y) { var c = lum(x, y); return lum(x - 5, y) - c > 8 && lum(x + 5, y) - c > 8; };
+        var bandeA = Math.round(Hi * (pay ? .695 : .274)), bandeB = Math.round(Hi * (pay ? .772 : .307)), cols = [];
+        for (var x = 6; x < Wi - 6; x++) {
+          var n = 0; for (var y = bandeA; y < bandeB; y++) if (sombre(x, y)) n++;
+          if (n > (bandeB - bandeA) * .8) cols.push(x);
+        }
+        var groupes = [];
+        cols.forEach(function (x) { var g = groupes[groupes.length - 1]; if (g && x - g[g.length - 1] <= 2) g.push(x); else groupes.push([x]); });
+        var p = [];
+        groupes.forEach(function (g) {
+          if (g.length > 6) return;                        // trop large pour un poteau
+          var x = Math.round((g[0] + g[g.length - 1]) / 2), t = ym, b = ym;
+          while (t > yA + 1 && sombre(x, t - 1)) t--;
+          while (b < yB - 1 && sombre(x, b + 1)) b++;
+          p.push([x, t - 15, b + 3]);                     // le globe est juste au-dessus du poteau
+        });
+        lampesParImage[src] = { l: Wi, p: p };
+        if (calque) calque.__cle = '';                    // on replace le décor avec les lampadaires
+      } catch (e) {}
+    };
+    img.src = src;
+    return lampesParImage[src];
+  }
+  function lampadaires(pr) {
+    var c = [].filter.call(D.querySelectorAll('.ff-couche'), function (e) { return +getComputedStyle(e).opacity > .5; })[0];
+    var m = c && /url\("?([^")]+)"?\)/.exec(getComputedStyle(c).backgroundImage);
+    if (!m) return [];
+    // .pp-port recouvre exactement l'image de fond : coordonnées de l'image × échelle
+    var L = lampesDe(m[1]); if (!L.l) return [];
+    var sc = pr.width / L.l;
+    return L.p.map(function (p) { return { x: p[0] * sc, haut: p[1] * sc, pied: p[2] * sc, demi: 9 * sc, globe: 8.5 * sc, poteau: 3 * sc }; });
+  }
+
+  /* ------------------------------------------------------------ installation */
+  var calque = null, tourne = 0;
+  function poser() {
+    var port = D.querySelector('.pp-port');
+    var ici = false; try { ici = state.screen === 'accueil'; } catch (e) {}
+    if (!port || !ici) { if (calque) { calque.remove(); calque = null; } return; }
+    var aus = port.querySelectorAll('.pp-auvent'); if (!aus.length) return;
+    var pr = port.getBoundingClientRect(), r0 = aus[0].getBoundingClientRect(), haut = Infinity;
+    for (var i = 0; i < aus.length; i++) haut = Math.min(haut, aus[i].getBoundingClientRect().top);
+    var u = r0.width, base = haut - pr.top + u * .45; // pied des manèges : juste derrière les étals
+    // la partie visible de la place : à gauche de la carte sur PC, toute la largeur sur téléphone
+    var carte = D.querySelector('#app .frame'), vis = innerWidth;
+    if (carte) { var cr = carte.getBoundingClientRect(); if (cr.left > innerWidth * .35) vis = cr.left; }
+    var x0 = -pr.left, X = function (f) { return x0 + vis * f; };
+    var foire = foireDuMoment(), pubs = panneauxValides();
+    var cle = [Math.round(u), Math.round(base), Math.round(vis), carte ? Math.round(carte.getBoundingClientRect().top / 8) : 0, foire && foire.nom, pubs.length, nuit()].join('|'); // la carte d'accueil arrive en glissant : on se recale
+    if (calque && calque.__cle === cle && port.contains(calque)) return;
+    if (calque) calque.remove();
+    calque = D.createElement('div'); calque.className = 'pf-calque' + (nuit() ? ' pf-nuit' : ''); calque.__cle = cle;
+    var h = '';
+    function el(cls, cx, larg, haute, contenu, extra) {
+      return '<div class="pf-el ' + cls + '" style="left:' + (cx - larg / 2).toFixed(1) + 'px;top:' + (base - haute).toFixed(1) + 'px;width:' + larg.toFixed(1) + 'px;height:' + haute.toFixed(1) + 'px' + (extra || '') + '">' + contenu + '</div>';
+    }
+    // les espaces entre les étals visibles (le plus grand accueille le chapiteau, les suivants les panneaux)
+    var bas = haut + u * .9, cr2 = carte && carte.getBoundingClientRect(), devant = !carte || cr2.left > innerWidth * .35 || cr2.top > bas;
+    // espaces libres entre les auvents (bord à bord, tous les étals, visibles ou non) : [largeur libre, centre]
+    var lamp = lampadaires(pr);
+    var bords = [].map.call(aus, function (a) { var r = a.getBoundingClientRect(); return [r.left - pr.left, r.right - pr.left]; })
+      .concat(lamp.map(function (l) { return [l.x - l.demi * 1.6, l.x + l.demi * 1.6]; })) // un lampadaire occupe aussi l'allée
+      .sort(function (a, b) { return a[0] - b[0]; });
+    var trous = [];
+    for (i = 1; i < bords.length; i++) { var g = bords[i][0] - bords[i - 1][1]; if (g > 0) trous.push([g, (bords[i][0] + bords[i - 1][1]) / 2]); }
+    trous.sort(function (a, b) { return b[0] - a[0]; });
+    var trousVus = trous.filter(function (t) { return t[1] > x0 + u * 1.3 && t[1] < x0 + vis - u * 1.3; });
+    var chapX = foire && devant && trousVus.length ? trousVus[0][1] : X(.52);
+    if (foire && devant && trousVus.length) trous.splice(trous.indexOf(trousVus[0]), 1);
+    if (foire) {
+      var noel = foire.type === 'noel';
+      // point d'accroche (coordonnées du dessin SVG) → pixels du calque, avec le cadrage « meet » du SVG
+      var anc = function (cx, w, hh, vb, px, py) {
+        var sc = Math.min(w / vb[2], hh / vb[3]), ox = (w - vb[2] * sc) / 2, oy = (hh - vb[3] * sc) / 2;
+        return [cx - w / 2 + ox + (px - vb[0]) * sc, base - hh + oy + (py - vb[1]) * sc];
+      };
+      var rX = X(.11), cX = X(.86);
+      /* Les étals sont peints dans l'image de fond : sans précaution, les pieds de la roue, du
+         carrousel ou du chapiteau passeraient PAR-DESSUS leurs comptoirs. Les manèges sont donc
+         découpés par un masque qui laisse un trou à la place de chaque étal (de l'auvent jusqu'au
+         sol) : ce qui est derrière un étal disparaît derrière lui, comme dans la réalité. */
+      var Wp = Math.round(pr.width), Hp = Math.round(pr.height), trousMasque = '';
+      [].forEach.call(aus, function (a) {
+        var r = a.getBoundingClientRect(), x1 = r.left - pr.left - 1, x2 = r.right - pr.left + 1, y1 = r.top - pr.top + r.height * .45, y2 = r.top - pr.top + u * .9;
+        trousMasque += 'M' + x1.toFixed(1) + ' ' + y1.toFixed(1) + 'H' + x2.toFixed(1) + 'V' + y2.toFixed(1) + 'H' + x1.toFixed(1) + 'Z';
+      });
+      lamp.forEach(function (l) {
+        // découpe au plus près : un disque pour le globe, une fente pour le poteau
+        var gy = l.haut + l.globe, r = l.globe;
+        trousMasque += 'M' + (l.x - r).toFixed(1) + ' ' + gy.toFixed(1) + 'a' + r.toFixed(1) + ' ' + r.toFixed(1) + ' 0 1 0 ' + (2 * r).toFixed(1) + ' 0a' + r.toFixed(1) + ' ' + r.toFixed(1) + ' 0 1 0 ' + (-2 * r).toFixed(1) + ' 0Z';
+        trousMasque += 'M' + (l.x - l.poteau).toFixed(1) + ' ' + (gy + r * .6).toFixed(1) + 'H' + (l.x + l.poteau).toFixed(1) + 'V' + l.pied.toFixed(1) + 'H' + (l.x - l.poteau).toFixed(1) + 'Z';
+      });
+      var masque = 'url("data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="' + Wp + '" height="' + Hp + '" viewBox="0 0 ' + Wp + ' ' + Hp + '"><path fill-rule="evenodd" d="M0 0H' + Wp + 'V' + Hp + 'H0Z' + trousMasque + '"/></svg>') + '")';
+      h += '<div class="pf-fond" style="-webkit-mask-image:' + masque.replace(/"/g, '&quot;') + ';mask-image:' + masque.replace(/"/g, '&quot;') + '">';
+      h += el('pf-roue', rX, u * 3.1, u * 3.6, roue() + '<i class="pf-sol"></i>');
+      h += el('pf-chap', chapX, u * 2.6, u * 2.3, (noel ? sapin(foire.enseigne || foire.nom) : chapiteau(foire.enseigne || foire.nom)) + '<i class="pf-sol"></i>');
+      h += el('pf-carr', cX, u * 2.4, u * 1.9, carrousel() + '<i class="pf-sol"></i>');
+      // fanions (ou guirlande d'ampoules à Noël) tendus de mât en mât : moyeu de la roue → mât central → mât du carrousel
+      var a1 = anc(rX, u * 3.1, u * 3.6, [-130, -130, 260, 300], 0, 0),
+        a2 = anc(chapX, u * 2.6, u * 2.3, [0, 0, 200, 175], 100, noel ? -4 : -12),
+        a3 = anc(cX, u * 2.4, u * 1.9, [0, 0, 220, 165], 110, -8);
+      h += cordes([a1, a2, a3], u, noel, pr.width, pr.height);
+      h += '</div>';
+    }
+    if (pubs.length) {
+      /* Panneaux d'affichage sur pied, plantés sur les pavés de la place, dans la
+         rangée des étals : leurs deux montants descendent jusqu'au sol, au même
+         niveau que le pied des étals. Le panneau est perché au-dessus des auvents ;
+         sur téléphone, la carte d'accueil cache le bas des montants exactement comme
+         elle cache les étals : rien ne flotte. */
+      var sol = haut - pr.top + u * .82;              // pied des étals sur les pavés
+      var pw = u * 1.75, ph = pw / 2;
+      var hautPanneau = haut - pr.top - u * 1.2 - ph;  // le panneau dépasse franchement des auvents
+      var ecrans = [];
+      trous.forEach(function (t) {
+        // les montants doivent tomber dans l'espace libre entre les deux étals, sans toucher ni auvent ni comptoir
+        //   assez large : deux montants ; plus étroit : un seul mât au centre de l'allée
+        var off = Math.min(u * .49, t[0] / 2 - u * .14), mat = off < u * .2;
+        if (ecrans.length >= Math.min(2, pubs.length) || t[0] < Math.max(3, u * .07) + u * .24) return;
+        if (t[1] - pw / 2 < x0 || t[1] + pw / 2 > x0 + vis) return;        // entièrement visible
+        if (foire && Math.abs(t[1] - chapX) < u * 1.6) return;              // ne pas cacher l'enseigne du chapiteau
+        for (var k = 0; k < ecrans.length; k++) if (Math.abs(t[1] - ecrans[k][0]) < pw * 1.2) return;
+        ecrans.push([t[1], off, mat]);
+      });
+      ecrans.forEach(function (e, n) {
+        var x = e[0], jambe = e[2] ? Math.max(4, u * .07) : Math.max(3, u * .045);
+        h += '<div class="pf-el pf-panneau' + (e[2] ? ' pf-mat' : '') + '" style="--jl:' + (pw / 2 - e[1] - jambe / 2).toFixed(1) + 'px;--jw:' + jambe.toFixed(1) + 'px;left:' + (x - pw / 2).toFixed(1) + 'px;top:' + hautPanneau.toFixed(1) + 'px;width:' + pw.toFixed(1) + 'px;height:' + (sol - hautPanneau).toFixed(1) + 'px;--ph:' + ph.toFixed(1) + 'px">' + panneau(n ? pubs.slice(1).concat(pubs.slice(0, 1)) : pubs) + '</div>';
+      });
+    }
+    calque.innerHTML = h;
+    var hb = port.querySelector(':scope > svg'); port.insertBefore(calque, hb ? hb.nextSibling : port.firstChild); // devant les fenêtres de la ville, derrière les étals et les passants
+    // un appui sur un panneau ouvre le lien choisi par le créateur, s'il y en a un
+    calque.querySelectorAll('.pf-panneau').forEach(function (b, n) {
+      var liste = n ? pubs.slice(1).concat(pubs.slice(0, 1)) : pubs;
+      b.addEventListener('click', function () {
+        var vue = b.querySelector('.pf-vue'), idx = [].indexOf.call(b.querySelectorAll('.pf-affiche'), vue), p = liste[idx];
+        if (p && /^https:\/\//.test(p.lien || '')) W.open(p.lien, '_blank', 'noopener');
+      });
+    });
+  }
+  function rotation() { // fondu enchaîné entre les affiches, toutes les 7 s
+    if (!calque) return;
+    calque.querySelectorAll('.pf-cadre').forEach(function (c) {
+      var a = c.querySelectorAll('.pf-affiche'); if (a.length < 2) return;
+      var i = [].indexOf.call(a, c.querySelector('.pf-vue'));
+      a[i].classList.remove('pf-vue'); a[(i + 1) % a.length].classList.add('pf-vue');
+    });
+  }
+
+  var css = '' +
+    '.pf-calque{position:absolute;inset:0;pointer-events:none}' +
+    '.pf-fond{position:absolute;inset:0;-webkit-mask-size:100% 100%;mask-size:100% 100%;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}' +
+    '.pf-el{position:absolute}.pf-svg{display:block;width:100%;height:100%;overflow:visible}' +
+    '.pf-roue .pf-svg,.pf-chap .pf-svg,.pf-carr .pf-svg{filter:saturate(.8) brightness(.92)}' +
+    // la nuit, les manèges s'assombrissent comme le reste de la ville (les ampoules des cordes restent vives)
+    '.pf-nuit .pf-roue .pf-svg,.pf-nuit .pf-chap .pf-svg,.pf-nuit .pf-carr .pf-svg{filter:saturate(.7) brightness(.6)}' +
+    '.pf-nuit .pf-cadre{filter:brightness(.9)}.pf-nuit .pf-pied,.pf-nuit .pf-traverse,.pf-nuit .pf-toit{filter:brightness(.6)}' +
+    '.pf-sol{position:absolute;left:8%;right:8%;bottom:-3px;height:7px;border-radius:50%;background:rgba(0,0,0,.28)}' +
+    '.pf-cordes{position:absolute;left:0;top:0;overflow:visible;pointer-events:none}' +
+    '.pf-nuit .pf-cordes .pf-ampoule{opacity:1;filter:drop-shadow(0 0 3px rgba(255,210,122,.9))}' +
+    '.pf-insta{display:grid;grid-template-columns:calc(var(--ph) - 6px) minmax(0,1fr);grid-template-rows:100%;background:#f6efe2;color:#2a1c0c}' +
+    '.pf-insta img,.pf-objectif{width:100%;height:100%;object-fit:cover;display:block}' +
+    '.pf-insta-txt{min-width:0;display:flex;flex-direction:column;gap:.25em;padding:.45em .5em;font:max(7px,calc(var(--ph) * .11))/1.2 Georgia,serif;overflow:hidden}' +
+    '.pf-insta-txt b{font-size:1.05em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}' +
+    '.pf-insta-txt span{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}' +
+    '.pf-insta-txt i{margin-top:auto;font-size:.85em;opacity:.65}' +
+    '.pf-tourne{animation:pf-tourne 70s linear infinite}.pf-nacelle{animation:pf-tourne 70s linear infinite reverse}' +
+    '@keyframes pf-tourne{to{rotate:360deg}}' +
+    '.pf-ampoule{fill:#ffe9a8;opacity:.35}.pf-nuit .pf-ampoule{animation:pf-ampoule 3s ease-in-out infinite alternate}' +
+    '@keyframes pf-ampoule{from{opacity:.45}to{opacity:1}}' +
+    '.pf-vitre{opacity:.25}.pf-nuit .pf-vitre{opacity:.9}' +
+    '.pf-cheval{animation:pf-cheval 1.8s ease-in-out infinite alternate}@keyframes pf-cheval{from{transform:translateY(-5px)}to{transform:translateY(5px)}}' +
+    '.pf-fan{animation:pf-fan 3s ease-in-out infinite alternate}@keyframes pf-fan{from{rotate:-7deg}to{rotate:7deg}}' +
+    '.pf-fanion{animation:pf-fan 2.4s ease-in-out infinite alternate;transform-origin:100px -8px}' +
+    // panneaux
+    '.pf-panneau{pointer-events:none}.pf-cadre{pointer-events:auto;cursor:pointer}' +
+    '.pf-cadre{position:absolute;left:0;right:0;top:0;height:var(--ph);border:3px solid #5a3e26;border-radius:3px;background:#1a120c;box-shadow:0 4px 10px rgba(0,0,0,.45),inset 0 0 0 1px #8a6a44;overflow:hidden}' +
+    '.pf-affiche{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity 1.2s ease}.pf-affiche.pf-vue{opacity:1}' +
+    '.pf-nuit .pf-affiche{filter:brightness(.82)}' +
+    '.pf-pied{position:absolute;top:calc(var(--ph) - 4px);bottom:0;left:var(--jl);width:var(--jw);background:linear-gradient(90deg,#3a2818,#6a4a2c 45%,#3a2818);border-radius:1px}.pf-pied.pf-d{left:auto;right:var(--jl)}' +
+    '.pf-traverse{position:absolute;left:var(--jl);right:var(--jl);top:calc(var(--ph) + (100% - var(--ph)) * .45);height:max(2px,2.5%);background:#4a3424}' +
+    '.pf-mat .pf-pied{left:calc(50% - var(--jw) / 2)}.pf-mat .pf-pied.pf-d,.pf-mat .pf-traverse{display:none}.pf-mat .pf-ombre{left:calc(50% - var(--jw) * 2);right:calc(50% - var(--jw) * 2)}' +
+    '.pf-mat .pf-cadre::before,.pf-mat .pf-cadre::after{content:none}' +
+    '.pf-ombre{position:absolute;left:calc(var(--jl) - 6px);right:calc(var(--jl) - 6px);bottom:-3px;height:6px;border-radius:50%;background:rgba(0,0,0,.35)}' +
+    '.pf-toit{position:absolute;left:-4%;right:-4%;top:-6px;height:6px;border-radius:2px 2px 0 0;background:#4a3424;box-shadow:0 1px 0 #7a5a38}' +
+    '.pf-lampe{position:absolute;top:-2px;left:18%;width:10%;height:6%;border-radius:0 0 50% 50%;background:#2a2018;opacity:0}' +
+    '.pf-nuit .pf-lampe{opacity:1;box-shadow:0 6px 14px 4px rgba(255,200,110,.35)}.pf-lampe.pf-d{left:auto;right:18%}' +
+    '@media (prefers-reduced-motion:reduce){.pf-tourne,.pf-nacelle,.pf-cheval,.pf-fan,.pf-fanion,.pf-ampoule{animation:none!important}}' +
+    'html.perf-lite .pf-cheval,html.perf-lite .pf-fan,html.perf-lite .pf-ampoule{animation:none}';
+
+  function demarrer() {
+    var st = D.createElement('style'); st.id = 'fort-panneaux-css'; st.textContent = css; D.head.appendChild(st);
+    chargerConfig(); setInterval(poser, 900); setInterval(rotation, 7000);
+    W.addEventListener('resize', function () { setTimeout(poser, 120); });
+  }
+  if (D.readyState === 'loading') D.addEventListener('DOMContentLoaded', demarrer); else demarrer();
+  W.FortPanneaux = { poser: poser };
+})();
+</script>
 </body>
 
 </html>

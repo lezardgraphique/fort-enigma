@@ -822,6 +822,16 @@ Couche `fort-guide`, désactivable avec `?guide=0`.
 
 Le temps de chaque monde est **tiré au hasard à chaque entrée** selon son climat et la saison. Il change ensuite à **intervalles irréguliers**, entre 1 et 2 minutes et demie. Sur le port, la vraie météo du joueur devient seulement plus probable, elle n'est plus imposée. Le temps annoncé sur la carte d'entrée est toujours celui que l'on trouve en entrant.
 
+## Panneaux de la place et fêtes foraines
+
+Couche `fort-panneaux` (écran d'accueil), réglée par le créateur dans `pubs/annonces.json` : les joueurs ne peuvent rien y changer. Le mode d'emploi est dans `pubs/LISEZMOI.md`.
+
+- **Panneaux sur pied**, comme les panneaux d'arène de League of Legends. Ils sont plantés sur les pavés, dans les allées entre les étals : deux montants, ou un seul mât si l'allée est étroite. Leurs poteaux ne touchent jamais un étal ni un lampadaire, et sur téléphone, la carte d'accueil cache leur pied comme elle cache les étals. Ils montrent les images du dossier `pubs/` (format 2:1), en fondu toutes les 7 s, et un appui ouvre le lien choisi. Il y a deux panneaux au plus.
+- **Dernier post Instagram** : `{"source":"instagram","compte":"thomas_lzg"}`. Les fonctions `netlify/functions/instagram.mjs` (accès) et `instagram-maj.mjs` (planifiée, toutes les heures) récupèrent le dernier post et le gardent dans Netlify Blobs. Le jeu ne contacte jamais Instagram, et l'image est servie par le site lui-même. Il faut un compte Instagram professionnel et la variable `INSTAGRAM_TOKEN` dans Netlify ; le jeton est prolongé chaque semaine. Sans jeton, le panneau montre une affiche qui renvoie au profil.
+- **Fêtes saisonnières**, derrière les étals : grande roue, chapiteau à l'enseigne de la fête, carrousel, et fanions tendus de mât en mât (printemps, Saint-Jean, Toussaint). Pour le marché de Noël, un sapin décoré remplace le chapiteau et une guirlande d'ampoules remplace les fanions.
+- **Cohérence du décor** : les étals et les lampadaires sont peints dans l'image de fond. Un masque découpe donc les manèges à leur place, pour qu'ils passent derrière. Les lampadaires sont retrouvés dans l'image elle-même (jour, crépuscule, nuit, téléphone ou PC). La nuit, les manèges s'assombrissent avec la ville, et seules les ampoules restent vives.
+- Animations : transform et opacity seulement. Le mouvement réduit est respecté. Options : `?panneaux=0` pour désactiver, `?foraine=1` pour forcer la fête.
+
 ## L'effraction du soir et la Foire secrète
 
 Couches `fort-effraction` et `fort-foire`. Elles ne concernent que les parties commencées le soir ou la nuit, quand le Fort est fermé.
