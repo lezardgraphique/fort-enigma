@@ -1071,3 +1071,7 @@ Pas d'application iPad possible sans Mac (Xcode n'existe que sur macOS) : la flu
 - **Fanions** : animés par `transform: rotate()` au lieu de la propriété `rotate` sur des éléments SVG.
 - **Ampoules du chapiteau et du carrousel, lueur de l'entrée** : elles sont dessinées à l'intérieur du dessin SVG ; les faire clignoter force Safari à redessiner tout le chapiteau en continu. Sur iOS 15 (`ios-ancien`), elles restent allumées, fixes.
 - Contrôle : avec le moteur WebKit et l'identité d'un iPad sous iOS 15, les chevaux, les nacelles et les passants avancent entre deux mesures prises à 3 s d'intervalle.
+
+## Compteur de fluidité (?perf=1)
+
+Le compteur affichait « fps 0 » quand le palier est imposé (iOS 15, réglage manuel, `?fxtier`), car la mesure n'avait lieu qu'en mode automatique. Avec `?perf=1`, la mesure tourne toujours (sans changer le palier imposé) et une ligne indique l'appareil : iOS, navigateur (Safari ou Chrome), taille d'écran et densité, et si le mode `ios-ancien` est actif. Sur iOS 15, une seule des deux nappes de pluie est affichée.
