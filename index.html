@@ -12017,7 +12017,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       '<g class="pf-rideau pf-rd"><path d="M100 106q11 0 22 12V158H100Z" fill="#9a2228"/><path d="M105 158V107M110 158V110M116 158V114" stroke="#6a1418" stroke-width="1.2"/></g>' +
       '<path d="M78 118q22-24 44 0" fill="none" stroke="#d69e2e" stroke-width="2"/>';
     // deux visiteurs traversent la place et entrent sous le chapiteau
-    for (i = 0; i < 2; i++) o += '<g class="pf-visiteur" style="animation-delay:-' + (i * 4.5) + 's"><circle cx="0" cy="141" r="3.6" fill="#1c1418"/><path d="M-4.5 158v-11q0-5 4.5-5t4.5 5v11z" fill="#1c1418"/></g>';
+    o += '<g class="pf-visiteurs"></g>';
     return o;
   }
   function chapiteau(nom) {
@@ -12445,11 +12445,9 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     '@keyframes pf-ampoule{from{opacity:.45}to{opacity:1}}' +
     '.pf-vitre{opacity:.25}.pf-nuit .pf-vitre{opacity:.9}' +
     orbiteCss() + '.pf-ombre-ar{filter:brightness(.62)}' +
-    '.pf-rideau{transform-box:fill-box;animation:pf-rideau 4.5s ease-in-out infinite}.pf-rg{transform-origin:0 50%}.pf-rd{transform-origin:100% 50%}' +
-    '@keyframes pf-rideau{0%,20%{transform:scaleX(.22)}29%,82%{transform:scaleX(1)}89%,100%{transform:scaleX(.22)}}' +
+    '.pf-rideau{transform-box:fill-box;transition:transform .7s ease-in-out}.pf-chap.pf-ouvert .pf-rideau{transform:scaleX(.22)}.pf-rg{transform-origin:0 50%}.pf-rd{transform-origin:100% 50%}' +
     '.pf-chenille{fill:#ffe9a8;opacity:.35;animation:pf-chenille 1.44s linear infinite}@keyframes pf-chenille{0%,100%{opacity:.35}12%{opacity:1}30%{opacity:.35}}' +
     '.pf-lueur{opacity:0}.pf-nuit .pf-lueur{animation:pf-lueur 5s ease-in-out infinite alternate}@keyframes pf-lueur{from{opacity:.35}to{opacity:.7}}' +
-    '.pf-visiteur{opacity:0;animation:pf-visiteur 9s linear infinite}@keyframes pf-visiteur{0%{opacity:0;transform:translateX(-26px)}10%{opacity:1}55%{opacity:1;transform:translateX(98px)}62%,100%{opacity:0;transform:translateX(100px)}}' +
     '.pf-cheval{animation:pf-cheval 1.8s ease-in-out infinite alternate}@keyframes pf-cheval{from{transform:translateY(-5px)}to{transform:translateY(5px)}}' +
     '.pf-fan{animation:pf-fan 3s ease-in-out infinite alternate}@keyframes pf-fan{from{rotate:-7deg}to{rotate:7deg}}' +
     '.pf-fanion{animation:pf-fan 2.4s ease-in-out infinite alternate;transform-origin:100px -8px}' +
@@ -12466,12 +12464,72 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     '.pf-toit{position:absolute;left:-4%;right:-4%;top:-6px;height:6px;border-radius:2px 2px 0 0;background:#4a3424;box-shadow:0 1px 0 #7a5a38}' +
     '.pf-lampe{position:absolute;top:-2px;left:18%;width:10%;height:6%;border-radius:0 0 50% 50%;background:#2a2018;opacity:0}' +
     '.pf-nuit .pf-lampe{opacity:1;box-shadow:0 6px 14px 4px rgba(255,200,110,.35)}.pf-lampe.pf-d{left:auto;right:18%}' +
-    '@media (prefers-reduced-motion:reduce){.pf-tourne,.pf-nacelle,.pf-cheval,.pf-fan,.pf-fanion,.pf-ampoule,.pf-chenille,.pf-rideau,.pf-lueur{animation:none!important}[class^=pf-orb-]{animation-play-state:paused!important}.pf-visiteur{display:none}}' +
+    '@media (prefers-reduced-motion:reduce){.pf-tourne,.pf-nacelle,.pf-cheval,.pf-fan,.pf-fanion,.pf-ampoule,.pf-chenille,.pf-lueur{animation:none!important}.pf-rideau{transition:none}[class^=pf-orb-]{animation-play-state:paused!important}.pf-visiteurs{display:none}}' +
     'html.perf-lite .pf-cheval,html.perf-lite .pf-fan,html.perf-lite .pf-ampoule{animation:none}';
 
+  /* Les visiteurs du chapiteau : jamais la même scène deux fois. Chacun arrive à son heure
+     (intervalles irréguliers), de gauche ou de droite, à son pas ; adulte, enfant, chapeau,
+     parfois un parent et son enfant ; de temps en temps quelqu'un ressort. Le rideau ne
+     s'écarte que lorsqu'une personne est sur le seuil, puis se referme derrière elle. */
+  var SILHOUETTES = [
+    function (c) { return '<circle cx="0" cy="141" r="3.6" fill="' + c + '"/><path d="M-4.5 158v-11q0-5 4.5-5t4.5 5v11z" fill="' + c + '"/>'; },
+    function (c) { return '<circle cx="0" cy="140" r="3.4" fill="' + c + '"/><path d="M-4 135.5h8v-2h-1.8v-3.2h-4.4v3.2H-4z" fill="' + c + '"/><path d="M-4.2 158v-12q0-4.6 4.2-4.6t4.2 4.6v12z" fill="' + c + '"/>'; },
+    function (c) { return '<circle cx="0" cy="141" r="3.5" fill="' + c + '"/><path d="M-6 158l2-12q.6-4.4 4-4.4t4 4.4l2 12z" fill="' + c + '"/>'; },
+    function (c) { return '<circle cx="0" cy="147.5" r="2.6" fill="' + c + '"/><path d="M-3.2 158v-6.6q0-3 3.2-3t3.2 3v6.6z" fill="' + c + '"/>'; }
+  ];
+  var TEINTES = ['#1c1418', '#241a20', '#18141c', '#2a1e1e'];
+  function hasard(a, b) { return a + Math.random() * (b - a); }
+  function visiteur(groupe, chap, opts) {
+    var g = D.createElementNS('http://www.w3.org/2000/svg', 'g');
+    g.innerHTML = '<g class="pf-pas">' + SILHOUETTES[opts.type](TEINTES[Math.floor(Math.random() * TEINTES.length)]) + '</g>';
+    groupe.appendChild(g);
+    var porte = 100 + hasard(-2, 2), x0 = opts.sortie ? porte : (opts.gauche ? hasard(-40, -24) : hasard(224, 240));
+    var x1 = opts.sortie ? (opts.gauche ? -36 : 236) : porte, vit = opts.vitesse, duree = Math.abs(x1 - x0) / vit * 1000;
+    var pas = g.firstChild, sens = (x1 > x0 ? 1 : -1);
+    if (pas.animate) pas.animate([{ transform: 'translateY(0)' }, { transform: 'translateY(-.9px)' }, { transform: 'translateY(0)' }], { duration: 520 / (vit / 26), iterations: Infinity });
+    var fin = function () { if (g.parentNode) g.parentNode.removeChild(g); };
+    if (!g.animate) { fin(); return; }
+    var ouvrir = function (ms) { chap.classList.add('pf-ouvert'); clearTimeout(chap.__ferme); chap.__ferme = setTimeout(function () { chap.classList.remove('pf-ouvert'); }, ms); };
+    if (opts.sortie) {
+      // le rideau s'ouvre, la personne apparaît sur le seuil puis s'éloigne
+      ouvrir(1600 + opts.retard);
+      g.style.opacity = '0';
+      setTimeout(function () {
+        g.animate([{ opacity: 0, transform: 'translateX(' + x0 + 'px)' }, { opacity: 1, transform: 'translateX(' + (x0 + sens * 6) + 'px)', offset: .12 }, { opacity: 1, transform: 'translateX(' + (x1 - sens * 10) + 'px)', offset: .9 }, { opacity: 0, transform: 'translateX(' + x1 + 'px)' }],
+          { duration: duree, easing: 'linear', fill: 'forwards' }).onfinish = fin;
+      }, 650 + opts.retard);
+      return;
+    }
+    // approche, petite hésitation possible devant l'entrée, puis on entre
+    var hesite = Math.random() < .35 ? hasard(400, 1300) : 0, avant = porte - sens * 9;
+    var t1 = Math.abs(avant - x0) / vit * 1000;
+    var a = g.animate([{ opacity: 0, transform: 'translateX(' + x0 + 'px)' }, { opacity: 1, transform: 'translateX(' + (x0 + sens * 8) + 'px)', offset: 8 / Math.abs(avant - x0) }, { opacity: 1, transform: 'translateX(' + avant + 'px)' }],
+      { duration: t1, delay: opts.retard, easing: 'linear', fill: 'forwards' });
+    a.onfinish = function () {
+      setTimeout(function () {
+        ouvrir(1500);
+        setTimeout(function () {
+          g.animate([{ opacity: 1, transform: 'translateX(' + avant + 'px)' }, { opacity: 1, transform: 'translateX(' + porte + 'px)', offset: .7 }, { opacity: 0, transform: 'translateX(' + (porte + sens * 2) + 'px)' }],
+            { duration: 9 / vit * 1000 + 500, easing: 'ease-out', fill: 'forwards' }).onfinish = fin;
+        }, 380);
+      }, hesite);
+    };
+  }
+  function prochainVisiteur() {
+    var chap = D.querySelector('.pf-chap'), groupe = chap && chap.querySelector('.pf-visiteurs');
+    var calme = /nuit/.test((function () { try { return timePhase(); } catch (e) { return ''; } })());
+    setTimeout(prochainVisiteur, (calme ? hasard(7, 22) : hasard(3.5, 14)) * 1000);
+    if (!groupe || D.hidden || (W.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)) return;
+    if (groupe.childNodes.length > 3) return;
+    var gauche = Math.random() < .55, vitesse = hasard(18, 32), r = Math.random();
+    if (r < .18) { visiteur(groupe, chap, { type: Math.floor(Math.random() * 3), gauche: gauche, vitesse: vitesse, sortie: true, retard: 0 }); return; }
+    var type = Math.floor(Math.random() * 3);
+    visiteur(groupe, chap, { type: type, gauche: gauche, vitesse: vitesse, retard: 0 });
+    if (r > .8) visiteur(groupe, chap, { type: 3, gauche: gauche, vitesse: vitesse, retard: hasard(350, 650) }); // un enfant suit son parent
+  }
   function demarrer() {
     var st = D.createElement('style'); st.id = 'fort-panneaux-css'; st.textContent = css; D.head.appendChild(st);
-    chargerConfig(); setInterval(poser, 900); setInterval(rotation, 7000);
+    chargerConfig(); setTimeout(prochainVisiteur, 6000); setInterval(poser, 900); setInterval(rotation, 7000);
     W.addEventListener('resize', function () { setTimeout(poser, 120); });
   }
   if (D.readyState === 'loading') D.addEventListener('DOMContentLoaded', demarrer); else demarrer();
