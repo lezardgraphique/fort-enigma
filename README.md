@@ -1062,3 +1062,12 @@ Couche `fort-apple` (en tête de page, s'active seulement sur Safari et sur iOS)
 
 - **Personnages** : en mode calme (palier ≥ 2, donc tous les iPad sous iOS 15 depuis la v62), une règle arrêtait toutes les animations des passants, du Gardien, du Panda et des marchands. Ils bougent de nouveau dans tous les modes ; seuls les auvents et les lanternes, purement décoratifs, s'arrêtent en mode calme. Seul « réduire les animations » du système les fige.
 - **Grande roue** : elle tournait par la propriété CSS `rotate` appliquée à un groupe SVG, à l'intérieur d'un dessin filtré et masqué. Safari doit alors redessiner tout le dessin à chaque image, et les transformations CSS sur les éléments SVG y sont fragiles ([WebKit bug 183237](https://bugs.webkit.org/show_bug.cgi?id=183237), [bug 250387](https://bugs.webkit.org/show_bug.cgi?id=250387)). La roue est maintenant faite de calques HTML tournés par `transform` (pris en charge directement par le processeur graphique) : pieds fixes, jante et rayons qui tournent, douze nacelles qui tournent autour du moyeu en restant droites (deux rotations opposées synchronisées), moyeu. Vérifié avec le moteur WebKit : les nacelles avancent bien entre deux mesures.
+
+## Carrousel, fanions et ampoules : pensés pour le moteur de Safari
+
+Pas d'application iPad possible sans Mac (Xcode n'existe que sur macOS) : la fluidité se gagne côté web, en suivant la façon dont WebKit affiche les animations.
+
+- **Carrousel** : les douze chevaux (six devant le mât, six derrière) sont des calques HTML déplacés par `transform`, dans un repère de 220 × 165 px mis à l'échelle une seule fois. Les chevaux du fond sont assombris par un filtre posé sur leur dessin fixe, jamais sur un calque qui bouge (un filtre sur un parent animé oblige à tout refiltrer à chaque image).
+- **Fanions** : animés par `transform: rotate()` au lieu de la propriété `rotate` sur des éléments SVG.
+- **Ampoules du chapiteau et du carrousel, lueur de l'entrée** : elles sont dessinées à l'intérieur du dessin SVG ; les faire clignoter force Safari à redessiner tout le chapiteau en continu. Sur iOS 15 (`ios-ancien`), elles restent allumées, fixes.
+- Contrôle : avec le moteur WebKit et l'identité d'un iPad sous iOS 15, les chevaux, les nacelles et les passants avancent entre deux mesures prises à 3 s d'intervalle.
