@@ -73,3 +73,24 @@ export async function modifier(store, cle, fn, vide) {
   }
   return null;
 }
+
+// ------------------------------------------------------------
+// Alerte immédiate lancée par un service du Fort lui-même (sans attendre
+// la vigie horaire) : ligne « [ALERTE-FORT] » dans les journaux, au plus
+// une fois par problème toutes les 10 min sur cette instance, et note
+// « serveur » dans le magasin de la vigie (si le magasin répond), pour que
+// gardien-veille l'affiche dans l'état du Fort et ouvre un ticket.
+// ------------------------------------------------------------
+const dejaDit = {};
+export async function alerteServeur(code, gravite, texte, { store, maintenant = Date.now(), sansMagasin = false } = {}) {
+  if (dejaDit[code] && maintenant - dejaDit[code] < 6e5) return false;
+  dejaDit[code] = maintenant;
+  console.error("[ALERTE-FORT]", gravite.toUpperCase(), code, "—", texte, "(signalé par le service lui-même)");
+  if (sansMagasin) return true;   // le magasin est justement en panne
+  try {
+    const s = store || await magasin("vigie");
+    await modifier(s, "serveur", (d) => { const e = d[code] || { n: 0, premier: maintenant }; e.n++; e.dernier = maintenant; e.gravite = gravite; e.texte = texte; d[code] = e; return d; }, {});
+  } catch (e) {}   // magasin en panne : la ligne de journal suffit
+  return true;
+}
+export function _oublierAlertes() { for (const k in dejaDit) delete dejaDit[k]; }

@@ -19,7 +19,7 @@
 // fourni avec le site.
 // ============================================================
 
-import { ORIGINES_APP, preflight, avecCors } from "../lib/vigie.mjs";
+import { ORIGINES_APP, preflight, avecCors, alerteServeur } from "../lib/vigie.mjs";
 
 export const config = {
   rateLimit: { windowLimit: 40, windowSize: 60, aggregateBy: ["ip", "domain"] },
@@ -110,6 +110,7 @@ export default async (req) => {
     return avecCors(req, await traiter(req, await magasin()));
   } catch (e) {
     console.error("sauvegarde : échec", e && e.name);
+    if (/Blobs/.test(e && e.name || "")) await alerteServeur("blobs", "panne", "Le stockage Netlify Blobs ne répond plus (sauvegarde : " + e.name + ") : sauvegarde partagée et rapports des joueurs indisponibles ; les joueurs gardent leur progression sur leur appareil.", { sansMagasin: true });
     return json({ erreur: "service momentanément indisponible" }, 503);
   }
 };
