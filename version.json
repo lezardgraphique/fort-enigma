@@ -1,8 +1,7 @@
 {
- "version": "2026-11-09 23:00",
+ "version": "2026-11-10 00:30",
  "nouveautes": [
-  "Décor de la fête revu : plus rien ne se chevauche",
-  "Compatible iPad et iPhone sous iOS 15",
-  "Annonces de mise à jour plus courtes"
+  "iPhone et iPad : le décor ne saute plus quand on fait défiler",
+  "Vérifié avec le moteur de Safari (WebKit)"
  ]
 }
