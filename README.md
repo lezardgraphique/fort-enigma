@@ -1025,3 +1025,14 @@ Comme la solution est toujours à portée de main, les épreuves **montent d'un 
 - **Les habitations du quai** (`<script id="fort-habitations">`, désactivable avec `?habitations=0`) : le jeu lit la silhouette de la première rangée de façades dans le décor peint, puis ajoute des fenêtres, des volets, des portes et un liseré de lumière sur les toits le jour, des fenêtres qui vacillent (et s'éteignent de temps en temps) le soir et la nuit, et quelques cheminées qui fument. Les animations sont coupées en mode calme ou si « réduire les animations » est activé.
 - **L'aide visuelle des épreuves** (`<script id="fort-aide-visuelle">`, `?aide-visuelle=0`) : quand une épreuve a été ratée au moins 2 fois (la moitié des essais, ou les 2 derniers), une fiche s'affiche sous la consigne : les gestes en pictogrammes, la règle et une astuce. Un toucher la referme.
 - **Grenier plus réactif** : une épreuve est rangée au grenier (elle ne revient plus dans les parties) dès 3 échecs avec au moins 75 % d'échecs, ou 3 échecs sur les 4 dernières tentatives. L'ancienne règle (5 échecs à 60 %) reste valable. Au moins 10 épreuves restent toujours en jeu, et une épreuve rangée revient quand une nouvelle idée de l'Atelier est façonnée.
+
+## Appareils Apple (iPhone, iPad, Mac)
+
+Couche `fort-apple` (en tête de page, s'active seulement sur Safari et sur iOS) :
+
+- **Son** : Safari met le contexte audio en pause (« suspendu » ou « interrompu ») après un appel, l'écran verrouillé ou un passage dans une autre appli, et ne le relance jamais seul. Les contextes sont gardés en liste et réveillés au premier geste, au retour dans le jeu et au focus. Le commutateur silencieux de l'iPhone coupe toujours le son du jeu (choix d'Apple, volontairement conservé).
+- **Pas de zoom involontaire** : `touch-action: manipulation` (le double-tap ne zoome plus, le pincement reste) et champs de saisie à 16 px minimum sur iPhone/iPad (en dessous, Safari zoome en tapant).
+- **Toucher fiable** : iOS n'envoie pas toujours le clic jusqu'au document sur une carte ou une vignette ; chaque bloc posé dans la page reçoit un écouteur vide qui le rend « cliquable ».
+- **Clavier** : la page est remise en place quand le clavier se ferme (Safari la laissait parfois décalée).
+- **Appui long** : plus de menu « Enregistrer l'image » ni de sélection de texte sur les boutons et le décor.
+- **Compatibilité** : préfixes `-webkit-` ajoutés là où ils manquaient (`backdrop-filter`, `mask-image`, `user-select`) pour Safari avant la version 18 ; une expression régulière à « lookbehind » (inconnue d'iOS avant 16.4, qui bloquait tout un script) a été réécrite ; le Gardien explique que l'iPhone n'a pas de plein écran (ajouter le jeu à l'écran d'accueil).
