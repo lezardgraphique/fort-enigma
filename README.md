@@ -1091,3 +1091,9 @@ Mesure sur l'iPad du créateur (iPadOS 15.8, Chrome 122, 1024×653 @2x) avec `?p
 Recherche par élimination (chaque variante mesurée plusieurs fois) : couper les animations de la fête, les masques, les filtres, la pluie, les nacelles, les chevaux, la bande des maisons ou isoler des calques (`will-change`) ne change rien. Seul l'arrêt des animations des personnages du marché (`.pp-port`) supprime toutes les images lentes, la roue et le carrousel continuant de tourner.
 
 Réglage : sur iOS 15 (`ios-ancien`), le moteur mesure en continu ; si l'accueil reste au-dessus de 50 ms par image deux mesures de suite, la classe `ios-allege` met en pause les animations du marché (`animation-play-state: paused`, la pose reste naturelle). Le compteur `?perf=1` l'indique. Vérifié avec WebKit : l'accueil repasse à ~60 images/s et les nacelles continuent d'avancer. Un iPad assez rapide garde les personnages en mouvement.
+
+## iPad ancien : allègement maximal (v67)
+
+- **Correctif** : en v66, la règle de pause `html.ios-allege .pp-port *` arrêtait aussi la fête foraine, rangée dans `.pp-port` : la roue et le carrousel étaient figés. La pause vise maintenant les seuls personnages (`.pp-port *:not(.pf-calque):not(.pf-calque *)`).
+- **Mode allégé d'emblée sur iOS 15** (`ios-ancien` + `ios-allege` dès l'ouverture, sans attendre la mesure) : personnages du marché en pause ; 6 nacelles sur 12 et seulement les 6 chevaux de devant (moins de calques en mouvement) ; un visiteur du chapiteau sur quatre ; traits de pluie immobiles ; ampoules fixes ; flou et travelling coupés (v62).
+- Mesure WebKit (identité iPad iOS 15, pluie active) : accueil 59 images/s avec la roue et le carrousel en mouvement, écran solo 62, introduction 52 à 62.
