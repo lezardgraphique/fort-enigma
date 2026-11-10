@@ -18,6 +18,7 @@
 //   ANTHROPIC_API_KEY = sk-ant-...
 // (la portee de la variable doit inclure "Functions")
 // ============================================================
+import { alerteServeur } from "../lib/vigie.mjs";
 
 const SYSTEM_PROMPT = `Tu incarnes LE GARDIEN de Fort Énigma, un jeu d'aventure et d'énigmes en un seul fichier HTML, jouable en solo, à plusieurs, ou en mode plateau.
 
@@ -173,6 +174,28 @@ async function carnetDeVeille() {
   } catch (e) { return ""; }
 }
 
+// ------------------------------------------------------------
+// Disjoncteur : quand l'API refuse la clé (401/403) ou que le crédit est
+// épuisé, inutile de la rappeler à chaque message. Le Gardien coupe sa
+// « grande voix » 15 min sur cette instance, répond aussitôt 503 (le jeu
+// passe alors tout de suite sur la mémoire du Fort, sans faire attendre le
+// joueur) et donne l'alerte lui-même. Surcharge passagère (429/5xx) : 30 s.
+// ------------------------------------------------------------
+const disjoncteur = { jusqua: 0 };
+export function _rearmer() { disjoncteur.jusqua = 0; }
+async function constater(statusCode, raw) {
+  const t = Date.now();
+  if (statusCode === 401 || statusCode === 403) {
+    disjoncteur.jusqua = t + 15 * 6e4;
+    await alerteServeur("gardien-ia-cle", "panne", "L'API Claude refuse la clé ANTHROPIC_API_KEY (statut " + statusCode + ") : clé révoquée, expirée ou mal copiée. Le Gardien répond avec sa mémoire du Fort en attendant.");
+  } else if (statusCode === 400 && /credit balance|billing/i.test(raw)) {
+    disjoncteur.jusqua = t + 15 * 6e4;
+    await alerteServeur("gardien-ia-credit", "panne", "Le crédit de l'API Claude est épuisé : le Gardien répond avec sa mémoire du Fort en attendant.");
+  } else if (statusCode === 429 || statusCode >= 500) {
+    disjoncteur.jusqua = t + 3e4;
+  }
+}
+
 const MODELES = ["claude-haiku-5-5", "claude-haiku-4-5-20251001"];
 
 async function appellerClaude(apiKey, messages, systeme, modele, options = {}) {
@@ -299,7 +322,7 @@ async function forge(apiKey, payload) {
     ({ statusCode, raw } = await appellerClaude(apiKey, [{ role: "user", content: demande }], PROMPT_FORGE, modele));
     if (!(statusCode === 404 || (statusCode === 400 && /model/i.test(raw)))) break;
   }
-  if (statusCode < 200 || statusCode >= 300) return jsonResponse(502, { error: "Le Gardien n'a pas pu répondre." });
+  if (statusCode < 200 || statusCode >= 300) { await constater(statusCode, raw); return jsonResponse(502, { error: "Le Gardien n'a pas pu répondre." }); }
   try {
     const data = JSON.parse(raw);
     const texte = Array.isArray(data.content) && data.content[0] ? String(data.content[0].text || "") : "";
@@ -358,6 +381,9 @@ async function repondre(req) {
   if (!apiKey) {
     return jsonResponse(503, { error: "Le Gardien est muet pour le moment." });
   }
+  if (Date.now() < disjoncteur.jusqua) {
+    return jsonResponse(503, { error: "Le Gardien est muet pour le moment.", muet: true });
+  }
 
   if (payload.mode === "forge") {
     try { return await forge(apiKey, payload); }
@@ -406,6 +432,7 @@ async function repondre(req) {
 
     if (statusCode < 200 || statusCode >= 300) {
       console.error("gardien-chat : API", statusCode, raw.slice(0, 300));
+      await constater(statusCode, raw);
       return jsonResponse(502, { error: "Le Gardien n'a pas pu répondre." });
     }
 

@@ -35,6 +35,11 @@ await attend("forge : réponse de l'IA nettoyée", { method: "POST", headers: H,
 reponseApi = () => new Response('{"error":{"message":"détail interne sk-ant-xyz"}}', { status: 401 });
 const err = console.error; console.error = () => {};
 await attend("aucune fuite d'erreur interne", { method: "POST", headers: H, body: corps(msg) }, 502, (t) => !/sk-ant|interne/.test(t));
+// disjoncteur : clé refusée → le Gardien ne rappelle plus l'API et répond aussitôt « muet » (le jeu passe sur sa mémoire)
+let nbApi = 0; const fetchAvant = globalThis.fetch; globalThis.fetch = async (u, o) => { nbApi++; return fetchAvant(u, o); };
+await attend("disjoncteur : clé refusée → réponse immédiate sans appel à l'API", { method: "POST", headers: H, body: corps(msg) }, 503, (t) => JSON.parse(t).muet === true && nbApi === 0);
+await attend("disjoncteur : la forge est aussi coupée", { method: "POST", headers: H, body: corps({ mode: "forge", salle: "Salle", jeux: ["runes"] }) }, 503, () => nbApi === 0);
+globalThis.fetch = fetchAvant; m._rearmer();
 console.error = err;
 // ---- sauvegarde partagée entre appareils (faux magasin en mémoire) ----
 const sv = await import(new URL("../netlify/functions/sauvegarde.mjs", import.meta.url));
@@ -92,6 +97,7 @@ await attend("web : recherche indisponible → réponse sans elle", { method: "P
 const rp = await import(new URL("../netlify/functions/rapport.mjs", import.meta.url));
 const et = await import(new URL("../netlify/functions/etat.mjs", import.meta.url));
 const vg = await import(new URL("../netlify/functions/gardien-veille.mjs", import.meta.url));
+const vl0 = await import(new URL("../netlify/lib/vigie.mjs", import.meta.url));
 async function vig(nom, mod, url, init, statut, verif) {
   const r = await mod.traiter(new Request(url, init), magasin); const t = await r.text();
   const ok = r.status === statut && (!verif || verif(t)); if (!ok) echecs++;
@@ -110,6 +116,22 @@ const malade = await vg.verifier({ base: "https://f", cleIA: true, incidents: { 
   sonde: async (u) => /sauvegarde/.test(u) ? { ok: false, statut: 502, ms: 50 } : tout });
 const okV = sain.niveau === "ok" && malade.niveau === "panne" && malade.problemes.some((p) => p.code === "sauvegarde") && malade.problemes.some((p) => p.code === "repete:memory") && malade.problemes.some((p) => p.code === "incidents");
 if (!okV) echecs++; console.log((okV ? "  ✓ " : "  ✗ ") + "vigie : détecte panne, panne répétée et avalanche d'incidents");
+const cleRefusee = await vg.verifier({ base: "https://f", cleIA: true, cleStatut: 401, incidents: { total: 0, sig: {} }, sonde: async () => tout });
+const okC = cleRefusee.niveau === "panne" && cleRefusee.problemes.some((p) => p.code === "gardien-ia" && /refuse la clé/.test(p.texte));
+if (!okC) echecs++; console.log((okC ? "  ✓ " : "  ✗ ") + "vigie : détecte une clé de l'IA refusée (et pas seulement absente)");
+const T0 = 1e13;
+const notes = await vg.verifier({ base: "https://f", cleIA: true, cleStatut: 200, maintenant: T0, incidents: { total: 0, sig: {} }, sonde: async () => tout,
+  serveur: { blobs: { gravite: "panne", texte: "Le stockage ne répond plus", dernier: T0 - 6e5, n: 3 }, vieux: { gravite: "panne", texte: "ancien", dernier: T0 - 864e5 } } });
+const okN = notes.niveau === "panne" && notes.problemes.some((p) => p.code === "serveur:blobs" && /3 fois/.test(p.texte)) && !notes.problemes.some((p) => p.code === "serveur:vieux");
+if (!okN) echecs++; console.log((okN ? "  ✓ " : "  ✗ ") + "vigie : reprend les pannes signalées par les services (2 dernières heures)");
+const errV = console.error; let lignes = []; console.error = (...a) => lignes.push(a.join(" "));
+vl0._oublierAlertes();
+const a1 = await vl0.alerteServeur("essai", "panne", "boom", { store: magasin, maintenant: T0 });
+const a2 = await vl0.alerteServeur("essai", "panne", "boom", { store: magasin, maintenant: T0 + 6e4 });
+const a3 = await vl0.alerteServeur("essai", "panne", "boom", { store: magasin, maintenant: T0 + 7e5 });
+console.error = errV;
+const noteS = mem.get("serveur"); const okA = a1 && !a2 && a3 && lignes.length === 2 && /^\[ALERTE-FORT\] PANNE essai/.test(lignes[0]) && noteS && JSON.parse(noteS.s).essai.n === 2;
+if (!okA) echecs++; console.log((okA ? "  ✓ " : "  ✗ ") + "service : alerte immédiate « [ALERTE-FORT] », sans répétition pendant 10 min, notée pour la vigie");
 const sched = vg.config && vg.config.schedule === "@hourly";
 if (!sched) echecs++; console.log((sched ? "  ✓ " : "  ✗ ") + "vigie : tourne seule toutes les heures");
 
