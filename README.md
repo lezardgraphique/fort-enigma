@@ -1075,3 +1075,19 @@ Pas d'application iPad possible sans Mac (Xcode n'existe que sur macOS) : la flu
 ## Compteur de fluidité (?perf=1)
 
 Le compteur affichait « fps 0 » quand le palier est imposé (iOS 15, réglage manuel, `?fxtier`), car la mesure n'avait lieu qu'en mode automatique. Avec `?perf=1`, la mesure tourne toujours (sans changer le palier imposé) et une ligne indique l'appareil : iOS, navigateur (Safari ou Chrome), taille d'écran et densité, et si le mode `ios-ancien` est actif. Sur iOS 15, une seule des deux nappes de pluie est affichée.
+
+## iOS 15 : d'après la mesure réelle (5 images/s sur iPad, iOS 15.8, Chrome 122, 1024×653 @2x)
+
+Sur ce matériel, le temps part dans deux choses, que la couche `ios-ancien` supprime :
+1. **Les calques plein écran « fondus »** (`mix-blend-mode` : teinte du ciel en soft-light, voiles en multiply, halos en screen/overlay). Dès que quelque chose bouge en dessous (pluie, brume), Safari refait le mélange de tout l'écran à chaque image. Sur iOS 15 : mélange normal partout ; les teintes et halos lumineux sont masqués.
+2. **Les animations que Safari ne peut pas confier au processeur graphique** : celles à l'intérieur d'un dessin SVG (bras, jambes, yeux, respiration des personnages, lanterne) et celles qui animent une variable CSS (`--pp-m`). Sur iOS 15, elles sont coupées ; les personnages continuent de marcher et de se retourner (déplacements par `transform`, accélérés), la roue et le carrousel tournent. La brume et les nuages restent fixes ; hors de l'accueil, le décor de la place, invisible, est mis en pause.
+
+Mesure dans Chromium avec l'identité de l'iPad : temps du fil principal 18 % → 4 % à l'accueil, 21 % → 2 % sur l'écran « Aventure en solo ».
+
+## Accueil à 5 images/s sur iPad ancien : diagnostic et réglage automatique
+
+Mesure sur l'iPad du créateur (iPadOS 15.8, Chrome 122, 1024×653 @2x) avec `?perf=1` : 5 images/s, 275 ms au 95e centile, sur l'accueil. Même chiffre reproduit avec le moteur WebKit (WebKitGTK, identité iPad iOS 15) : ~210 ms par image à l'accueil, 16 ms sur l'écran « Aventure en solo ».
+
+Recherche par élimination (chaque variante mesurée plusieurs fois) : couper les animations de la fête, les masques, les filtres, la pluie, les nacelles, les chevaux, la bande des maisons ou isoler des calques (`will-change`) ne change rien. Seul l'arrêt des animations des personnages du marché (`.pp-port`) supprime toutes les images lentes, la roue et le carrousel continuant de tourner.
+
+Réglage : sur iOS 15 (`ios-ancien`), le moteur mesure en continu ; si l'accueil reste au-dessus de 50 ms par image deux mesures de suite, la classe `ios-allege` met en pause les animations du marché (`animation-play-state: paused`, la pose reste naturelle). Le compteur `?perf=1` l'indique. Vérifié avec WebKit : l'accueil repasse à ~60 images/s et les nacelles continuent d'avancer. Un iPad assez rapide garde les personnages en mouvement.
