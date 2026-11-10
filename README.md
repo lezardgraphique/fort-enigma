@@ -1103,3 +1103,14 @@ Réglage : sur iOS 15 (`ios-ancien`), le moteur mesure en continu ; si l'accueil
 - **Météo** : sur iOS 15 (`ios-allege`), le calque météo `#mt-meteo` (pluie, neige, nuages, voile, éclairs) est retiré ; les traits de pluie figés de la v67 faisaient un filtre gris sans intérêt.
 - **Jouabilité** : `outils/partie-ipad.js` joue une partie solo complète avec l'identité d'un iPad sous iOS 15. Résultat : introduction → infiltration → 4 salles (évènements, duels, épreuves : Char des Sables, Pari du Panda, Bonneteau du Panda, Sceau des Anciens) → parieur → coffres bonus (Énigme du Sphinx, Câble Haute Tension) → Coffre au Trésor final. Aucune erreur JavaScript, aucun écran bloqué. Les deux parties précédentes ont aussi traversé Lettres de Laiton, Sceau de Pierre, Roulette des Chiffres, Course des Remparts, Fil d'Argent, le Voleur et le Pari de l'Ombre. Seules des animations purement décoratives sont en pause (étincelle du Gardien, particules de transition, respiration du Panda) ; aucune animation nécessaire au jeu.
 - Saisie : le champ du nom reste à 16 px sur iPad (pas de zoom), et les appuis tactiles (`tap`) sur les boutons principaux fonctionnent.
+
+## Moteur de jeu revu pour l'iPad (v69)
+
+Inventaire de ce qui tourne en continu (minuteurs, boucles d'image, régulateur, observateurs), mesuré avec l'identité d'un iPad sous iOS 15 et un processeur ralenti 6 fois (ordre de grandeur d'un iPad de 2014-2015). Temps JavaScript sur l'accueil : **18 ms par seconde → 5,5 ms**.
+
+- **Mise en page (fort-layout-manager)** : un observateur relançait une mesure de mise en page (lectures forcées de styles et de tailles) à chaque changement de classe ou de style **n'importe où**, y compris dans le décor animé et pour la seule mise à jour de l'horloge. Il ignore désormais le décor (place, fête, ciel, météo, compteur, bulles du Gardien) et les changements de texte seul. `--topbar-h` n'est réécrite que si elle change.
+- **Variables CSS de la page entière** : sur iOS 15, une réécriture identique (`setProperty` avec la même valeur) est ignorée ; chacune faisait recalculer le style de tout le document.
+- **Régulateur d'animations** : sur iOS 15, palier fixe, balayage toutes les 2 s au lieu de 0,7 s ; la mesure d'images par seconde ne tourne qu'avec `?perf=1` (le mode allégé est appliqué d'emblée).
+- **« Apaiser » (décor)** : n'analyse plus toutes les animations quand seul du texte change (horloge).
+- **Effraction** : la sentinelle du rempart ne réécrit plus son attribut à chaque image, le grimpeur ne bouge que si sa position change, et la lumière du souterrain n'est mise à jour que par pas de 2 %.
+- Contrôles : vérificateur d'affichage conforme, validation HTML 0 erreur, chaque script analysé, et partie automatique iPad (`outils/partie-ipad.js`) menée jusqu'au Coffre au Trésor sans erreur.
