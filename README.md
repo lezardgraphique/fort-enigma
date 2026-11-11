@@ -1126,3 +1126,8 @@ La vigie horaire tourne sur Netlify (`gardien-veille`). L'application installée
 
 - Les marchands et le Panda sont découpés au ras du comptoir (haut des fruits) : le comptoir passe toujours devant eux.
 - La découpe est fixe : seul le corps du Panda bouge (va-et-vient, somme de nuit), il ne déborde plus devant le comptoir.
+
+## v73 — Tous les marchands au même format
+
+- Chaque marchand a désormais le format de celui de l'étal voisin du Panda : réduit, la tête juste sous le lambrequin, l'auvent devant lui et le comptoir qui cache le bas de son corps.
+- Ce placement est fait directement par le port animé (sur tous les écrans du menu) ; l'ajustement réservé au seul marchand de gauche dans `fort-panneaux` est retiré.
