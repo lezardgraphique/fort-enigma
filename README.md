@@ -1121,3 +1121,8 @@ La vigie horaire tourne sur Netlify (`gardien-veille`). L'application installée
 - La vigie horaire et la vigie de l'application ne contrôlent plus que le site, la version, le mode hors connexion et la sauvegarde.
 - `outils/test-securite.mjs` vérifie à chaque envoi qu'aucune fonction n'appelle d'API d'IA ni ne lit de clé.
 - La variable `ANTHROPIC_API_KEY` peut être supprimée de Netlify : plus rien ne la lit.
+
+## v72 — Personnages derrière les étals
+
+- Les marchands et le Panda sont découpés au ras du comptoir (haut des fruits) : le comptoir passe toujours devant eux.
+- La découpe est fixe : seul le corps du Panda bouge (va-et-vient, somme de nuit), il ne déborde plus devant le comptoir.
