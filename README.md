@@ -1131,3 +1131,8 @@ La vigie horaire tourne sur Netlify (`gardien-veille`). L'application installée
 
 - Chaque marchand a désormais le format de celui de l'étal voisin du Panda : réduit, la tête juste sous le lambrequin, l'auvent devant lui et le comptoir qui cache le bas de son corps.
 - Ce placement est fait directement par le port animé (sur tous les écrans du menu) ; l'ajustement réservé au seul marchand de gauche dans `fort-panneaux` est retiré.
+
+## v74 — Sauvegarde PC ↔ mobile : Safari 15 et réglages par appareil
+
+- **Safari 15 (iPad, iPhone, Chrome sur iPad)** : la sauvegarde envoyée par un PC est compressée (gzip) et Safari < 16.4 n'a pas `DecompressionStream` : la liaison échouait (« Le Fort n'arrive pas à joindre la sauvegarde »). Une petite décompression en JavaScript pur (`inflerGzip`, RFC 1951) prend le relais.
+- **Carte tassée sur mobile** : l'échelle choisie dans les Réglages PC voyageait avec la sauvegarde ; le mobile se mettait en mode « grand écran » (carte réduite à 40 % de la largeur). Les réglages propres à l'appareil (`fort-pc-*`, file de la vigie, guide, application installée…) ne sont plus partagés, et l'échelle PC ne s'applique qu'avec une souris.
