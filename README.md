@@ -1136,3 +1136,7 @@ La vigie horaire tourne sur Netlify (`gardien-veille`). L'application installée
 
 - **Safari 15 (iPad, iPhone, Chrome sur iPad)** : la sauvegarde envoyée par un PC est compressée (gzip) et Safari < 16.4 n'a pas `DecompressionStream` : la liaison échouait (« Le Fort n'arrive pas à joindre la sauvegarde »). Une petite décompression en JavaScript pur (`inflerGzip`, RFC 1951) prend le relais.
 - **Carte tassée sur mobile** : l'échelle choisie dans les Réglages PC voyageait avec la sauvegarde ; le mobile se mettait en mode « grand écran » (carte réduite à 40 % de la largeur). Les réglages propres à l'appareil (`fort-pc-*`, file de la vigie, guide, application installée…) ne sont plus partagés, et l'échelle PC ne s'applique qu'avec une souris.
+
+## v75 — Fil des chapitres de l'Histoire du Fort
+
+- Sur téléphone, la hauteur tactile minimale (44 px) étirait les points ronds en ovales. Ils sont remplacés par un fil d'or ponctué de losanges : chapitres lus pleins, chapitre en cours plus grand et lumineux. La zone tactile de 44 px est conservée, mais invisible.
