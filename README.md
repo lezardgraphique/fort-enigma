@@ -1114,3 +1114,14 @@ Inventaire de ce qui tourne en continu (minuteurs, boucles d'image, régulateur,
 - **« Apaiser » (décor)** : n'analyse plus toutes les animations quand seul du texte change (horloge).
 - **Effraction** : la sentinelle du rempart ne réécrit plus son attribut à chaque image, le grimpeur ne bouge que si sa position change, et la lumière du souterrain n'est mise à jour que par pas de 2 %.
 - Contrôles : vérificateur d'affichage conforme, validation HTML 0 erreur, chaque script analysé, et partie automatique iPad (`outils/partie-ipad.js`) menée jusqu'au Coffre au Trésor sans erreur.
+
+## La vigie dans l'application (v70)
+
+La vigie horaire tourne sur Netlify (`gardien-veille`). L'application installée (Tauri sur PC, Capacitor sur mobile) la relaie désormais elle-même, sans dépendre du seul serveur :
+
+- **Contrôle sur place** (`FortVigie.controle`) : l'appareil sonde lui-même l'état publié (`/api/etat`), la sauvegarde partagée (identifiant nul → 404 attendu) et la voix du Gardien (`GET /api/gardien` → 405 attendu). Dans l'application : au démarrage, toutes les heures et au retour du réseau ; sur le site : à l'ouverture de ☰ → État du Fort, ou avec le bouton « ↻ Vérifier maintenant ».
+- **Vigie horaire en retard** : si l'état publié n'a pas été mis à jour depuis plus de 2 h, l'appareil le signale (incident `veille`) et l'affiche.
+- **Incidents conservés** : la file des incidents non transmis est gardée sur l'appareil (`localStorage`, 3 jours au plus) ; un incident noté hors connexion part à la réouverture. À la fermeture, la copie n'est effacée qu'une fois l'envoi confirmé.
+- **Panneau** : « Mode hors connexion : intégré à l'application », plateforme indiquée (PC ou mobile), résultat du contrôle depuis l'appareil.
+- **`version.json`** est servi avec `Access-Control-Allow-Origin: *` : l'application (autre origine) peut savoir qu'une mise à jour existe.
+- Test : application simulée (`?natif=1`) avec services interceptés sur `https://fort-enigma.netlify.app` : contrôle automatique, signalement du retard, panneau, incident hors connexion renvoyé à la réouverture.

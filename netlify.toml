@@ -46,6 +46,14 @@
 
 # Mode hors connexion : le service worker doit toujours etre relu pour que
 # les mises a jour du jeu arrivent sans attendre.
+# l'application installée (origine capacitor://localhost, tauri.localhost…) lit version.json sur le site
+# pour savoir s'il existe une mise à jour : données publiques, lisibles depuis n'importe quelle origine
+[[headers]]
+  for = "/version.json"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+    Cache-Control = "no-cache"
+
 [[headers]]
   for = "/sw.js"
   [headers.values]
