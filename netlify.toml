@@ -8,7 +8,7 @@
 # Node pour les fonctions) doit se regler via l'UI/CLI/API Netlify -- elle
 # n'a aucun effet placee ici dans netlify.toml. Sans reglage, le runtime
 # suit la version de Node du build (repli Node 24 par defaut), largement
-# suffisant pour gardien-chat.mjs (qui utilise fetch() nativement).
+# suffisant pour les fonctions du Fort (fetch() natif ; aucune API d’IA).
 
 [functions]
   node_bundler = "esbuild"

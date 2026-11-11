@@ -32,7 +32,7 @@ npm run ios:synchroniser      # puis ouvrir ios/App dans Xcode
 ## Ce qui change dans l'application
 
 - **Hors connexion** : le jeu complet est embarqué et fonctionne sans Internet.
-- **Services en ligne** : la voix du Gardien, la sauvegarde PC ↔ mobile, la vigie et l'état du Fort sont appelés sur `https://fort-enigma.netlify.app`. C'est le module `fort-natif` du jeu qui s'en charge. Les fonctions Netlify n'autorisent que les origines des applications (`tauri://localhost`, `http(s)://tauri.localhost`, `capacitor://localhost`, `https://localhost`), en plus du site.
+- **Services en ligne** : la sauvegarde PC ↔ mobile, la vigie et l'état du Fort sont appelés sur `https://fort-enigma.netlify.app`. C'est le module `fort-natif` du jeu qui s'en charge. Les fonctions Netlify n'autorisent que les origines des applications (`tauri://localhost`, `http(s)://tauri.localhost`, `capacitor://localhost`, `https://localhost`), en plus du site.
 - **Mises à jour** : l'application ne se met pas à jour toute seule comme le site. Le Gardien signale qu'une nouvelle version est sortie, et il faut réinstaller.
 - **Permissions** : aucune permission système n'est demandée (`src-tauri/capabilities/default.json` est vide).
 

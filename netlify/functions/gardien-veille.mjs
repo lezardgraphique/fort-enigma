@@ -4,11 +4,9 @@
 // Sans joueur ni développeur, le Gardien vérifie lui-même que le Fort
 // tient debout :
 //   - le jeu, version.json et le mode hors connexion répondent ;
-//   - la sauvegarde partagée et la voix du Gardien (IA) répondent ;
-//   - la clé de l'IA est configurée ET acceptée par l'API Claude (appel
-//     gratuit à la liste des modèles, aucun jeton consommé) ;
-//   - les pannes que les services ont eux-mêmes signalées (clé refusée,
-//     stockage en panne…) depuis 2 h ;
+//   - la sauvegarde partagée répond ;
+//   - les pannes que les services ont eux-mêmes signalées (stockage en
+//     panne…) depuis 2 h ;
 //   - les incidents remontés par les joueurs (rapport.mjs) ne
 //     s'emballent pas (même panne répétée, avalanche d'erreurs).
 // Il écrit l'état du Fort (lu par le jeu via /api/etat) et, quand un
@@ -36,42 +34,26 @@ async function sonder(url, attendu, ms = 8000) {
   finally { clearTimeout(t); }
 }
 
-// la clé est-elle acceptée ? (GET /v1/models : gratuit, ne consomme aucun jeton)
-async function testerCle(cle, ms = 8000) {
-  const c = new AbortController(), t = setTimeout(() => c.abort(), ms);
-  try {
-    const r = await fetch("https://api.anthropic.com/v1/models?limit=1", { signal: c.signal, headers: { "x-api-key": cle, "anthropic-version": "2023-06-01" } });
-    return r.status;
-  } catch (e) { return 0; }
-  finally { clearTimeout(t); }
-}
-
-export async function verifier({ base, cleIA, cleStatut = null, serveur = {}, maintenant = Date.now(), incidents, sonde = sonder }) {
+// La vigie est autonome : aucune clé, aucun service d'IA. Elle ne dépend que du Fort lui-même.
+export async function verifier({ base, serveur = {}, maintenant = Date.now(), incidents, sonde = sonder }) {
   const p = [];
   const ajoute = (code, gravite, texte) => p.push({ code, gravite, texte });
-  const [site, ver, sw, sauv, ia] = await Promise.all([
+  const [site, ver, sw, sauv] = await Promise.all([
     sonde(base + "/", (r, c) => r.status === 200 && /Fort/.test(c)),
     sonde(base + "/version.json", (r, c) => { try { return r.status === 200 && !!JSON.parse(c).version; } catch (e) { return false; } }),
     sonde(base + "/sw.js", (r) => r.status === 200),
     sonde(base + "/.netlify/functions/sauvegarde?id=" + "0".repeat(64), (r, c) => r.status === 404 && /"t"/.test(c)),
-    sonde(base + "/api/gardien", (r) => r.status === 405),
   ]);
   if (!site.ok) ajoute("site", "panne", "Le Fort ne répond plus (page d'accueil, statut " + site.statut + ").");
   else if (site.ms > 6000) ajoute("lenteur", "attention", "Le Fort répond lentement (" + site.ms + " ms).");
   if (!ver.ok) ajoute("version", "attention", "version.json est illisible : les mises à jour automatiques sont bloquées.");
   if (!sw.ok) ajoute("horsligne", "attention", "Le service du mode hors connexion (sw.js) ne répond pas.");
   if (!sauv.ok) ajoute("sauvegarde", "panne", "La sauvegarde partagée PC ↔ mobile ne répond pas (statut " + sauv.statut + ").");
-  if (!ia.ok) ajoute("gardien-ia", "panne", "La voix du Gardien (IA) ne répond pas (statut " + ia.statut + ").");
-  else if (!cleIA) ajoute("gardien-ia", "attention", "La clé ANTHROPIC_API_KEY n'est pas configurée : le Gardien reste muet.");
-  else if (cleStatut === 401 || cleStatut === 403) ajoute("gardien-ia", "panne", "L'API Claude refuse la clé ANTHROPIC_API_KEY (statut " + cleStatut + ") : clé révoquée, expirée ou mal copiée. Le Gardien répond avec sa mémoire du Fort en attendant.");
-  else if (cleStatut === 429 || cleStatut >= 500) ajoute("gardien-ia", "attention", "L'API Claude est surchargée (statut " + cleStatut + ") : le Gardien peut répondre avec sa mémoire du Fort.");
-  else if (cleStatut === 0) ajoute("gardien-ia", "attention", "L'API Claude est injoignable depuis le Fort.");
 
-  // pannes signalées par les services eux-mêmes depuis 2 h (gardien-chat, sauvegarde, rapport)
-  const dejaVu = new Set(p.filter((x) => x.gravite === "panne").map((x) => x.code));
+  // pannes signalées par les services eux-mêmes depuis 2 h (sauvegarde, rapport)
   for (const [code, e] of Object.entries(serveur || {})) {
     if (!e || maintenant - (e.dernier || 0) > 72e5) continue;
-    if (code.startsWith("gardien-ia") && dejaVu.has("gardien-ia")) continue;
+    if (code.startsWith("gardien-ia")) continue;   // ancienne voix IA, retirée
     ajoute("serveur:" + code, e.gravite === "panne" ? "panne" : "attention", String(e.texte || code).slice(0, 220) + (e.n > 1 ? " (" + e.n + " fois)" : ""));
   }
 
@@ -85,7 +67,7 @@ export async function verifier({ base, cleIA, cleStatut = null, serveur = {}, ma
   if (signalements.length) ajoute("signalements", "info", signalements.length + " signalement(s) de joueurs : « " + signalements[0].msg.slice(0, 100) + " ».");
 
   const niveau = p.some((x) => x.gravite === "panne") ? "panne" : p.some((x) => x.gravite === "attention") ? "attention" : "ok";
-  return { niveau, problemes: p, mesures: { site: site.ms, sauvegarde: sauv.ms, gardien: ia.ms }, incidents24h: total };
+  return { niveau, problemes: p, mesures: { site: site.ms, sauvegarde: sauv.ms }, incidents24h: total };
 }
 
 async function ticketGitHub(token, depot, titre, corps) {
@@ -106,9 +88,8 @@ export default async () => {
     const base = (env("URL") || "https://fort-enigma.netlify.app").replace(/\/$/, "");
     const [a, b] = await Promise.all([store.get("jour-" + jour(t), { type: "json" }), store.get("jour-" + jour(t - 864e5), { type: "json" })]);
     const inc = { total: (a && a.total || 0) + (b && b.total || 0) * 0.5 | 0, sig: Object.assign({}, b && b.sig, a && a.sig) };
-    const cle = env("ANTHROPIC_API_KEY");
-    const [cleStatut, serveur] = await Promise.all([cle ? testerCle(cle) : null, store.get("serveur", { type: "json" }).catch(() => null)]);
-    const etat = await verifier({ base, cleIA: !!cle, cleStatut, serveur: serveur || {}, maintenant: t, incidents: inc });
+    const serveur = await store.get("serveur", { type: "json" }).catch(() => null);
+    const etat = await verifier({ base, serveur: serveur || {}, maintenant: t, incidents: inc });
     const avant = await store.get("etat", { type: "json" });
     for (const p of etat.problemes) p.depuis = (avant && (avant.problemes || []).find((x) => x.code === p.code) || {}).depuis || t;
     etat.verifie = t;

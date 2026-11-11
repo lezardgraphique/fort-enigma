@@ -8,19 +8,18 @@ Ouvrez un signalement privé via l'onglet **Security → Report a vulnerability*
 
 **Navigateur (index.html)**
 - Politique de sécurité du contenu (CSP) stricte : aucune ressource externe sauf les API météo listées ; `object-src`, `frame-src`, `form-action`, `base-uri` fermés ; `upgrade-insecure-requests`.
-- Toutes les saisies (noms de joueurs et d'équipes, ville, messages au Gardien) sont neutralisées avant affichage ; les réponses des API tierces (météo, géolocalisation) et du Gardien sont échappées.
+- Toutes les saisies (noms de joueurs et d'équipes, ville, messages au Gardien) sont neutralisées avant affichage ; les réponses des API tierces (météo, géolocalisation) sont échappées.
 - Les données relues depuis le stockage local passent par `__deepSanitize` ; les sauvegardes corrompues sont réparées au démarrage.
 - Aucun `eval`, aucun `new Function`, aucun code construit à partir de données (les boutons de propositions utilisent des attributs de données).
 - La « Salle des machines » (outils de test qui permettent de tricher) n'est accessible qu'avec `?machines=1` dans l'adresse.
 
-**Serveur (netlify/functions/gardien-chat.mjs, route `/api/gardien`)**
-- Clé API uniquement côté serveur (variable `ANTHROPIC_API_KEY`), jamais dans le dépôt (vérifié à chaque envoi).
-- Limitation de débit Netlify : 20 requêtes / minute / IP.
-- Origines autorisées : sites du projet et développement local ; JSON obligatoire ; taille ≤ 24 Ko ; messages validés ; contexte réduit à une liste blanche de champs courts ; aucune erreur interne renvoyée au client.
+**Serveur (netlify/functions/*.mjs)**
+- Aucune API d'IA ni clé de modèle : le Gardien répond dans le jeu, avec sa mémoire du Fort (vérifié à chaque envoi par `outils/test-securite.mjs`).
+- Sauvegarde partagée, rapports et état : limitation de débit Netlify, origines autorisées (site et applications), JSON obligatoire, taille bornée, aucune erreur interne renvoyée au client.
 
 **En-têtes HTTP (netlify.toml)** : HSTS, `nosniff`, `Referrer-Policy`, `Permissions-Policy` restrictive, `Cross-Origin-Opener-Policy` et `Cross-Origin-Resource-Policy` en same-origin, `frame-ancestors` limité à Netlify.
 
-**Contrôles automatiques** : `outils/test-securite.mjs` (fonction du Gardien), recherche de clé API, CodeQL, `outils/verifier.js` et `outils/reparer.py` à chaque envoi.
+**Contrôles automatiques** : `outils/test-securite.mjs` (fonctions serveur), recherche de clé API, CodeQL, `outils/verifier.js` et `outils/reparer.py` à chaque envoi.
 
 ## Limite connue
 

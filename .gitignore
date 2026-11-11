@@ -2,11 +2,10 @@
 *.bak
 *.avant-*.bak
 
-# secrets locaux (cle ANTHROPIC_API_KEY pour tester la fonction en local
-# avec `netlify dev`) : ne doivent jamais etre commit.
+# secrets locaux (ex. INSTAGRAM_TOKEN pour tester en local avec
+# `netlify dev`) : ne doivent jamais etre commit.
 .env
 .env.*
-!.env.example
 
 # dependances de test
 node_modules/

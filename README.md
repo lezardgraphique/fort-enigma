@@ -329,14 +329,9 @@ faire une bonne fois pour toutes :
    Netlify sans aucune action de ta part** — c'est Netlify qui écoute
    GitHub, pas l'inverse.
 
-2. **Ajouter la clé du Gardien IA** : Netlify → *Site settings →
-   Environment variables → Add a variable* → nom `ANTHROPIC_API_KEY`,
-   valeur ta clé Anthropic. Sans elle, le Gardien reste sur son répertoire
-   de secours local (voir `netlify/functions/gardien-chat.mjs`) — le jeu
-   fonctionne quand même, juste sans IA réelle.
-   `.env.example` documente cette variable pour un test en local avec
-   `netlify dev` ; ne jamais committer le fichier `.env` réel (déjà exclu
-   par `.gitignore`).
+2. **Aucune clé à régler pour le Gardien** : il répond dans le jeu, avec
+   sa mémoire du Fort, sans API d'IA (retirée en v71). Seule la fonction
+   Instagram, facultative, lit `INSTAGRAM_TOKEN` dans l'environnement Netlify.
 
 3. **Empêcher qu'une régression parte en ligne** : sur GitHub, *Settings →
    Branches → Add branch protection rule* pour `main`, cocher *Require
@@ -352,7 +347,7 @@ faire une bonne fois pour toutes :
 
 4. **Le filet anti-fuite de clé** : `verification.yml` scanne désormais
    le dépôt à chaque push et bloque le pipeline si un texte ressemblant à
-   une clé API Anthropic (`sk-ant-...`) s'y trouve — utile si quelqu'un
+   une clé API (`sk-ant-...`, jeton…) s'y trouve — utile si quelqu'un
    colle une vraie clé dans le code par erreur au lieu de la mettre en
    variable d'environnement.
 
@@ -405,7 +400,7 @@ Couche `<script id="fort-veillee">` par-dessus le jeu (désactivable avec `?veil
 - **Hors connexion** : répond à toutes les questions sur le jeu (règles, les 19 épreuves avec méthode et astuce, clés, doublons, coffre, univers, modes, horloge, difficulté, Ferveur, défi, succès, réglages, manette, hors ligne, statistiques) à partir de l'état réel de la partie. Ne donne jamais la solution d'une épreuve.
 - **Agit** : débloquer l'écran, relancer l'épreuve, retour accueil, mode fluide / tous les effets, son, réparation des sauvegardes, réglages par défaut, mise à jour, diagnostic.
 - **Veille** : journal des erreurs, auto-réparation des écrans plantés, neutralisation des voiles invisibles qui bloquent les clics, réparation des sauvegardes abîmées au démarrage.
-- **En ligne** : la fonction `gardien-chat` reçoit le contexte de la partie et peut déclencher les mêmes actions (`[[action:…]]`) ; repli local instantané en cas de silence.
+- **Autonome** : le Gardien ne dépend d'aucune API ni clé ; en ligne comme hors ligne, il répond avec sa mémoire du Fort.
 
 ## Allègement
 
@@ -451,7 +446,7 @@ Les décors de 8 univers (Fort, Fête foraine, Atelier, Nordique, Pirates, Manoi
 
 ## Sécurité
 
-Voir [SECURITY.md](SECURITY.md). En bref : saisies et réponses externes échappées, CSP et en-têtes durcis, fonction du Gardien protégée (route `/api/gardien`, limite de 20 requêtes/minute/IP, origines autorisées, validation stricte, aucune fuite d'erreur), Salle des machines réservée à `?machines=1`, tests automatiques (`node outils/test-securite.mjs`).
+Voir [SECURITY.md](SECURITY.md). En bref : saisies et réponses externes échappées, CSP et en-têtes durcis, fonctions serveur protégées (limite de débit, origines autorisées, validation stricte, aucune fuite d'erreur), aucune API d'IA, Salle des machines réservée à `?machines=1`, tests automatiques (`node outils/test-securite.mjs`).
 
 
 ## Fêtes et saisons
@@ -548,7 +543,7 @@ Avant, les salles proposées par le Gardien collaient un nouveau nom sur une poi
 - La difficulté suit celle du Fort.
 - Le Gardien attribue d'abord les jeux que le joueur ne possède pas encore, et jamais deux fois le même dans une salle.
 - Les salles déjà acceptées sont converties automatiquement.
-- **En ligne**, le Gardien écrit lui-même le récit de la salle et le nom de ses jeux (`/api/gardien`, mode `forge`). L'IA n'écrit que du texte, en JSON strict, nettoyé côté serveur puis dans le navigateur. Les jeux restent choisis dans une liste blanche de mécaniques déjà codées.
+- Le récit et le nom des jeux sont tirés dans le jeu lui-même, sans service en ligne. Les jeux restent choisis dans une liste blanche de mécaniques déjà codées.
 - Désactivation : `?forge=0`.
 
 ## Le Gardien met le Fort à jour
@@ -591,7 +586,7 @@ La première salle s'ouvre de la même façon à la fin de l'introduction. Les a
 - **Port animé** (couche `fort-persos`, désactivable avec `?persos=0`) : sur les écrans de menu, les auvents des étals ondulent, des passants marchent sur le quai, le Panda tient son étal et le Gardien veille sur son perchoir. Leurs positions viennent des ancres enregistrées au rendu du décor (`peint/out/accueil_*.json`, injectées dans `window.__decorsAncres`).
 - **Les personnages reviennent** : le Gardien, le Panda, le Parieur et le Voleur apparaissent, dessinés et animés (respiration, clignement, lanterne, pièce, clés), avec une bulle tirée de leur **chronique**. Chaque rencontre fait avancer leur histoire, et le compteur est mémorisé dans le navigateur (`fort-chronique`).
 - **Salle du Coffre** : la chambre forte (arches, runes, coffre sur son estrade, dix serrures) sert de décor à la salle du trésor, à ses transitions et aux écrans bonus.
-- Le Gardien (`gardien-chat.mjs`) connaît la même histoire et reste cohérent avec elle.
+- Le Gardien connaît la même histoire et reste cohérent avec elle.
 
 ## Sauvegarde partagée entre PC et mobile
 
@@ -685,22 +680,15 @@ Le Gardien veille désormais sur le Fort **sans joueur ni développeur** :
 
 | Pièce | Rôle |
 |---|---|
-| `netlify/functions/gardien-veille.mjs` (**toutes les heures**, tâche planifiée Netlify) | Vérifie le jeu, `version.json`, le mode hors connexion, la sauvegarde, la voix du Gardien et la présence de la clé de l'IA. Analyse aussi les incidents remontés par les joueurs (pannes répétées, avalanche d'erreurs). Il écrit l'état du Fort et **donne l'alerte** pour tout nouveau problème. |
+| `netlify/functions/gardien-veille.mjs` (**toutes les heures**, tâche planifiée Netlify) | Vérifie le jeu, `version.json`, le mode hors connexion, et la sauvegarde. Analyse aussi les incidents remontés par les joueurs (pannes répétées, avalanche d'erreurs). Il écrit l'état du Fort et **donne l'alerte** pour tout nouveau problème. |
 | `netlify/functions/rapport.mjs` (`/api/rapport`) | Reçoit des joueurs des résumés **anonymes** des réparations faites par le Gardien, ainsi que les signalements « Un souci ? ». Les messages sont nettoyés (pas de lien, de balise ni de jeton), bornés et limités en débit. |
 | `netlify/functions/etat.mjs` (`/api/etat`) | Donne l'état public du Fort, lu par le jeu. |
-| `netlify/functions/veille-web.mjs` (**une fois par jour**) | Le Gardien **source le web** grâce à l'outil de recherche de l'API Claude. Il garde un carnet de 3 nouveautés du monde des énigmes, avec leur source. |
-| Couche `fort-vigie` (`?vigie=0` pour la couper) | Envoie les incidents. Si une panne se répète sur l'appareil, elle prévient le joueur. Si la vigie signale une panne générale, elle prévient le joueur une fois en lui disant ce que ça change pour lui. Elle ajoute aussi l'entrée **☰ → État du Fort** : services, interventions, nouvelles du monde des énigmes et signalement d'un souci. |
+| Couche `fort-vigie` (`?vigie=0` pour la couper) | Envoie les incidents. Si une panne se répète sur l'appareil, elle prévient le joueur. Si la vigie signale une panne générale, elle prévient le joueur une fois en lui disant ce que ça change pour lui. Elle ajoute aussi l'entrée **☰ → État du Fort** : services, interventions et signalement d'un souci. |
 
 **Alertes** :
 - Chaque nouveau problème écrit une ligne `[ALERTE-FORT]` dans les journaux des fonctions Netlify.
 - Les signalements des joueurs écrivent une ligne `[SIGNALEMENT-FORT]`.
 - En option, définir `GITHUB_ALERTES_TOKEN` (jeton GitHub limité aux *Issues* du dépôt) dans les variables d'environnement Netlify. La vigie ouvre alors un ticket GitHub, au plus une fois par problème et par jour. `GITHUB_ALERTES_DEPOT` permet d'utiliser un autre dépôt.
-
-**Recherche web dans la conversation** :
-- Le Gardien peut faire une recherche sur le web, une seule par réponse, uniquement si le joueur demande une information réelle et récente. Il ne s'en sert jamais pour les épreuves du Fort.
-- Les sources s'affichent sous sa réponse, et le joueur reste dans le jeu.
-- Si la recherche web n'est pas activée sur le compte Anthropic, ou si elle est trop lente, le Gardien répond sans elle.
-- Coût : environ 10 $ pour 1 000 recherches, en plus des jetons.
 
 ## Registre du Fort
 
@@ -1119,9 +1107,17 @@ Inventaire de ce qui tourne en continu (minuteurs, boucles d'image, régulateur,
 
 La vigie horaire tourne sur Netlify (`gardien-veille`). L'application installée (Tauri sur PC, Capacitor sur mobile) la relaie désormais elle-même, sans dépendre du seul serveur :
 
-- **Contrôle sur place** (`FortVigie.controle`) : l'appareil sonde lui-même l'état publié (`/api/etat`), la sauvegarde partagée (identifiant nul → 404 attendu) et la voix du Gardien (`GET /api/gardien` → 405 attendu). Dans l'application : au démarrage, toutes les heures et au retour du réseau ; sur le site : à l'ouverture de ☰ → État du Fort, ou avec le bouton « ↻ Vérifier maintenant ».
+- **Contrôle sur place** (`FortVigie.controle`) : l'appareil sonde lui-même l'état publié (`/api/etat`), la sauvegarde partagée (identifiant nul → 404 attendu). Dans l'application : au démarrage, toutes les heures et au retour du réseau ; sur le site : à l'ouverture de ☰ → État du Fort, ou avec le bouton « ↻ Vérifier maintenant ».
 - **Vigie horaire en retard** : si l'état publié n'a pas été mis à jour depuis plus de 2 h, l'appareil le signale (incident `veille`) et l'affiche.
 - **Incidents conservés** : la file des incidents non transmis est gardée sur l'appareil (`localStorage`, 3 jours au plus) ; un incident noté hors connexion part à la réouverture. À la fermeture, la copie n'est effacée qu'une fois l'envoi confirmé.
 - **Panneau** : « Mode hors connexion : intégré à l'application », plateforme indiquée (PC ou mobile), résultat du contrôle depuis l'appareil.
 - **`version.json`** est servi avec `Access-Control-Allow-Origin: *` : l'application (autre origine) peut savoir qu'une mise à jour existe.
 - Test : application simulée (`?natif=1`) avec services interceptés sur `https://fort-enigma.netlify.app` : contrôle automatique, signalement du retard, panneau, incident hors connexion renvoyé à la réouverture.
+
+## v71 — Gardien autonome, sans API d'IA
+
+- Le Gardien ne dépend plus d'aucune API ni clé : il répond toujours dans le jeu, avec sa mémoire du Fort, en ligne comme hors ligne.
+- Supprimés : `gardien-chat.mjs` (route `/api/gardien`), `veille-web.mjs` et le récit « forge » écrit en ligne.
+- La vigie horaire et la vigie de l'application ne contrôlent plus que le site, la version, le mode hors connexion et la sauvegarde.
+- `outils/test-securite.mjs` vérifie à chaque envoi qu'aucune fonction n'appelle d'API d'IA ni ne lit de clé.
+- La variable `ANTHROPIC_API_KEY` peut être supprimée de Netlify : plus rien ne la lit.

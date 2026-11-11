@@ -37,10 +37,10 @@ jobs:
       - name: Auditer le fichier (reparer.py, avec node --check)
         run: python3 outils/reparer.py index.html
 
-      - name: Vérifier la syntaxe de la fonction serverless du Gardien
-        run: node --check netlify/functions/gardien-chat.mjs && node --check netlify/functions/sauvegarde.mjs && for f in rapport etat gardien-veille veille-web; do node --check netlify/functions/$f.mjs; done && node --check netlify/lib/vigie.mjs
+      - name: Vérifier la syntaxe des fonctions serveur (aucune API d’IA)
+        run: for f in sauvegarde rapport etat gardien-veille instagram instagram-maj; do node --check netlify/functions/$f.mjs; done && node --check netlify/lib/vigie.mjs
 
-      - name: Tests de sécurité de la fonction du Gardien
+      - name: Tests de sécurité des fonctions serveur
         run: node outils/test-securite.mjs
       - name: Vérifier que les jeux de la Forge sont toujours solubles
         run: node outils/test-forge.mjs index.html
