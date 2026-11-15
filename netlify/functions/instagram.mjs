@@ -60,7 +60,8 @@ export default async (req) => {
     return new Response(b.data, { headers: { "content-type": b.metadata.type, "cache-control": "public, max-age=3600" } });
   }
   const p = await store.get("post", { type: "json" });
-  if (!p) return Response.json({}, { status: 404 });
+  // aucun post encore récupéré : réponse vide (et non 404), pour ne pas compter comme une ressource en erreur
+  if (!p) return Response.json({}, { headers: { "cache-control": "public, max-age=600" } });
   return Response.json(
     { image: `/.netlify/functions/instagram?image=${encodeURIComponent(p.v)}`, compte: p.compte, legende: p.legende, quand: depuis(p.date), lien: /^https:\/\/www\.instagram\.com\//.test(p.lien) ? p.lien : "" },
     { headers: { "cache-control": "public, max-age=600" } },

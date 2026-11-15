@@ -1137,3 +1137,13 @@ La vigie horaire tourne sur Netlify (`gardien-veille`). L'application installée
 ## v75 — Fil des chapitres de l'Histoire du Fort
 
 - Sur téléphone, la hauteur tactile minimale (44 px) étirait les points ronds en ovales. Ils sont remplacés par un fil d'or ponctué de losanges : chapitres lus pleins, chapitre en cours plus grand et lumineux. La zone tactile de 44 px est conservée, mais invisible.
+
+## v76 — Corrections de l'audit CheckWeb (15 novembre 2026)
+
+- **CSP stricte** : plus de `'unsafe-inline'` pour les scripts. Chaque script en ligne est autorisé par son empreinte SHA-256 (balise meta et en-tête Netlify). `python3 outils/csp.py` recalcule les empreintes ; la CI vérifie qu'elles sont à jour. **À lancer après toute modification d'`index.html`, en dernier** (après `reparer.py` et le changement de version).
+- **Aucun `onclick` dans le HTML** : `data-clic="fonction(arguments littéraux)"`, traité par un seul écouteur (`fort-clic`).
+- **Affichage plus rapide (LCP)** : la carte d'accueil est peinte dès l'ouverture, sous le voile opaque du splash, au lieu d'attendre sa fin (2,1 s → 0,75 s en local).
+- **Accessibilité** : `#app` devient `<main>` (repère principal ; tout le contenu est dans un repère) ; un seul titre de niveau 1.
+- **SEO** : `robots.txt`, `sitemap.xml`, URL canonique, données structurées `VideoGame` (le robot d'audit prenait le jeu pour un restaurant).
+- **Mentions légales** : `mentions-legales.html`, liée depuis le pied de page de l'accueil (éditeur particulier non professionnel, hébergeur, données personnelles).
+- **Instagram** : la fonction répond 200 avec un objet vide tant qu'aucun post n'est récupéré (au lieu de 404).

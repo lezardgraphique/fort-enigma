@@ -40,6 +40,9 @@ jobs:
       - name: Vérifier la syntaxe des fonctions serveur (aucune API d’IA)
         run: for f in sauvegarde rapport etat gardien-veille instagram instagram-maj; do node --check netlify/functions/$f.mjs; done && node --check netlify/lib/vigie.mjs
 
+      - name: CSP stricte — chaque script du jeu est signé (empreintes à jour, sans 'unsafe-inline')
+        run: python3 outils/csp.py --verifier
+
       - name: Tests de sécurité des fonctions serveur
         run: node outils/test-securite.mjs
       - name: Vérifier que les jeux de la Forge sont toujours solubles

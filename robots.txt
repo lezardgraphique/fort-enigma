@@ -1,0 +1,6 @@
+# Fort Énigma — tout le jeu est public ; les fonctions serveur n'ont rien à indexer.
+User-agent: *
+Allow: /
+Disallow: /.netlify/
+
+Sitemap: https://fort-enigma.netlify.app/sitemap.xml
