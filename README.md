@@ -1147,3 +1147,14 @@ La vigie horaire tourne sur Netlify (`gardien-veille`). L'application installée
 - **SEO** : `robots.txt`, `sitemap.xml`, URL canonique, données structurées `VideoGame` (le robot d'audit prenait le jeu pour un restaurant).
 - **Mentions légales** : `mentions-legales.html`, liée depuis le pied de page de l'accueil (éditeur particulier non professionnel, hébergeur, données personnelles).
 - **Instagram** : la fonction répond 200 avec un objet vide tant qu'aucun post n'est récupéré (au lieu de 404).
+
+## v77 — Passe anti-bugs complète (20 novembre 2026)
+
+Contrôle : 24 parties robot complètes (solo, soirée, plateau × PC, téléphone, iPad iOS 15), touchers réels à l'écran ; galerie de toutes les épreuves × 5 formats (PC, iPad, téléphone, petit téléphone, paysage), en partie normale et en duel (282 combinaisons).
+
+- **Anagramme en duel** : la colonne du joueur prenait la largeur du mot ; un mot de 7 lettres ou plus sortait de l'écran sur téléphone (cases, lettres, « Recommencer »). La colonne suit l'écran et les cases passent à la ligne.
+- **Marché de Midi** : les jetons pouvaient se superposer (« 49 » sur « 29 »). Placement espacé : jamais de chevauchement, même en duel sur petit écran.
+- **« Rejouer l'épreuve »** : relançait l'épreuve sans son titre thématique (l'Atelier affichait « undefined »).
+- **Météo réelle sur demande** : le jeu demandait la position à chaque ouverture et, en cas de refus, envoyait l'adresse IP à des services tiers. Désormais rien n'est demandé tant que le joueur n'a pas touché « 📍 Voir la météo locale » ou saisi sa ville (choix mémorisé).
+- **Publication GitHub Pages et applications** : liste de fichiers automatique (logo de chargement, emblème, mentions légales… manquaient ; le hors connexion ne pouvait pas s'installer sur Pages). `outils/references.py` le vérifie en CI.
+- Capture du robot (`partie_fin.png`, 800 Ko) retirée du site ; style anti-copie déplacé dans `<head>`.
