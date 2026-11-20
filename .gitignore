@@ -25,3 +25,6 @@ Thumbs.db
 
 # le dossier des applications a besoin de son verrou de dépendances (npm ci)
 !portage/package-lock.json
+
+# capture produite par outils/partie-ipad.js
+partie_fin.png

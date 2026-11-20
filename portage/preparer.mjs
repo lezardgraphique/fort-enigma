@@ -2,7 +2,7 @@
 // Le jeu est le même fichier que sur le site : on copie index.html, ses décors,
 // ses icônes et version.json. (Pas de service worker : l'application a déjà
 // tous ses fichiers sur l'appareil.)
-import { cpSync, mkdirSync, rmSync, existsSync, readFileSync, writeFileSync } from "node:fs";
+import { cpSync, mkdirSync, rmSync, existsSync, readFileSync, writeFileSync, readdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -12,8 +12,9 @@ const www = join(ici, "www");
 rmSync(www, { recursive: true, force: true });
 mkdirSync(www, { recursive: true });
 
-const fichiers = ["index.html", "version.json", "manifest.webmanifest", "favicon.ico", "favicon-16.png", "favicon-32.png",
-  "icone-192.png", "icone-512.png", "icone-masquable-512.png", "apercu.jpg", "cle-fort-enigma.png", "cle-fort-enigma-transparent.png"];
+// tous les fichiers du jeu à la racine (pages, images, icônes…) : liste automatique, pour qu'aucun
+// nouveau fichier (logo, emblème…) ne manque dans les applications
+const fichiers = readdirSync(racine).filter((f) => /\.(html|png|jpe?g|webp|ico|svg|webmanifest)$/i.test(f) || f === "version.json");
 for (const f of fichiers) if (existsSync(join(racine, f))) cpSync(join(racine, f), join(www, f));
 cpSync(join(racine, "decors"), join(www, "decors"), { recursive: true });
 

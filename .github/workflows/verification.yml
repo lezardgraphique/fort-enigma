@@ -40,6 +40,9 @@ jobs:
       - name: Vérifier la syntaxe des fonctions serveur (aucune API d’IA)
         run: for f in sauvegarde rapport etat gardien-veille instagram instagram-maj; do node --check netlify/functions/$f.mjs; done && node --check netlify/lib/vigie.mjs
 
+      - name: Fichiers du jeu — chaque image, icône et fichier hors connexion cité existe
+        run: python3 outils/references.py
+
       - name: CSP stricte — chaque script du jeu est signé (empreintes à jour, sans 'unsafe-inline')
         run: python3 outils/csp.py --verifier
 

@@ -49,6 +49,6 @@ const UA = process.argv[3] || 'Mozilla/5.0 (iPad; CPU OS 15_8 like Mac OS X) App
   console.log('Écrans (nb de relevés) :', JSON.stringify(ecrans));
   console.log('Animations de jeu en pause :', Object.keys(pauses).length ? JSON.stringify(pauses) : 'aucune');
   console.log('Erreurs JS :', errs.length ? errs : 'aucune');
-  await p.screenshot({ path: 'partie_fin.png' });
+  await p.screenshot({ path: require('path').join(require('os').tmpdir(), 'partie_fin.png') });
   await b.close();
 })();
